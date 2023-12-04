@@ -1,0 +1,3 @@
+[workspace]
+members = ["pacesetter", "pacesetter-procs"]
+resolver = "2"
