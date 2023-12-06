@@ -1,5 +1,6 @@
 use cargo_generate::{GenerateArgs, TemplatePath};
 use clap::{arg, command, value_parser, Command};
+use owo_colors::OwoColorize;
 use std::env::current_dir;
 use std::path::PathBuf;
 
@@ -35,10 +36,20 @@ fn generate(name: &str, output_dir: &str) {
             revision: Some(env!("VERGEN_GIT_SHA").into()),
             ..Default::default()
         },
-        destination: Some(output_dir),
+        destination: Some(output_dir.clone()),
         name: Some(String::from(name)),
         force_git_init: true,
         ..Default::default()
     };
+
+    println!("{} pacasetter project…", "Generating".bright_blue());
+
     cargo_generate::generate(generate_args).unwrap();
+
+    println!(
+        "{}  {} at {}",
+        "Generated".green(),
+        name,
+        output_dir.display()
+    );
 }
