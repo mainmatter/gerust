@@ -1,43 +1,39 @@
 use anyhow::anyhow;
 use cargo_generate::{GenerateArgs, TemplatePath};
-use clap::{arg, command, value_parser, Command};
+use clap::Parser;
 use owo_colors::OwoColorize;
 use std::env::current_dir;
 use std::path::PathBuf;
 
-fn cli() -> Command {
-    command!()
-        .arg(arg!(name: <NAME>).value_parser(value_parser!(String)))
-        .arg(arg!(outdir: -o <OUTDIR>).value_parser(value_parser!(String)))
+static VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), " (", env!("VERGEN_GIT_SHA"), ")");
+
+#[derive(Parser)]
+#[clap(author, version = VERSION, about, long_about = None)]
+struct Cli {
+    #[arg(index = 1)]
+    name: String,
+    #[arg(short, long, value_parser)]
+    outdir: Option<PathBuf>,
 }
 
 fn main() {
-    let matches = cli().get_matches();
-    let name = matches
-        .get_one::<String>("name")
-        .map(|s| s.as_str())
-        .unwrap();
-    let output_dir = matches
-        .get_one::<String>("outdir")
-        .map(|s| s.as_str())
-        .unwrap_or(name);
+    let cli = Cli::parse();
 
-    println!("{} pacesetter project…", "Generating".bright_blue());
+    info("Generating", "pacesetter project…");
 
-    match generate(name, output_dir) {
-        Ok(_) => println!(
-            "{}  {} at {}",
-            "Generated".green(),
-            name,
-            output_dir
-        ),
-        Err(_) => print!("{}     to generate project!\n", "Failed".red()),
+    match generate(&cli.name, cli.outdir) {
+        Ok(output_dir) => success("Generated", format!("{} at {}.", cli.name, output_dir.display()).as_str()),
+        Err(e) => error("Failed", format!("to generate project: {:?}!", e).as_str()),
     }
 }
 
-fn generate(name: &str, output_dir: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn generate(name: &str, output_dir: Option<PathBuf>) -> Result<PathBuf, Box<dyn std::error::Error>> {
     let current_dir = current_dir()?;
-    let output_dir = current_dir.join(output_dir);
+    let output_dir = if let Some(output_dir) = output_dir {
+        current_dir.join(output_dir)
+    } else {
+        current_dir.join(name)
+    };
     let output_dir = output_dir
         .parent()
         .ok_or_else(|| anyhow!("Cannot get output directory"))?;
@@ -57,7 +53,23 @@ fn generate(name: &str, output_dir: &str) -> Result<(), Box<dyn std::error::Erro
         ..Default::default()
     };
 
-    cargo_generate::generate(generate_args)?;
+    let output_dir = cargo_generate::generate(generate_args)?;
 
-    Ok(())
+    Ok(output_dir)
+}
+
+fn info(title: &str, text: &str) {
+    println!("ℹ️  {} {}", pad_title(title).bright_blue(), text);
+}
+
+fn success(title: &str, text: &str) {
+    println!("✅ {} {}", pad_title(title).green(), text);
+}
+
+fn error(title: &str, text: &str) {
+    eprintln!("❌ {} {}", pad_title(title).red(), text);
+}
+
+fn pad_title(text: &str) -> String {
+    format!("{: >10}", text)
 }
