@@ -7,23 +7,23 @@ description = "Meta-framework on top of axum"
 license = "MIT"
 
 [dependencies]
-axum = "0.6"
+axum = "0.7"
 clap = "4.4"
 dotenvy = "0.15"
 figment = { version = "0.10", features = ["toml", "env"] }
 rand = "0.8"
 refinery = { version = "0.8", features = ["tokio-postgres"]}
 serde = { version = "1.0", features = ["derive"] } 
-tokio = { version = "1.33", features = ["full"] }
+tokio = { version = "1.34", features = ["full"] }
 sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-rustls", "postgres", "migrate" ] }
 tower = { version = "0.4", features = ["util"] }
-tower-http = { version = "0.4", features = ["full"] }
+tower-http = { version = "0.5", features = ["full"] }
 tracing = "0.1"
 tracing-panic = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "registry", "fmt"] }
-url = "2.4"
+url = "2.5"
 validator = { version = "0.16", features = ["derive"] }
 
 [dev-dependencies]
 serde_json = "1.0"
-hyper = { version = "0.14", features = ["full"] }
+hyper = { version = "1.0", features = ["full"] }
