@@ -11,6 +11,7 @@ name = "pace"
 path = "src/main.rs"
 
 [dependencies]
+anyhow = "1"
 clap = { version = "4.4", features = ["cargo"] }
 cargo-generate = { git = "https://github.com/LukeMathWalker/cargo-generate", branch = "main" }
 owo-colors = "3"

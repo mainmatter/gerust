@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use cargo_generate::{GenerateArgs, TemplatePath};
 use clap::{arg, command, value_parser, Command};
 use owo_colors::OwoColorize;
@@ -21,12 +22,26 @@ fn main() {
         .map(|s| s.as_str())
         .unwrap_or(name);
 
-    generate(name, output_dir);
+    println!("{} pacesetter project…", "Generating".bright_blue());
+
+    match generate(name, output_dir) {
+        Ok(_) => println!(
+            "{}  {} at {}",
+            "Generated".green(),
+            name,
+            output_dir
+        ),
+        Err(_) => print!("{}     to generate project!\n", "Failed".red()),
+    }
 }
 
-fn generate(name: &str, output_dir: &str) {
-    let current_dir = current_dir().unwrap();
-    let output_dir = PathBuf::from(current_dir.join(output_dir).parent().unwrap());
+fn generate(name: &str, output_dir: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let current_dir = current_dir()?;
+    let output_dir = current_dir.join(output_dir);
+    let output_dir = output_dir
+        .parent()
+        .ok_or_else(|| anyhow!("Cannot get output directory"))?;
+    let output_dir = PathBuf::from(output_dir);
 
     let generate_args = GenerateArgs {
         template_path: TemplatePath {
@@ -42,14 +57,7 @@ fn generate(name: &str, output_dir: &str) {
         ..Default::default()
     };
 
-    println!("{} pacasetter project…", "Generating".bright_blue());
+    cargo_generate::generate(generate_args)?;
 
-    cargo_generate::generate(generate_args).unwrap();
-
-    println!(
-        "{}  {} at {}",
-        "Generated".green(),
-        name,
-        output_dir.display()
-    );
+    Ok(())
 }
