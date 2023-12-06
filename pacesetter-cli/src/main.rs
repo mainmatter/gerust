@@ -32,6 +32,7 @@ fn generate(name: &str, output_dir: &str) {
             git: Some("https://github.com/marcoow/pacesetter".into()),
             subfolder: Some("template".into()),
             branch: Some("cli".into()),
+            revision: Some(env!("VERGEN_GIT_SHA").into()),
             ..Default::default()
         },
         destination: Some(output_dir),

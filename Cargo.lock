@@ -383,8 +383,7 @@ checksum = "a2bd12c1caf447e69cd4528f47f94d203fd2582878ecb9e9465484c4148a8223"
 [[package]]
 name = "cargo-generate"
 version = "0.18.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a2885ae054e000b117515ab33e91c10eca90c2788a7baec1b97ada1f1f51e57"
+source = "git+https://github.com/LukeMathWalker/cargo-generate?branch=main#3bf2c4b88732a9e5f6247997dbcc83f0feb9b9ef"
 dependencies = [
  "anyhow",
  "auth-git2",
@@ -2018,6 +2017,7 @@ version = "0.0.1"
 dependencies = [
  "cargo-generate",
  "clap",
+ "vergen",
 ]
 
 [[package]]
@@ -3695,6 +3695,17 @@ name = "vcpkg"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "accd4ea62f7bb7a82fe23066fb0957d48ef677f6eeb8215f372f52e48bb32426"
+
+[[package]]
+name = "vergen"
+version = "8.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1290fd64cc4e7d3c9b07d7f333ce0ce0007253e32870e632624835cc80b83939"
+dependencies = [
+ "anyhow",
+ "rustversion",
+ "time",
+]
 
 [[package]]
 name = "version_check"

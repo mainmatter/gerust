@@ -12,4 +12,7 @@ path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.4", features = ["cargo"] }
-cargo-generate = "0.18"
+cargo-generate = { git = "https://github.com/LukeMathWalker/cargo-generate", branch = "main" }
+
+[build-dependencies]
+vergen = { version = "8.0.0", features = ["build", "git", "gitcl"] }
