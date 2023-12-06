@@ -1,5 +1,5 @@
-use pacesetter::{cli::db::cli, load_config};
 use {{crate_name}}_config::Config;
+use pacesetter::{cli::db::cli, load_config};
 
 #[tokio::main]
 async fn main() {

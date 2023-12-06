@@ -1,6 +1,6 @@
 use axum::http::StatusCode;
-use pacesetter::{get_env, load_config};
 use {{crate_name}}_config::Config;
+use pacesetter::{get_env, load_config};
 use tracing::info;
 
 mod controllers;

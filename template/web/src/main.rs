@@ -1,5 +1,5 @@
-use pacesetter::init_tracing;
 use {{crate_name}}_web::run;
+use pacesetter::init_tracing;
 
 #[tokio::main]
 async fn main() {

@@ -1,11 +1,11 @@
+use {{crate_name}}_config::Config;
+use {{crate_name}}_web::routes::routes;
+use {{crate_name}}_web::state::AppState;
 use pacesetter::{
     load_config,
     test::helpers::{build_test_context, prepare_db, TestContext},
     Environment,
 };
-use {{crate_name}}_config::Config;
-use {{crate_name}}_web::routes::routes;
-use {{crate_name}}_web::state::AppState;
 use sqlx::postgres::PgPoolOptions;
 use std::cell::OnceCell;
 
