@@ -62,3 +62,68 @@ jobs:
 
     - name: test
       run: cargo test
+
+  validate-cli:
+    name: "Validate CLI"
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_DB: my_app
+          POSTGRES_USER: my_app
+          POSTGRES_PASSWORD: my_app
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      postgres_test:
+        image: postgres
+        env:
+          POSTGRES_DB: my_app_test
+          POSTGRES_USER: my_app_test
+          POSTGRES_PASSWORD: my_app_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+    
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    
+    - name: generate
+      run: cargo run --package pacesetter-cli my-app
+
+    - name: migrate
+      run: |
+        cd my-app
+        cargo db reset
+        cargo db reset -e test
+
+    - name: test-generated
+      run: |
+        cd my-app
+        cargo test
+
+    - name: fmt-generated
+      run: |
+        cd my-app
+        cargo fmt --all -- --check
+
+    - name: clippy-generated
+      run: |
+        cd my-app
+        cargo clippy --all-targets -- -D warnings
+
+    - name: run-generated
+      run: |
+        cd my-app
+        cargo run & (timeout 30 sh -c 'until nc -z $0 $1; do sleep 1; done' localhost 3000)
