@@ -7,7 +7,7 @@ description = "Meta-framework on top of axum"
 license = "MIT"
 
 [dependencies]
-axum = "0.6"
+axum = "0.7"
 clap = "4.4"
 dotenvy = "0.15"
 figment = { version = "0.10", features = ["toml", "env"] }
