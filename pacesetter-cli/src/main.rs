@@ -36,13 +36,27 @@ fn generate(name: &str, output_dir: Option<PathBuf>) -> Result<PathBuf, anyhow::
         current_dir
     };
 
-    let generate_args = GenerateArgs {
-        template_path: TemplatePath {
+    let is_pacesetter_cli_dev = if let Some(env) = option_env!("PACESETTER_CLI_DEV") {
+        env == "1"
+    } else {
+        false
+    };
+    let template_path = if is_pacesetter_cli_dev {
+        TemplatePath {
+            path: Some("./template".into()),
+            ..Default::default()
+        }
+    } else {
+        TemplatePath {
             git: Some("https://github.com/marcoow/pacesetter".into()),
             subfolder: Some("template".into()),
             revision: Some(env!("VERGEN_GIT_SHA").into()),
             ..Default::default()
-        },
+        }
+    };
+
+    let generate_args = GenerateArgs {
+        template_path,
         destination: Some(output_dir.clone()),
         name: Some(String::from(name)),
         force_git_init: true,
