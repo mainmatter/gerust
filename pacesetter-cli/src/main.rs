@@ -43,6 +43,11 @@ fn generate(name: &str, output_dir: Option<PathBuf>) -> Result<PathBuf, anyhow::
             revision: Some(env!("VERGEN_GIT_SHA").into()),
             ..Default::default()
         },
+        // uncomment to use the local template from the working directory in development:
+        // template_path: TemplatePath {
+        //     path: Some("./template".into()),
+        //     ..Default::default()
+        // },
         destination: Some(output_dir.clone()),
         name: Some(String::from(name)),
         force_git_init: true,
