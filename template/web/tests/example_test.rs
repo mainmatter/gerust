@@ -1,5 +1,6 @@
 use axum::{body::Body, http::Method};
-use pacesetter::test::helpers::response_body;
+use {{crate_name}}_web::controllers::example::Message;
+use pacesetter::test::helpers::response_body_json;
 use pacesetter::test::helpers::{request, teardown, TestContext};
 use pacesetter_procs::test;
 use std::collections::HashMap;
@@ -17,6 +18,6 @@ async fn test_hello(context: &TestContext) {
     )
     .await;
 
-    let body = response_body(response).await;
-    assert_eq!(&body[..], b"<h1>Hello, World!</h1>");
+    let message: Message = response_body_json(response).await;
+    assert_eq!(message.hello, String::from("world"));
 }

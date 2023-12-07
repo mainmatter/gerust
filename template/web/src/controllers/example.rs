@@ -1,5 +1,13 @@
-use axum::response::Html;
+use axum::response::Json;
+use serde::{Deserialize, Serialize};
 
-pub async fn hello() -> Html<&'static str> {
-    Html("<h1>Hello, World!</h1>")
+#[derive(Deserialize, Serialize)]
+pub struct Message {
+    pub hello: String,
+}
+
+pub async fn hello() -> Json<Message> {
+    Json(Message {
+        hello: String::from("world"),
+    })
 }
