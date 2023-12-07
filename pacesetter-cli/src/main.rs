@@ -22,12 +22,18 @@ fn main() {
     info("Generating", "pacesetter project…");
 
     match generate(&cli.name, cli.outdir) {
-        Ok(output_dir) => success("Generated", format!("{} at {}.", cli.name, output_dir.display()).as_str()),
+        Ok(output_dir) => success(
+            "Generated",
+            format!("{} at {}.", cli.name, output_dir.display()).as_str(),
+        ),
         Err(e) => error("Failed", format!("to generate project: {:?}!", e).as_str()),
     }
 }
 
-fn generate(name: &str, output_dir: Option<PathBuf>) -> Result<PathBuf, Box<dyn std::error::Error>> {
+fn generate(
+    name: &str,
+    output_dir: Option<PathBuf>,
+) -> Result<PathBuf, Box<dyn std::error::Error>> {
     let current_dir = current_dir()?;
     let output_dir = if let Some(output_dir) = output_dir {
         current_dir.join(output_dir)
