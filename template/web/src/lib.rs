@@ -1,8 +1,8 @@
 use axum::http::StatusCode;
 use axum::serve;
 use {{crate_name}}_config::Config;
-use tokio::net::TcpListener;
 use pacesetter::{get_env, load_config};
+use tokio::net::TcpListener;
 use tracing::info;
 
 mod controllers;
