@@ -1,0 +1,28 @@
+[package]
+name = "{{project-name}}-web"
+version = "0.0.1"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow = "1.0"
+axum = "0.6"
+pacesetter = "0.0.1"
+clap = "4.4"
+rand = "0.8"
+refinery = { version = "0.8", features = ["tokio-postgres"]}
+{{project-name}}-config = { path = "../config" }
+{{project-name}}-db = { path = "../db" }
+serde = { version = "1.0", features = ["derive"] } 
+sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-rustls", "postgres", "macros", "uuid", "migrate", "chrono" ] }
+tokio = { version = "1.33", features = ["full"] }
+tower-http = { version = "0.4", features = ["full"] }
+tracing = "0.1"
+uuid = { version = "1.5", features = ["serde"] }
+validator = { version = "0.16", features = ["derive"] }
+
+[dev-dependencies]
+serde_json = "1.0"
+tower = { version = "0.4", features = ["util"] }
+hyper = { version = "0.14", features = ["full"] }
+pacesetter-procs = "0.0.1"

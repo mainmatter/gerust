@@ -1,0 +1,19 @@
+[package]
+name = "pacesetter-cli"
+version = "0.0.1"
+edition = "2021"
+authors = ["Marco Otte-Witte <marco.otte-witte@mainmatter.com>"]
+description = "CLI for Meta-framework on top of axum"
+license = "MIT"
+
+[[bin]]
+name = "pace"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4.4", features = ["cargo"] }
+cargo-generate = { git = "https://github.com/LukeMathWalker/cargo-generate", branch = "main" }
+
+[build-dependencies]
+vergen = { version = "8.0.0", features = ["build", "git", "gitcl"] }
