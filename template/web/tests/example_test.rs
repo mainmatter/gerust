@@ -1,9 +1,9 @@
-use axum::body::Bytes;
 use axum::response::Response;
 use axum::{body::Body, http::Method};
 use pacesetter::test::helpers::{request, teardown, TestContext};
 use pacesetter_procs::test;
 use std::collections::HashMap;
+use pacesetter::test::helpers::response_body;
 
 mod common;
 
@@ -22,9 +22,3 @@ async fn test_hello(context: &TestContext) {
     assert_eq!(&body[..], b"<h1>Hello, World!</h1>");
 }
 
-async fn response_body(response: Response<Body>) -> Bytes {
-    // We don't care about the size limit in tests.
-    axum::body::to_bytes(response.into_body(), usize::MAX)
-        .await
-        .expect("Failed to read response body")
-}
