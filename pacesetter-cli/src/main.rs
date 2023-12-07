@@ -1,4 +1,3 @@
-use anyhow::anyhow;
 use cargo_generate::{GenerateArgs, TemplatePath};
 use clap::Parser;
 use owo_colors::OwoColorize;
@@ -36,14 +35,10 @@ fn generate(
 ) -> Result<PathBuf, Box<dyn std::error::Error>> {
     let current_dir = current_dir()?;
     let output_dir = if let Some(output_dir) = output_dir {
-        current_dir.join(output_dir)
+        output_dir
     } else {
-        current_dir.join(name)
+        current_dir
     };
-    let output_dir = output_dir
-        .parent()
-        .ok_or_else(|| anyhow!("Cannot get output directory"))?;
-    let output_dir = PathBuf::from(output_dir);
 
     let generate_args = GenerateArgs {
         template_path: TemplatePath {
