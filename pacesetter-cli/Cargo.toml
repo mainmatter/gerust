@@ -14,7 +14,6 @@ path = "src/main.rs"
 anyhow = "1"
 clap = { version = "4.4", features = ["cargo"] }
 cargo-generate = { git = "https://github.com/LukeMathWalker/cargo-generate", branch = "main" }
-owo-colors = "3"
 
 [build-dependencies]
 vergen = { version = "8.0.0", features = ["build", "git", "gitcl"] }

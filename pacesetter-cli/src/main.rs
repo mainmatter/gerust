@@ -1,6 +1,6 @@
+use anyhow::Context;
 use cargo_generate::{GenerateArgs, TemplatePath};
 use clap::Parser;
-use owo_colors::OwoColorize;
 use std::env::current_dir;
 use std::path::PathBuf;
 
@@ -18,21 +18,17 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
 
-    info("Generating", "pacesetter project…");
+    info(format!("Generating {}…", cli.name).as_str());
 
     match generate(&cli.name, cli.outdir) {
-        Ok(output_dir) => success(
-            "Generated",
-            format!("{} at {}.", cli.name, output_dir.display()).as_str(),
-        ),
-        Err(e) => error("Failed", format!("to generate project: {:?}!", e).as_str()),
+        Ok(output_dir) => {
+            success(format!("Generated {} at {}", cli.name, output_dir.display()).as_str())
+        }
+        Err(e) => error(format!("Error: {:?}", e).as_str()),
     }
 }
 
-fn generate(
-    name: &str,
-    output_dir: Option<PathBuf>,
-) -> Result<PathBuf, Box<dyn std::error::Error>> {
+fn generate(name: &str, output_dir: Option<PathBuf>) -> Result<PathBuf, anyhow::Error> {
     let current_dir = current_dir()?;
     let output_dir = if let Some(output_dir) = output_dir {
         output_dir
@@ -54,23 +50,20 @@ fn generate(
         ..Default::default()
     };
 
-    let output_dir = cargo_generate::generate(generate_args)?;
+    let output_dir = cargo_generate::generate(generate_args)
+        .context("failed to generate project from template")?;
 
     Ok(output_dir)
 }
 
-fn info(title: &str, text: &str) {
-    println!("ℹ️  {} {}", pad_title(title).bright_blue(), text);
+fn info(text: &str) {
+    println!("ℹ️  {}", text);
 }
 
-fn success(title: &str, text: &str) {
-    println!("✅ {} {}", pad_title(title).green(), text);
+fn success(text: &str) {
+    println!("✅ {}", text);
 }
 
-fn error(title: &str, text: &str) {
-    eprintln!("❌ {} {}", pad_title(title).red(), text);
-}
-
-fn pad_title(text: &str) -> String {
-    format!("{: >10}", text)
+fn error(text: &str) {
+    eprintln!("❌ {}", text);
 }
