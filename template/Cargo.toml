@@ -2,3 +2,6 @@
 members = ["cli", "config", "db", "web"]
 resolver = "2"
 default-members = ["web"]
+
+[workspace.dependencies]
+pacesetter = "0.0.1"

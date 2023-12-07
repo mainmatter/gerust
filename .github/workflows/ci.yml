@@ -90,7 +90,17 @@ jobs:
       
       - name: generate
         run: cargo run --package pacesetter-cli my-app
-      
+
+      - name: use-local-pacesetter
+        run: |
+          cd my-app/cli
+          cargo add pacesetter --path ../../pacesetter
+          cd ../config
+          cargo add pacesetter --path ../../pacesetter
+          cd ../web
+          cargo add pacesetter --path ../../pacesetter
+          cargo add --dev pacesetter-procs --path ../../pacesetter-procs
+
       - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3
         with:
           name: my-app
