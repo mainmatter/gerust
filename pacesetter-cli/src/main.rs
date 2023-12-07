@@ -40,7 +40,6 @@ fn generate(name: &str, output_dir: Option<PathBuf>) -> Result<PathBuf, anyhow::
         template_path: TemplatePath {
             git: Some("https://github.com/marcoow/pacesetter".into()),
             subfolder: Some("template".into()),
-            branch: Some("cli".into()),
             revision: Some(env!("VERGEN_GIT_SHA").into()),
             ..Default::default()
         },
