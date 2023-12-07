@@ -5,8 +5,8 @@ use pacesetter::{get_env, load_config};
 use tokio::net::TcpListener;
 use tracing::info;
 
-mod controllers;
-mod middlewares;
+pub mod controllers;
+pub mod middlewares;
 pub mod routes;
 pub mod state;
 

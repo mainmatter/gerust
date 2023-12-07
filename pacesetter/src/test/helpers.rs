@@ -1,6 +1,6 @@
 use crate::config::DatabaseConfig;
 use axum::{
-    body::Body,
+    body::{Body, Bytes},
     http::{Method, Request},
     response::Response,
     Router,
@@ -78,6 +78,21 @@ pub async fn request(
     let request = request_builder.body(body);
 
     app.clone().oneshot(request.unwrap()).await.unwrap()
+}
+
+pub async fn response_body_json<T>(response: Response<Body>) -> T
+where
+    T: serde::de::DeserializeOwned,
+{
+    let body = response_body(response).await;
+    serde_json::from_slice::<T>(&body).expect("Failed to deserialize JSON body")
+}
+
+pub async fn response_body(response: Response<Body>) -> Bytes {
+    // We don't care about the size limit in tests.
+    axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .expect("Failed to read response body")
 }
 
 fn build_test_db_name(base_name: &str) -> String {
