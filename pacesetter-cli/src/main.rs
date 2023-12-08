@@ -1,7 +1,7 @@
 use anyhow::Context;
 use cargo_generate::{GenerateArgs, TemplatePath};
 use clap::Parser;
-use std::env::current_dir;
+use std::env;
 use std::path::PathBuf;
 
 static VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), " (", env!("VERGEN_GIT_SHA"), ")");
@@ -18,9 +18,11 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
 
+    let is_local = env::var("PS_CLI_LOCAL_DEV").is_ok();
+
     info(format!("Generating {}…", cli.name).as_str());
 
-    match generate(&cli.name, cli.outdir) {
+    match generate(&cli.name, cli.outdir, is_local) {
         Ok(output_dir) => {
             success(format!("Generated {} at {}", cli.name, output_dir.display()).as_str())
         }
@@ -28,26 +30,33 @@ fn main() {
     }
 }
 
-fn generate(name: &str, output_dir: Option<PathBuf>) -> Result<PathBuf, anyhow::Error> {
-    let current_dir = current_dir()?;
+fn generate(name: &str, output_dir: Option<PathBuf>, local: bool) -> Result<PathBuf, anyhow::Error> {
+    if local {
+        info("Using local template ./template");
+    }
+
     let output_dir = if let Some(output_dir) = output_dir {
         output_dir
     } else {
-        current_dir
+        env::current_dir()?
     };
 
-    let generate_args = GenerateArgs {
-        template_path: TemplatePath {
+    let template_path = if local {
+        TemplatePath {
+            path: Some("./template".into()),
+            ..Default::default()
+        }
+    } else {
+        TemplatePath {
             git: Some("https://github.com/marcoow/pacesetter".into()),
             subfolder: Some("template".into()),
             revision: Some(env!("VERGEN_GIT_SHA").into()),
             ..Default::default()
-        },
-        // uncomment to use the local template from the working directory in development:
-        // template_path: TemplatePath {
-        //     path: Some("./template".into()),
-        //     ..Default::default()
-        // },
+        }
+    };
+
+    let generate_args = GenerateArgs {
+        template_path,
         destination: Some(output_dir.clone()),
         name: Some(String::from(name)),
         force_git_init: true,

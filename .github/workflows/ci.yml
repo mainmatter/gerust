@@ -67,6 +67,9 @@ jobs:
     name: Generate example app
     runs-on: ubuntu-latest
 
+    env:
+      PS_CLI_LOCAL_DEV: 1
+
     services:
       postgres:
         image: postgres
