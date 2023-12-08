@@ -30,8 +30,12 @@ fn main() {
     }
 }
 
-fn generate(name: &str, output_dir: Option<PathBuf>, local: bool) -> Result<PathBuf, anyhow::Error> {
-    if local {
+fn generate(
+    name: &str,
+    output_dir: Option<PathBuf>,
+    is_local: bool,
+) -> Result<PathBuf, anyhow::Error> {
+    if is_local {
         info("Using local template ./template");
     }
 
@@ -41,19 +45,7 @@ fn generate(name: &str, output_dir: Option<PathBuf>, local: bool) -> Result<Path
         env::current_dir()?
     };
 
-    let template_path = if local {
-        TemplatePath {
-            path: Some("./template".into()),
-            ..Default::default()
-        }
-    } else {
-        TemplatePath {
-            git: Some("https://github.com/marcoow/pacesetter".into()),
-            subfolder: Some("template".into()),
-            revision: Some(env!("VERGEN_GIT_SHA").into()),
-            ..Default::default()
-        }
-    };
+    let template_path = build_template_path(is_local);
 
     let generate_args = GenerateArgs {
         template_path,
@@ -67,6 +59,22 @@ fn generate(name: &str, output_dir: Option<PathBuf>, local: bool) -> Result<Path
         .context("failed to generate project from template")?;
 
     Ok(output_dir)
+}
+
+fn build_template_path(is_local: bool) -> TemplatePath {
+    if is_local {
+        TemplatePath {
+            path: Some("./template".into()),
+            ..Default::default()
+        }
+    } else {
+        TemplatePath {
+            git: Some("https://github.com/marcoow/pacesetter".into()),
+            subfolder: Some("template".into()),
+            revision: Some(env!("VERGEN_GIT_SHA").into()),
+            ..Default::default()
+        }
+    }
 }
 
 fn info(text: &str) {
