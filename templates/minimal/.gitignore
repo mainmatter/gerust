@@ -1,0 +1,9 @@
+# Rust specifics
+**/target
+**/debug
+**/*.pdb
+**/*.rs.bk
+
+# Editors
+.idea
+.vscode/
