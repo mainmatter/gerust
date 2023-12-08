@@ -481,7 +481,7 @@ jobs:
     
     - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3
       with:
-        name: my-app-default
+        name: my-app-minimal
         path: my-app
   
     - name: run-generated
