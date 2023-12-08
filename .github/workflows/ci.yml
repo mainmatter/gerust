@@ -70,21 +70,6 @@ jobs:
     env:
       PS_CLI_LOCAL_DEV: 1
 
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_DB: my_app
-          POSTGRES_USER: my_app
-          POSTGRES_PASSWORD: my_app
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -107,6 +92,19 @@ jobs:
 
     services:
       postgres:
+        image: postgres
+        env:
+          POSTGRES_DB: my_app
+          POSTGRES_USER: my_app
+          POSTGRES_PASSWORD: my_app
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      postgres_test:
         image: postgres
         env:
           POSTGRES_DB: my_app_test
@@ -132,6 +130,7 @@ jobs:
     - name: migrate
       run: |
         cd my-app
+        cargo db reset
         cargo db reset -e test
 
     - name: test
@@ -162,7 +161,22 @@ jobs:
     name: "Run Clippy on generated example app"
     runs-on: ubuntu-latest
     needs: generate
-    
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_DB: my_app
+          POSTGRES_USER: my_app
+          POSTGRES_PASSWORD: my_app
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
     - uses: actions/checkout@v3
     - uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -171,7 +185,12 @@ jobs:
       with:
         name: my-app
         path: my-app
-    
+
+    - name: migrate
+      run: |
+        cd my-app
+        cargo db reset
+
     - name: clippy-generated
       run: |
         cd my-app
@@ -205,7 +224,12 @@ jobs:
       with:
         name: my-app
         path: my-app
-    
+
+    - name: migrate
+      run: |
+        cd my-app
+        cargo db reset
+
     - name: run-generated
       run: |
         cd my-app
