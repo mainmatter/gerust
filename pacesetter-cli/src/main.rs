@@ -34,7 +34,7 @@ fn main() {
     let blueprint = if cli.full {
         Blueprint::Full
     } else {
-        panic!("Only the full blueprint is supported at the moment!")
+        Blueprint::Default
     };
 
     info(format!("Generating {}…", cli.name).as_str());
@@ -97,7 +97,8 @@ fn generate(
 fn build_template_path(is_local: bool, blueprint: Blueprint) -> TemplatePath {
     let folder = match blueprint {
         Blueprint::Full => "full",
-        _ => panic!("Only the full blueprint is supported at the moment!"),
+        Blueprint::Default => "default",
+        Blueprint::Minimal => panic!("The minimal blueprint is not supported at the moment!"),
     };
 
     let template = format!("templates/{}", folder);
