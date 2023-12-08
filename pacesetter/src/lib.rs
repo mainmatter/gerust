@@ -1,6 +1,7 @@
 pub mod cli;
 pub mod config;
 pub mod test;
+pub mod web;
 
 mod util;
 
