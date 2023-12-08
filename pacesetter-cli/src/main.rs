@@ -103,7 +103,7 @@ fn build_template_path(is_local: bool, blueprint: Blueprint) -> TemplatePath {
         Blueprint::Minimal => "minimal",
     };
 
-    let template = format!("templates/{}", folder);
+    let template = format!("blueprints/{}", folder);
     if is_local {
         TemplatePath {
             path: Some(format!("./{}", template)),
