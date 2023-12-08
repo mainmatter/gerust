@@ -80,13 +80,13 @@ fn generate(
 fn build_template_path(is_local: bool) -> TemplatePath {
     if is_local {
         TemplatePath {
-            path: Some("./template".into()),
+            path: Some("./templates/full".into()),
             ..Default::default()
         }
     } else {
         TemplatePath {
             git: Some("https://github.com/marcoow/pacesetter".into()),
-            subfolder: Some("template".into()),
+            subfolder: Some("templates/full".into()),
             revision: Some(env!("VERGEN_GIT_SHA").into()),
             ..Default::default()
         }
