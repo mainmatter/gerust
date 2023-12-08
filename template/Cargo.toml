@@ -4,4 +4,8 @@ resolver = "2"
 default-members = ["web"]
 
 [workspace.dependencies]
+{% if use_local_pacesetter -%}
+pacesetter = { path = "{{use_local_pacesetter}}" }
+{%- else -%}
 pacesetter = "0.0.1"
+{%- endif %}
