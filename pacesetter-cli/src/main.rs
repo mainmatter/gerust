@@ -1,11 +1,19 @@
 use anyhow::Context;
 use cargo_generate::{GenerateArgs, TemplatePath};
-use clap::Parser;
+use clap::{ArgAction, Parser};
 use std::env;
 use std::fs;
 use std::path::PathBuf;
 
 static VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), " (", env!("VERGEN_GIT_SHA"), ")");
+
+enum Blueprint {
+    #[allow(dead_code)]
+    Minimal,
+    #[allow(dead_code)]
+    Default,
+    Full,
+}
 
 #[derive(Parser)]
 #[clap(author, version = VERSION, about, long_about = None)]
@@ -14,6 +22,8 @@ struct Cli {
     name: String,
     #[arg(short, long, value_parser)]
     outdir: Option<PathBuf>,
+    #[arg(short, long, action(ArgAction::SetTrue))]
+    full: bool,
 }
 
 fn main() {
@@ -21,9 +31,15 @@ fn main() {
 
     let is_local = env::var("PS_CLI_LOCAL_DEV").is_ok();
 
+    let blueprint = if cli.full {
+        Blueprint::Full
+    } else {
+        panic!("Only the full blueprint is supported at the moment!")
+    };
+
     info(format!("Generating {}…", cli.name).as_str());
 
-    match generate(&cli.name, cli.outdir, is_local) {
+    match generate(&cli.name, cli.outdir, is_local, blueprint) {
         Ok(output_dir) => {
             success(format!("Generated {} at {}", cli.name, output_dir.display()).as_str())
         }
@@ -35,6 +51,7 @@ fn generate(
     name: &str,
     output_dir: Option<PathBuf>,
     is_local: bool,
+    blueprint: Blueprint,
 ) -> Result<PathBuf, anyhow::Error> {
     if is_local {
         info("Using local template ./template");
@@ -48,7 +65,7 @@ fn generate(
         env::current_dir()?
     };
 
-    let template_path = build_template_path(is_local);
+    let template_path = build_template_path(is_local, blueprint);
 
     let mut defines: Vec<String> = vec![];
     if is_local {
@@ -77,16 +94,22 @@ fn generate(
     Ok(output_dir)
 }
 
-fn build_template_path(is_local: bool) -> TemplatePath {
+fn build_template_path(is_local: bool, blueprint: Blueprint) -> TemplatePath {
+    let folder = match blueprint {
+        Blueprint::Full => "full",
+        _ => panic!("Only the full blueprint is supported at the moment!"),
+    };
+
+    let template = format!("templates/{}", folder);
     if is_local {
         TemplatePath {
-            path: Some("./templates/full".into()),
+            path: Some(format!("./{}", template)),
             ..Default::default()
         }
     } else {
         TemplatePath {
             git: Some("https://github.com/marcoow/pacesetter".into()),
-            subfolder: Some("templates/full".into()),
+            subfolder: Some(template),
             revision: Some(env!("VERGEN_GIT_SHA").into()),
             ..Default::default()
         }
