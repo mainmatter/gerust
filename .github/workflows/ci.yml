@@ -229,8 +229,11 @@ jobs:
       run: |
         cd my-app
         cargo db reset
+        cargo db seed
 
     - name: run-generated
       run: |
         cd my-app
         cargo run & (timeout 120 sh -c 'until nc -z $0 $1; do sleep 1; done' localhost 3000)
+        curl -X POST localhost:3000/tasks -H 'Authorization: 9974812642a36dbee625fa06b2463dbff832e17dcce3836dbb' -H 'Content-Type: application/json' -d '{"description": "do something"}'
+        curl localhost:3000/tasks
