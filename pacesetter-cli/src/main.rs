@@ -8,9 +8,7 @@ use std::path::PathBuf;
 static VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), " (", env!("VERGEN_GIT_SHA"), ")");
 
 enum Blueprint {
-    #[allow(dead_code)]
     Minimal,
-    #[allow(dead_code)]
     Default,
     Full,
 }
@@ -24,6 +22,8 @@ struct Cli {
     outdir: Option<PathBuf>,
     #[arg(short, long, action(ArgAction::SetTrue))]
     full: bool,
+    #[arg(short, long, action(ArgAction::SetTrue))]
+    minimal: bool,
 }
 
 fn main() {
@@ -33,6 +33,8 @@ fn main() {
 
     let blueprint = if cli.full {
         Blueprint::Full
+    } else if cli.minimal {
+        Blueprint::Minimal
     } else {
         Blueprint::Default
     };
@@ -98,7 +100,7 @@ fn build_template_path(is_local: bool, blueprint: Blueprint) -> TemplatePath {
     let folder = match blueprint {
         Blueprint::Full => "full",
         Blueprint::Default => "default",
-        Blueprint::Minimal => panic!("The minimal blueprint is not supported at the moment!"),
+        Blueprint::Minimal => "minimal",
     };
 
     let template = format!("templates/{}", folder);

@@ -15,16 +15,28 @@ use url::Url;
 
 pub struct TestContext {
     pub app: Router,
+}
+
+pub struct DbTestContext {
+    pub app: Router,
     pub db_pool: PgPool,
     db_config: PgConnectOptions,
 }
 
 pub fn build_test_context(
     router: Router,
-    db_pool: PgPool,
-    test_db_config: PgConnectOptions,
 ) -> TestContext {
     TestContext {
+        app: router,
+    }
+}
+
+pub fn build_db_test_context(
+    router: Router,
+    db_pool: PgPool,
+    test_db_config: PgConnectOptions,
+) -> DbTestContext {
+    DbTestContext {
         app: router,
         db_pool,
         db_config: test_db_config,
@@ -47,7 +59,7 @@ pub async fn prepare_db(config: &DatabaseConfig) -> PgConnectOptions {
     test_db_config.database(&test_db_name)
 }
 
-pub async fn teardown(context: TestContext) {
+pub async fn teardown(context: DbTestContext) {
     drop(context.app);
     drop(context.db_pool);
 
