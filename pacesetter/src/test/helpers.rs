@@ -23,12 +23,8 @@ pub struct DbTestContext {
     db_config: PgConnectOptions,
 }
 
-pub fn build_test_context(
-    router: Router,
-) -> TestContext {
-    TestContext {
-        app: router,
-    }
+pub fn build_test_context(router: Router) -> TestContext {
+    TestContext { app: router }
 }
 
 pub fn build_db_test_context(

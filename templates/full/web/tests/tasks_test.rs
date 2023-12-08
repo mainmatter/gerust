@@ -6,8 +6,8 @@ use axum::{
 };
 use hyper::StatusCode;
 use {{crate_name}}_db::entities::Task;
-use pacesetter::test::helpers::{request, teardown, TestContext};
-use pacesetter_procs::test;
+use pacesetter::test::helpers::{request, teardown, DbTestContext};
+use pacesetter_procs::db_test;
 use serde::Serialize;
 use serde_json::json;
 use std::collections::HashMap;
@@ -17,8 +17,8 @@ mod common;
 
 type TasksList = Vec<Task>;
 
-#[test]
-async fn test_get_tasks(context: &TestContext) {
+#[db_test]
+async fn test_get_tasks(context: &DbTestContext) {
     sqlx::query!(
         "INSERT INTO tasks (description) VALUES ($1) RETURNING id",
         "Test Task",
@@ -43,8 +43,8 @@ async fn test_get_tasks(context: &TestContext) {
     assert_eq!(tasks.get(0).unwrap().description, "Test Task");
 }
 
-#[test]
-async fn test_create_tasks_unauthorized(context: &TestContext) {
+#[db_test]
+async fn test_create_tasks_unauthorized(context: &DbTestContext) {
     let mut headers = HashMap::new();
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
 
@@ -53,8 +53,8 @@ async fn test_create_tasks_unauthorized(context: &TestContext) {
     assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
 }
 
-#[test]
-async fn test_create_tasks_authorized(context: &TestContext) {
+#[db_test]
+async fn test_create_tasks_authorized(context: &DbTestContext) {
     sqlx::query!(
         "INSERT INTO users (name, token) VALUES ($1, $2) RETURNING id",
         "Test User",
@@ -90,8 +90,8 @@ async fn test_create_tasks_authorized(context: &TestContext) {
     assert_eq!(task.description, "my task");
 }
 
-#[test]
-async fn test_get_task(context: &TestContext) {
+#[db_test]
+async fn test_get_task(context: &DbTestContext) {
     let record = sqlx::query!(
         "INSERT INTO tasks (description) VALUES ($1) RETURNING id",
         "Test Task",
