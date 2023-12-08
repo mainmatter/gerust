@@ -1,6 +1,7 @@
-use crate::{internal_error, state::AppState};
+use crate::state::AppState;
 use axum::{extract::Path, extract::State, http::StatusCode, Json};
 use {{crate_name}}_db::entities::Task;
+use pacesetter::web::internal_error;
 use serde::Deserialize;
 #[cfg(test)]
 use serde::Serialize;

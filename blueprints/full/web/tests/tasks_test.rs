@@ -6,7 +6,7 @@ use axum::{
 };
 use hyper::StatusCode;
 use {{crate_name}}_db::entities::Task;
-use pacesetter::test::helpers::{request, teardown, DbTestContext};
+use pacesetter::test::helpers::{request, DbTestContext};
 use pacesetter_procs::db_test;
 use serde::Serialize;
 use serde_json::json;

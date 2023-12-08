@@ -45,7 +45,7 @@ pub fn db_test(_: TokenStream, item: TokenStream) -> TokenStream {
     };
 
     let teardown = quote! {
-        teardown(context).await;
+        pacesetter::test::helpers::teardown(context).await;
     };
 
     let output = quote!(
