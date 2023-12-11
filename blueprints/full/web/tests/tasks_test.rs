@@ -5,7 +5,7 @@ use axum::{
     http::{self, Method},
 };
 use hyper::StatusCode;
-use {{crate_name}}_db::entities::Task;
+use {{crate_name}}_db::entities::tasks::Task;
 use pacesetter::test::helpers::{request, DbTestContext};
 use pacesetter_procs::db_test;
 use serde::Serialize;
