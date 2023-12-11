@@ -6,7 +6,7 @@ use axum::{
     middleware::Next,
     response::Response,
 };
-use {{crate_name}}_db::entities::User;
+use {{crate_name}}_db::entities::users;
 use tracing::Span;
 
 #[tracing::instrument(skip_all, fields(rejection_reason = tracing::field::Empty))]
@@ -27,24 +27,18 @@ pub async fn auth(
         return Err(StatusCode::UNAUTHORIZED);
     };
 
-    match sqlx::query_as!(
-        User,
-        "SELECT id, name FROM users WHERE token = $1",
-        auth_header
-    )
-    .fetch_one(&app_state.db_pool)
-    .await
-    {
+    match users::load_with_token(auth_header, &app_state.db_pool).await {
         Ok(current_user) => {
             req.extensions_mut().insert(current_user);
             Ok(next.run(req).await)
         }
-        Err(sqlx::Error::RowNotFound) => {
-            log_rejection_reason("Unknown user token");
-            Err(StatusCode::UNAUTHORIZED)
-        }
-        Err(e) => {
-            tracing::error!(err.msg = %e, error.details = ?e, "Database error");
+        Err(error) => {
+            for cause in error.chain() {
+                if let Some(sqlx::Error::RowNotFound) = cause.downcast_ref::<sqlx::Error>() {
+                    log_rejection_reason("Unknown user token");
+                    return Err(StatusCode::UNAUTHORIZED);
+                }
+            }
             log_rejection_reason("Database error");
             Err(StatusCode::INTERNAL_SERVER_ERROR)
         }
