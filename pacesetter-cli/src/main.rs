@@ -7,6 +7,9 @@ use std::path::PathBuf;
 
 static VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), " (", env!("VERGEN_GIT_SHA"), ")");
 
+static BLUEPRINTS_DIR: include_dir::Dir =
+    include_dir::include_dir!("$CARGO_MANIFEST_DIR/../blueprints");
+
 enum Blueprint {
     Minimal,
     Default,
@@ -26,7 +29,8 @@ struct Cli {
     minimal: bool,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let cli = Cli::parse();
 
     let is_local = env::var("PS_CLI_LOCAL_DEV").is_ok();
@@ -41,7 +45,7 @@ fn main() {
 
     info(format!("Generating {}…", cli.name).as_str());
 
-    match generate(&cli.name, cli.outdir, is_local, blueprint) {
+    match generate(&cli.name, cli.outdir, is_local, blueprint).await {
         Ok(output_dir) => {
             success(format!("Generated {} at {}", cli.name, output_dir.display()).as_str())
         }
@@ -49,7 +53,7 @@ fn main() {
     }
 }
 
-fn generate(
+async fn generate(
     name: &str,
     output_dir: Option<PathBuf>,
     is_local: bool,
@@ -67,8 +71,6 @@ fn generate(
         env::current_dir()?
     };
 
-    let template_path = build_template_path(is_local, blueprint);
-
     let mut defines: Vec<String> = vec![];
     if is_local {
         defines.push(format!(
@@ -80,6 +82,8 @@ fn generate(
             get_local_pacesetter_path("pacesetter-procs")?
         ));
     }
+
+    let template_path = build_template_path(blueprint).await?;
 
     let generate_args = GenerateArgs {
         template_path,
@@ -96,27 +100,28 @@ fn generate(
     Ok(output_dir)
 }
 
-fn build_template_path(is_local: bool, blueprint: Blueprint) -> TemplatePath {
-    let folder = match blueprint {
+async fn build_template_path(blueprint: Blueprint) -> Result<TemplatePath, anyhow::Error> {
+    let blueprint_folder = match blueprint {
         Blueprint::Full => "full",
         Blueprint::Default => "default",
         Blueprint::Minimal => "minimal",
     };
 
-    let template = format!("blueprints/{}", folder);
-    if is_local {
-        TemplatePath {
-            path: Some(format!("./{}", template)),
-            ..Default::default()
-        }
-    } else {
-        TemplatePath {
-            git: Some("https://github.com/marcoow/pacesetter".into()),
-            subfolder: Some(template),
-            revision: Some(env!("VERGEN_GIT_SHA").into()),
-            ..Default::default()
-        }
-    }
+    let target_directory = std::env::temp_dir().join(format!("pacesetter-blueprint-{}", VERSION));
+    std::fs::create_dir_all(&target_directory)
+        .context("Failed to create a temporary directory for Pacesetter's blueprints")?;
+    BLUEPRINTS_DIR
+        .extract(&target_directory)
+        .context("Failed to extract Pacesetter's blueprints to a temporary directory")?;
+    let bluprint_path = target_directory.join(blueprint_folder);
+    let bluprint_path = bluprint_path
+        .to_str()
+        .unwrap_or("Failed to get full path to Pacesetter's blueprint");
+
+    Ok(TemplatePath {
+        path: Some(String::from(bluprint_path)),
+        ..Default::default()
+    })
 }
 
 fn get_local_pacesetter_path(lib: &str) -> Result<String, anyhow::Error> {
