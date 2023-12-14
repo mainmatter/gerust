@@ -20,6 +20,7 @@ validator = { version = "0.16", features = ["derive"] }
 
 [dev-dependencies]
 serde_json = "1.0"
+my-app-db = { path = "../db", features = ["test-helpers"] }
 tower = { version = "0.4", features = ["util"] }
 hyper = { version = "1.0", features = ["full"] }
 {% if use_local_pacesetter_procs -%}
