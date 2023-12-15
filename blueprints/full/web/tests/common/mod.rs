@@ -1,4 +1,5 @@
 use {{crate_name}}_config::Config;
+use {{crate_name}}_db::connect_pool;
 use {{crate_name}}_web::routes::routes;
 use {{crate_name}}_web::state::AppState;
 use pacesetter::{
