@@ -34,6 +34,7 @@ pub fn build_db_test_context(router: Router, db_pool: PgPool) -> DbTestContext {
     }
 }
 
+// TODO: this should be returning a DatabaseConfig so that in the web crate's tests/common/mod.rs, we can use the db crate's connect_pool function to establish a connection (and drop the sqlx dependency from the web crate)
 pub async fn prepare_db(config: &DatabaseConfig) -> PgConnectOptions {
     let db_config = parse_db_config(&config.url);
     let db_name = db_config.get_database().unwrap();
