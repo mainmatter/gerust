@@ -8,10 +8,10 @@ use axum::{
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use sqlx::postgres::{PgConnectOptions, PgConnection};
-use sqlx::{ConnectOptions, Connection, Executor, PgPool};
+use sqlx::{Connection, Executor, PgPool};
 use std::collections::HashMap;
+use std::str::FromStr;
 use tower::ServiceExt;
-use url::Url;
 
 pub struct TestContext {
     pub app: Router,
@@ -113,6 +113,5 @@ fn build_test_db_name(base_name: &str) -> String {
 }
 
 fn parse_db_config(url: &str) -> PgConnectOptions {
-    let db_url = Url::parse(url).expect("Invalid DATABASE_URL!");
-    ConnectOptions::from_url(&db_url).expect("Invalid DATABASE_URL!")
+    PgConnectOptions::from_str(url).expect("Invalid DATABASE_URL!")
 }
