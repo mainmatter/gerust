@@ -1,5 +1,6 @@
 use {{crate_name}}_config::Config;
-use sqlx::postgres::{PgPool, PgPoolOptions};
+use {{crate_name}}_db::connect_pool;
+use sqlx::postgres::PgPool;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -7,8 +8,7 @@ pub struct AppState {
 }
 
 pub async fn app_state(config: Config) -> AppState {
-    let db_pool = PgPoolOptions::new()
-        .connect(config.database.url.as_str())
+    let db_pool = connect_pool(config.database)
         .await
         .expect("Could not connect to database!");
 
