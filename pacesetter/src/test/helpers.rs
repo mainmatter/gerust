@@ -7,6 +7,7 @@ use axum::{
 };
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
+use regex::{Captures, Regex};
 use sqlx::postgres::{PgConnectOptions, PgConnection};
 use sqlx::{Connection, Executor, PgPool};
 use std::collections::HashMap;
@@ -34,8 +35,8 @@ pub fn build_db_test_context(router: Router, db_pool: PgPool) -> DbTestContext {
     }
 }
 
-// TODO: this should be returning a DatabaseConfig so that in the web crate's tests/common/mod.rs, we can use the db crate's connect_pool function to establish a connection (and drop the sqlx dependency from the web crate)
-pub async fn prepare_db(config: &DatabaseConfig) -> PgConnectOptions {
+// TODO: ideally, this should be serializing an updated PgConnectionOptions instead of using replace with regex
+pub async fn prepare_db(config: &DatabaseConfig) -> DatabaseConfig {
     let db_config = parse_db_config(&config.url);
     let db_name = db_config.get_database().unwrap();
 
@@ -47,8 +48,14 @@ pub async fn prepare_db(config: &DatabaseConfig) -> PgConnectOptions {
     let query = format!("CREATE DATABASE {} TEMPLATE {}", test_db_name, db_name);
     connection.execute(query.as_str()).await.unwrap();
 
-    let test_db_config = db_config.clone();
-    test_db_config.database(&test_db_name)
+    let regex = Regex::new(r"(.+)\/(.+$)").unwrap();
+    let test_db_url = regex.replace(&config.url, |caps: &Captures| {
+        format!("{}/{}", &caps[1], test_db_name)
+    });
+
+    DatabaseConfig {
+        url: test_db_url.to_string(),
+    }
 }
 
 pub async fn teardown(context: DbTestContext) {
