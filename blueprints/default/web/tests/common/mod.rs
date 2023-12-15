@@ -23,5 +23,5 @@ pub async fn setup_with_db() -> DbTestContext {
         db_pool: db_pool.clone(),
     });
 
-    build_db_test_context(app, db_pool, db_config)
+    build_db_test_context(app, db_pool)
 }

@@ -11,6 +11,7 @@ use sqlx::postgres::{PgConnectOptions, PgConnection};
 use sqlx::{Connection, Executor, PgPool};
 use std::collections::HashMap;
 use std::str::FromStr;
+use std::sync::Arc;
 use tower::ServiceExt;
 
 pub struct TestContext {
@@ -20,22 +21,16 @@ pub struct TestContext {
 pub struct DbTestContext {
     pub app: Router,
     pub db_pool: PgPool,
-    db_config: PgConnectOptions,
 }
 
 pub fn build_test_context(router: Router) -> TestContext {
     TestContext { app: router }
 }
 
-pub fn build_db_test_context(
-    router: Router,
-    db_pool: PgPool,
-    test_db_config: PgConnectOptions,
-) -> DbTestContext {
+pub fn build_db_test_context(router: Router, db_pool: PgPool) -> DbTestContext {
     DbTestContext {
         app: router,
         db_pool,
-        db_config: test_db_config,
     }
 }
 
@@ -57,12 +52,16 @@ pub async fn prepare_db(config: &DatabaseConfig) -> PgConnectOptions {
 
 pub async fn teardown(context: DbTestContext) {
     drop(context.app);
+
+    let mut connect_options = context.db_pool.connect_options();
+    let db_config = Arc::make_mut(&mut connect_options);
+
     drop(context.db_pool);
 
-    let root_db_config = context.db_config.clone().database("postgres");
+    let root_db_config = db_config.clone().database("postgres");
     let mut connection: PgConnection = Connection::connect_with(&root_db_config).await.unwrap();
 
-    let test_db_name = context.db_config.get_database().unwrap();
+    let test_db_name = db_config.get_database().unwrap();
 
     let query = format!("DROP DATABASE IF EXISTS {}", test_db_name);
     connection.execute(query.as_str()).await.unwrap();
