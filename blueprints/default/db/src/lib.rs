@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use pacesetter::config::DatabaseConfig;
-use sqlx::postgres::{PgPool, PgPoolOptions};
+use sqlx::postgres::PgPoolOptions;
 
 pub use sqlx::postgres::PgPool as DbPool;
 
