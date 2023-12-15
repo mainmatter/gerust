@@ -22,6 +22,7 @@ validator = { version = "0.16", features = ["derive"] }
 serde_json = "1.0"
 tower = { version = "0.4", features = ["util"] }
 hyper = { version = "1.0", features = ["full"] }
+{{project-name}}-db = { path = "../db", features = ["test-helpers"] }
 {% if use_local_pacesetter_procs -%}
 pacesetter-procs = { path = "{{use_local_pacesetter_procs}}" }
 {%- else -%}

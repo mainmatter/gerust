@@ -5,13 +5,13 @@ use axum::{
     http::{self, Method},
 };
 use hyper::StatusCode;
-use {{crate_name}}_db::entities::tasks::Task;
+use my_app_db::entities::tasks::{create as create_task, Task};
+use my_app_db::test_helpers::users::create as create_user;
 use pacesetter::test::helpers::{request, DbTestContext};
 use pacesetter_procs::db_test;
 use serde::Serialize;
 use serde_json::json;
 use std::collections::HashMap;
-use uuid::Uuid;
 
 mod common;
 
@@ -19,13 +19,9 @@ type TasksList = Vec<Task>;
 
 #[db_test]
 async fn test_get_tasks(context: &DbTestContext) {
-    sqlx::query!(
-        "INSERT INTO tasks (description) VALUES ($1) RETURNING id",
-        "Test Task",
-    )
-    .fetch_one(&context.db_pool)
-    .await
-    .unwrap();
+    create_task(String::from("Test Task"), &context.db_pool)
+        .await
+        .unwrap();
 
     let response = request(
         &context.app,
@@ -55,12 +51,11 @@ async fn test_create_tasks_unauthorized(context: &DbTestContext) {
 
 #[db_test]
 async fn test_create_tasks_authorized(context: &DbTestContext) {
-    sqlx::query!(
-        "INSERT INTO users (name, token) VALUES ($1, $2) RETURNING id",
-        "Test User",
-        "s3kuR t0k3n!",
+    create_user(
+        String::from("Test User"),
+        String::from("s3kuR t0k3n!"),
+        &context.db_pool,
     )
-    .fetch_one(&context.db_pool)
     .await
     .unwrap();
 
@@ -92,14 +87,10 @@ async fn test_create_tasks_authorized(context: &DbTestContext) {
 
 #[db_test]
 async fn test_get_task(context: &DbTestContext) {
-    let record = sqlx::query!(
-        "INSERT INTO tasks (description) VALUES ($1) RETURNING id",
-        "Test Task",
-    )
-    .fetch_one(&context.db_pool)
-    .await
-    .unwrap();
-    let task_id: Uuid = record.id;
+    let task = create_task(String::from("Test Task"), &context.db_pool)
+        .await
+        .unwrap();
+    let task_id = task.id;
 
     let response = request(
         &context.app,
