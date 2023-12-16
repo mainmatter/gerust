@@ -28,17 +28,15 @@ pub async fn auth(
     };
 
     match users::load_with_token(auth_header, &app_state.db_pool).await {
-        Ok(current_user) => {
+        Ok(Some(current_user)) => {
             req.extensions_mut().insert(current_user);
             Ok(next.run(req).await)
         }
-        Err(error) => {
-            for cause in error.chain() {
-                if let Some(sqlx::Error::RowNotFound) = cause.downcast_ref::<sqlx::Error>() {
-                    log_rejection_reason("Unknown user token");
-                    return Err(StatusCode::UNAUTHORIZED);
-                }
-            }
+        Ok(None) => {
+            log_rejection_reason("Unknown user token");
+            return Err(StatusCode::UNAUTHORIZED);
+        }
+        Err(_) => {
             log_rejection_reason("Database error");
             Err(StatusCode::INTERNAL_SERVER_ERROR)
         }
