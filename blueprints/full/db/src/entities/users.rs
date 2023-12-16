@@ -7,7 +7,10 @@ pub struct User {
     pub name: String,
 }
 
-pub async fn load_with_token(token: &str, db: &crate::DbPool) -> Result<Option<User>, anyhow::Error> {
+pub async fn load_with_token(
+    token: &str,
+    db: &crate::DbPool,
+) -> Result<Option<User>, anyhow::Error> {
     match sqlx::query_as!(User, "SELECT id, name FROM users WHERE token = $1", token)
         .fetch_one(db)
         .await
