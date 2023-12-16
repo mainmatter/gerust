@@ -1984,6 +1984,7 @@ dependencies = [
  "figment",
  "hyper",
  "rand",
+ "regex",
  "serde",
  "serde_json",
  "sqlx",

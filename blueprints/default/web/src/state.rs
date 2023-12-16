@@ -1,10 +1,9 @@
 use {{crate_name}}_config::Config;
-use {{crate_name}}_db::connect_pool;
-use sqlx::postgres::PgPool;
+use {{crate_name}}_db::{connect_pool, DbPool};
 
 #[derive(Clone)]
 pub struct AppState {
-    pub db_pool: PgPool,
+    pub db_pool: DbPool,
 }
 
 pub async fn app_state(config: Config) -> AppState {
