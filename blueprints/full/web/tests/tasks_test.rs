@@ -5,11 +5,10 @@ use axum::{
     http::{self, Method},
 };
 use hyper::StatusCode;
-use my_app_db::entities::tasks::{create as create_task, Task};
-use my_app_db::test_helpers::users::create as create_user;
+use {{crate_name}}_db::entities::tasks::{create as create_task, Task, TaskChangeset};
+use {{crate_name}}_db::test_helpers::users::create as create_user;
 use pacesetter::test::helpers::{request, DbTestContext};
 use pacesetter_procs::db_test;
-use serde::Serialize;
 use serde_json::json;
 use std::collections::HashMap;
 
@@ -19,9 +18,10 @@ type TasksList = Vec<Task>;
 
 #[db_test]
 async fn test_get_tasks(context: &DbTestContext) {
-    create_task(String::from("Test Task"), &context.db_pool)
-        .await
-        .unwrap();
+    let task_changeset = TaskChangeset {
+        description: String::from("Test Task"),
+    };
+    create_task(task_changeset, &context.db_pool).await.unwrap();
 
     let response = request(
         &context.app,
@@ -50,6 +50,36 @@ async fn test_create_tasks_unauthorized(context: &DbTestContext) {
 }
 
 #[db_test]
+async fn test_create_tasks_invalid(context: &DbTestContext) {
+    create_user(
+        String::from("Test User"),
+        String::from("s3kuR t0k3n!"),
+        &context.db_pool,
+    )
+    .await
+    .unwrap();
+
+    let mut headers = HashMap::new();
+    headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
+    headers.insert(http::header::AUTHORIZATION.as_str(), "s3kuR t0k3n!");
+
+    let payload = json!(TaskChangeset {
+        description: String::from("")
+    });
+
+    let response = request(
+        &context.app,
+        "/tasks",
+        headers,
+        Body::from(payload.to_string()),
+        Method::POST,
+    )
+    .await;
+
+    assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+}
+
+#[db_test]
 async fn test_create_tasks_authorized(context: &DbTestContext) {
     create_user(
         String::from("Test User"),
@@ -63,12 +93,7 @@ async fn test_create_tasks_authorized(context: &DbTestContext) {
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
     headers.insert(http::header::AUTHORIZATION.as_str(), "s3kuR t0k3n!");
 
-    #[derive(Serialize)]
-    struct CreateTask {
-        description: String,
-    }
-
-    let payload = json!(CreateTask {
+    let payload = json!(TaskChangeset {
         description: String::from("my task")
     });
 
@@ -87,9 +112,10 @@ async fn test_create_tasks_authorized(context: &DbTestContext) {
 
 #[db_test]
 async fn test_get_task(context: &DbTestContext) {
-    let task = create_task(String::from("Test Task"), &context.db_pool)
-        .await
-        .unwrap();
+    let task_changeset = TaskChangeset {
+        description: String::from("Test Task"),
+    };
+    let task = create_task(task_changeset, &context.db_pool).await.unwrap();
     let task_id = task.id;
 
     let response = request(
