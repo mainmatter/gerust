@@ -34,7 +34,8 @@ pub async fn create_task(
     State(app_state): State<AppState>,
     Json(task): Json<tasks::TaskChangeset>,
 ) -> Result<Json<tasks::Task>, (StatusCode, String)> {
-    match tasks::create(task, &app_state.db_pool).await {
+    let mut transaction = app_state.db_pool.begin().await.unwrap();
+    match tasks::create(task, &mut *transaction).await {
         Ok(task) => Ok(Json(task)),
         Err(Error::ValidationError(e)) => {
             info!(err.msg = %e, err.details = ?e, "Validation failed");
