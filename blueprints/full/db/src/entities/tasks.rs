@@ -39,7 +39,8 @@ pub async fn create(task: TaskChangeset, db: &crate::DbPool) -> Result<Task, cra
         task.description
     )
     .fetch_one(db)
-    .await.map_err(|e| crate::Error::DbError(e.into()))?;
+    .await
+    .map_err(|e| crate::Error::DbError(e.into()))?;
 
     Ok(Task {
         id: record.id,
