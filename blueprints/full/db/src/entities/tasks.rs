@@ -31,8 +31,7 @@ pub async fn load(id: Uuid, db: &crate::DbPool) -> Result<Task, anyhow::Error> {
 }
 
 pub async fn create(task: TaskChangeset, db: &crate::DbPool) -> Result<Task, crate::Error> {
-    task.validate()
-        .map_err(|e| crate::Error::ValidationError(e))?;
+    task.validate().map_err(crate::Error::ValidationError)?;
 
     let record = sqlx::query!(
         "INSERT INTO tasks (description) VALUES ($1) RETURNING id",
