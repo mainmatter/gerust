@@ -1,10 +1,18 @@
 use serde::Deserialize;
 use serde::Serialize;
 use uuid::Uuid;
+use validator::Validate;
 
 #[derive(Serialize, Debug, Deserialize)]
 pub struct Task {
     pub id: Uuid,
+    pub description: String,
+}
+
+#[derive(Deserialize, Validate)]
+#[cfg_attr(feature = "test-helpers", derive(Serialize))]
+pub struct TaskChangeset {
+    #[validate(length(min = 1))]
     pub description: String,
 }
 
@@ -22,16 +30,19 @@ pub async fn load(id: Uuid, db: &crate::DbPool) -> Result<Task, anyhow::Error> {
     Ok(task)
 }
 
-pub async fn create(description: String, db: &crate::DbPool) -> Result<Task, anyhow::Error> {
+pub async fn create(task: TaskChangeset, db: &crate::DbPool) -> Result<Task, crate::Error> {
+    task.validate().map_err(crate::Error::ValidationError)?;
+
     let record = sqlx::query!(
         "INSERT INTO tasks (description) VALUES ($1) RETURNING id",
-        description
+        task.description
     )
     .fetch_one(db)
-    .await?;
+    .await
+    .map_err(|e| crate::Error::DbError(e.into()))?;
 
     Ok(Task {
         id: record.id,
-        description,
+        description: task.description,
     })
 }

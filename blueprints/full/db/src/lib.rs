@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use pacesetter::config::DatabaseConfig;
 use sqlx::postgres::PgPoolOptions;
+use thiserror::Error;
 
 pub use sqlx::postgres::PgPool as DbPool;
 
@@ -13,6 +14,14 @@ pub async fn connect_pool(config: DatabaseConfig) -> Result<DbPool, anyhow::Erro
         .context("Failed to connect to database")?;
 
     Ok(pool)
+}
+
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("database query failed")]
+    DbError(anyhow::Error),
+    #[error("validation failed")]
+    ValidationError(validator::ValidationErrors),
 }
 
 #[cfg(feature = "test-helpers")]
