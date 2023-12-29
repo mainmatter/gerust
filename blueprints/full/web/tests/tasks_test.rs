@@ -137,11 +137,13 @@ async fn test_create_tasks_invalid(context: &DbTestContext) {
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
     headers.insert(http::header::AUTHORIZATION.as_str(), "s3kuR t0k3n!");
 
-    let payload = json!(vec![TaskChangeset {
-        description: String::from("")
-    }, TaskChangeset {
-        description: String::from("do something")
-    }]);
+    let payload = json!(vec![
+        TaskChangeset {
+            description: String::from("")
+        }, TaskChangeset {
+            description: String::from("do something")
+        }
+    ]);
 
     let response = request(
         &context.app,
@@ -172,11 +174,13 @@ async fn test_create_tasks_authorized(context: &DbTestContext) {
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
     headers.insert(http::header::AUTHORIZATION.as_str(), "s3kuR t0k3n!");
 
-    let payload = json!(vec![TaskChangeset {
-        description: String::from("my task")
-    }, TaskChangeset {
-        description: String::from("my other task")
-    }]);
+    let payload = json!(vec![
+        TaskChangeset {
+            description: String::from("my task")
+        }, TaskChangeset {
+            description: String::from("my other task")
+        }
+    ]);
 
     let response = request(
         &context.app,
