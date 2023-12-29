@@ -1,4 +1,4 @@
-use crate::controllers::tasks::{create_task, get_task, get_tasks};
+use crate::controllers::tasks::{create_task, create_tasks, get_task, get_tasks};
 use crate::middlewares::auth::auth;
 use crate::state::AppState;
 use axum::{
