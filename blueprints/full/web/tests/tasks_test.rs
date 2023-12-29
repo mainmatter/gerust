@@ -5,7 +5,9 @@ use axum::{
     http::{self, Method},
 };
 use hyper::StatusCode;
-use {{crate_name}}_db::entities::tasks::{create as create_task, Task, TaskChangeset};
+use {{crate_name}}_db::entities::tasks::{
+    create as create_task, load as load_task, load_all as load_tasks, Task, TaskChangeset,
+};
 use {{crate_name}}_db::test_helpers::users::create as create_user;
 use pacesetter::test::helpers::{request, DbTestContext};
 use pacesetter_procs::db_test;
@@ -36,11 +38,11 @@ async fn test_get_tasks(context: &DbTestContext) {
 
     let tasks: TasksList = json_body::<TasksList>(response).await;
     assert_eq!(tasks.len(), 1);
-    assert_eq!(tasks.get(0).unwrap().description, "Test Task");
+    assert_eq!(tasks.first().unwrap().description, "Test Task");
 }
 
 #[db_test]
-async fn test_create_tasks_unauthorized(context: &DbTestContext) {
+async fn test_create_task_unauthorized(context: &DbTestContext) {
     let mut headers = HashMap::new();
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
 
@@ -50,7 +52,7 @@ async fn test_create_tasks_unauthorized(context: &DbTestContext) {
 }
 
 #[db_test]
-async fn test_create_tasks_invalid(context: &DbTestContext) {
+async fn test_create_task_invalid(context: &DbTestContext) {
     create_user(
         String::from("Test User"),
         String::from("s3kuR t0k3n!"),
@@ -80,7 +82,7 @@ async fn test_create_tasks_invalid(context: &DbTestContext) {
 }
 
 #[db_test]
-async fn test_create_tasks_authorized(context: &DbTestContext) {
+async fn test_create_task_authorized(context: &DbTestContext) {
     create_user(
         String::from("Test User"),
         String::from("s3kuR t0k3n!"),
@@ -108,6 +110,97 @@ async fn test_create_tasks_authorized(context: &DbTestContext) {
 
     let task: Task = json_body::<Task>(response).await;
     assert_eq!(task.description, "my task");
+
+    let task = load_task(task.id, &context.db_pool).await.unwrap();
+    assert_eq!(task.description, "my task");
+}
+
+#[db_test]
+async fn test_create_tasks_unauthorized(context: &DbTestContext) {
+    let mut headers = HashMap::new();
+    headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
+
+    let response = request(&context.app, "/tasks", headers, Body::empty(), Method::PUT).await;
+
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[db_test]
+async fn test_create_tasks_invalid(context: &DbTestContext) {
+    create_user(
+        String::from("Test User"),
+        String::from("s3kuR t0k3n!"),
+        &context.db_pool,
+    )
+    .await
+    .unwrap();
+
+    let mut headers = HashMap::new();
+    headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
+    headers.insert(http::header::AUTHORIZATION.as_str(), "s3kuR t0k3n!");
+
+    let payload = json!(vec![
+        TaskChangeset {
+            description: String::from("")
+        },
+        TaskChangeset {
+            description: String::from("do something")
+        }
+    ]);
+
+    let response = request(
+        &context.app,
+        "/tasks",
+        headers,
+        Body::from(payload.to_string()),
+        Method::PUT,
+    )
+    .await;
+
+    assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+
+    let tasks = load_tasks(&context.db_pool).await.unwrap();
+    assert_eq!(tasks.len(), 0);
+}
+
+#[db_test]
+async fn test_create_tasks_authorized(context: &DbTestContext) {
+    create_user(
+        String::from("Test User"),
+        String::from("s3kuR t0k3n!"),
+        &context.db_pool,
+    )
+    .await
+    .unwrap();
+
+    let mut headers = HashMap::new();
+    headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
+    headers.insert(http::header::AUTHORIZATION.as_str(), "s3kuR t0k3n!");
+
+    let payload = json!(vec![
+        TaskChangeset {
+            description: String::from("my task")
+        },
+        TaskChangeset {
+            description: String::from("my other task")
+        }
+    ]);
+
+    let response = request(
+        &context.app,
+        "/tasks",
+        headers,
+        Body::from(payload.to_string()),
+        Method::PUT,
+    )
+    .await;
+
+    let tasks: Vec<Task> = json_body::<Vec<Task>>(response).await;
+    assert_eq!(tasks.first().unwrap().description, "my task");
+    assert_eq!(tasks.get(1).unwrap().description, "my other task");
+
+    let tasks = load_tasks(&context.db_pool).await.unwrap();
+    assert_eq!(tasks.len(), 2);
 }
 
 #[db_test]

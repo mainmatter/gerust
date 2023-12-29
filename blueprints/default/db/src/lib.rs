@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use pacesetter::config::DatabaseConfig;
-use sqlx::postgres::PgPoolOptions;
+use sqlx::{postgres::PgPoolOptions, Postgres, Transaction};
 use thiserror::Error;
 
 pub use sqlx::postgres::PgPool as DbPool;
@@ -14,6 +14,17 @@ pub async fn connect_pool(config: DatabaseConfig) -> Result<DbPool, anyhow::Erro
         .context("Failed to connect to database")?;
 
     Ok(pool)
+}
+
+pub async fn transaction(
+    db_pool: &DbPool,
+) -> Result<Transaction<'static, Postgres>, anyhow::Error> {
+    let tx = db_pool
+        .begin()
+        .await
+        .context("Failed to begin transaction")?;
+
+    Ok(tx)
 }
 
 #[derive(Error, Debug)]

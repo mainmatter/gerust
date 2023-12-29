@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use serde::Serialize;
+use sqlx::Postgres;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -16,28 +17,36 @@ pub struct TaskChangeset {
     pub description: String,
 }
 
-pub async fn load_all(db: &crate::DbPool) -> Result<Vec<Task>, anyhow::Error> {
+pub async fn load_all(
+    executor: impl sqlx::Executor<'_, Database = Postgres>,
+) -> Result<Vec<Task>, anyhow::Error> {
     let tasks = sqlx::query_as!(Task, "SELECT id, description FROM tasks")
-        .fetch_all(db)
+        .fetch_all(executor)
         .await?;
     Ok(tasks)
 }
 
-pub async fn load(id: Uuid, db: &crate::DbPool) -> Result<Task, anyhow::Error> {
+pub async fn load(
+    id: Uuid,
+    executor: impl sqlx::Executor<'_, Database = Postgres>,
+) -> Result<Task, anyhow::Error> {
     let task = sqlx::query_as!(Task, "SELECT id, description FROM tasks WHERE id = $1", id)
-        .fetch_one(db)
+        .fetch_one(executor)
         .await?;
     Ok(task)
 }
 
-pub async fn create(task: TaskChangeset, db: &crate::DbPool) -> Result<Task, crate::Error> {
+pub async fn create(
+    task: TaskChangeset,
+    executor: impl sqlx::Executor<'_, Database = Postgres>,
+) -> Result<Task, crate::Error> {
     task.validate().map_err(crate::Error::ValidationError)?;
 
     let record = sqlx::query!(
         "INSERT INTO tasks (description) VALUES ($1) RETURNING id",
         task.description
     )
-    .fetch_one(db)
+    .fetch_one(executor)
     .await
     .map_err(|e| crate::Error::DbError(e.into()))?;
 
