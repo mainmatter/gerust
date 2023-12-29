@@ -36,7 +36,10 @@ pub async fn create_task(
 ) -> Result<Json<tasks::Task>, (StatusCode, String)> {
     let mut transaction = app_state.db_pool.begin().await.unwrap();
     match tasks::create(task, &mut *transaction).await {
-        Ok(task) => Ok(Json(task)),
+        Ok(task) => match transaction.commit().await {
+            Ok(_) => Ok(Json(task)),
+            Err(e) => Err((internal_error(e), "".into())),
+        },
         Err(Error::ValidationError(e)) => {
             info!(err.msg = %e, err.details = ?e, "Validation failed");
             Err((StatusCode::UNPROCESSABLE_ENTITY, e.to_string()))

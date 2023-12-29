@@ -5,7 +5,7 @@ use axum::{
     http::{self, Method},
 };
 use hyper::StatusCode;
-use {{crate_name}}_db::entities::tasks::{create as create_task, Task, TaskChangeset};
+use {{crate_name}}_db::entities::tasks::{create as create_task, load as load_task, Task, TaskChangeset};
 use {{crate_name}}_db::test_helpers::users::create as create_user;
 use pacesetter::test::helpers::{request, DbTestContext};
 use pacesetter_procs::db_test;
@@ -36,7 +36,7 @@ async fn test_get_tasks(context: &DbTestContext) {
 
     let tasks: TasksList = json_body::<TasksList>(response).await;
     assert_eq!(tasks.len(), 1);
-    assert_eq!(tasks.first().unwrap().description, "Test Task");
+    assert_eq!(tasks.get(0).unwrap().description, "Test Task");
 }
 
 #[db_test]
@@ -107,6 +107,9 @@ async fn test_create_tasks_authorized(context: &DbTestContext) {
     .await;
 
     let task: Task = json_body::<Task>(response).await;
+    assert_eq!(task.description, "my task");
+
+    let task = load_task(task.id, &context.db_pool).await.unwrap();
     assert_eq!(task.description, "my task");
 }
 
