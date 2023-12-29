@@ -140,7 +140,8 @@ async fn test_create_tasks_invalid(context: &DbTestContext) {
     let payload = json!(vec![
         TaskChangeset {
             description: String::from("")
-        }, TaskChangeset {
+        },
+        TaskChangeset {
             description: String::from("do something")
         }
     ]);
@@ -177,7 +178,8 @@ async fn test_create_tasks_authorized(context: &DbTestContext) {
     let payload = json!(vec![
         TaskChangeset {
             description: String::from("my task")
-        }, TaskChangeset {
+        },
+        TaskChangeset {
             description: String::from("my other task")
         }
     ]);
