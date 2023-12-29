@@ -17,6 +17,7 @@ tracing = "0.1"
 uuid = { version = "1.6", features = ["serde"] }
 
 [dev-dependencies]
+fake = "2.9"
 serde_json = "1.0"
 tower = { version = "0.4", features = ["util"] }
 hyper = { version = "1.0", features = ["full"] }

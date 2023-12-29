@@ -4,6 +4,7 @@ use axum::{
     body::Body,
     http::{self, Method},
 };
+use fake::{Fake, Faker};
 use hyper::StatusCode;
 use {{crate_name}}_db::entities::tasks::{
     create as create_task, load as load_task, load_all as load_tasks, Task, TaskChangeset,
@@ -20,10 +21,10 @@ type TasksList = Vec<Task>;
 
 #[db_test]
 async fn test_get_tasks(context: &DbTestContext) {
-    let task_changeset = TaskChangeset {
-        description: String::from("Test Task"),
-    };
-    create_task(task_changeset, &context.db_pool).await.unwrap();
+    let task_changeset: TaskChangeset = Faker.fake();
+    create_task(task_changeset.clone(), &context.db_pool)
+        .await
+        .unwrap();
 
     let response = request(
         &context.app,
@@ -38,7 +39,10 @@ async fn test_get_tasks(context: &DbTestContext) {
 
     let tasks: TasksList = json_body::<TasksList>(response).await;
     assert_eq!(tasks.len(), 1);
-    assert_eq!(tasks.first().unwrap().description, "Test Task");
+    assert_eq!(
+        tasks.get(0).unwrap().description,
+        task_changeset.description
+    );
 }
 
 #[db_test]
@@ -95,9 +99,8 @@ async fn test_create_task_authorized(context: &DbTestContext) {
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
     headers.insert(http::header::AUTHORIZATION.as_str(), "s3kuR t0k3n!");
 
-    let payload = json!(TaskChangeset {
-        description: String::from("my task")
-    });
+    let task_changeset: TaskChangeset = Faker.fake();
+    let payload = json!(task_changeset);
 
     let response = request(
         &context.app,
@@ -109,10 +112,10 @@ async fn test_create_task_authorized(context: &DbTestContext) {
     .await;
 
     let task: Task = json_body::<Task>(response).await;
-    assert_eq!(task.description, "my task");
+    assert_eq!(task.description, task_changeset.description);
 
     let task = load_task(task.id, &context.db_pool).await.unwrap();
-    assert_eq!(task.description, "my task");
+    assert_eq!(task.description, task_changeset.description);
 }
 
 #[db_test]
@@ -139,13 +142,12 @@ async fn test_create_tasks_invalid(context: &DbTestContext) {
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
     headers.insert(http::header::AUTHORIZATION.as_str(), "s3kuR t0k3n!");
 
+    let task_changeset: TaskChangeset = Faker.fake();
     let payload = json!(vec![
         TaskChangeset {
             description: String::from("")
         },
-        TaskChangeset {
-            description: String::from("do something")
-        }
+        task_changeset
     ]);
 
     let response = request(
@@ -177,14 +179,9 @@ async fn test_create_tasks_authorized(context: &DbTestContext) {
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
     headers.insert(http::header::AUTHORIZATION.as_str(), "s3kuR t0k3n!");
 
-    let payload = json!(vec![
-        TaskChangeset {
-            description: String::from("my task")
-        },
-        TaskChangeset {
-            description: String::from("my other task")
-        }
-    ]);
+    let task_changeset1: TaskChangeset = Faker.fake();
+    let task_changeset2: TaskChangeset = Faker.fake();
+    let payload = json!(vec![task_changeset1.clone(), task_changeset2.clone()]);
 
     let response = request(
         &context.app,
@@ -196,8 +193,14 @@ async fn test_create_tasks_authorized(context: &DbTestContext) {
     .await;
 
     let tasks: Vec<Task> = json_body::<Vec<Task>>(response).await;
-    assert_eq!(tasks.first().unwrap().description, "my task");
-    assert_eq!(tasks.get(1).unwrap().description, "my other task");
+    assert_eq!(
+        tasks.first().unwrap().description,
+        task_changeset1.description
+    );
+    assert_eq!(
+        tasks.get(1).unwrap().description,
+        task_changeset2.description
+    );
 
     let tasks = load_tasks(&context.db_pool).await.unwrap();
     assert_eq!(tasks.len(), 2);
@@ -205,10 +208,10 @@ async fn test_create_tasks_authorized(context: &DbTestContext) {
 
 #[db_test]
 async fn test_get_task(context: &DbTestContext) {
-    let task_changeset = TaskChangeset {
-        description: String::from("Test Task"),
-    };
-    let task = create_task(task_changeset, &context.db_pool).await.unwrap();
+    let task_changeset: TaskChangeset = Faker.fake();
+    let task = create_task(task_changeset.clone(), &context.db_pool)
+        .await
+        .unwrap();
     let task_id = task.id;
 
     let response = request(
@@ -224,7 +227,7 @@ async fn test_get_task(context: &DbTestContext) {
 
     let task: Task = json_body::<Task>(response).await;
     assert_eq!(task.id, task_id);
-    assert_eq!(task.description, "Test Task");
+    assert_eq!(task.description, task_changeset.description);
 }
 
 async fn json_body<T>(response: Response<Body>) -> T
