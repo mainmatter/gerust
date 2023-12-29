@@ -5,7 +5,9 @@ use axum::{
     http::{self, Method},
 };
 use hyper::StatusCode;
-use {{crate_name}}_db::entities::tasks::{create as create_task, load as load_task, load_all as load_tasks, Task, TaskChangeset};
+use {{crate_name}}_db::entities::tasks::{
+    create as create_task, load as load_task, load_all as load_tasks, Task, TaskChangeset
+};
 use {{crate_name}}_db::test_helpers::users::create as create_user;
 use pacesetter::test::helpers::{request, DbTestContext};
 use pacesetter_procs::db_test;
