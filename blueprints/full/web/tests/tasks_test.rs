@@ -9,7 +9,7 @@ use hyper::StatusCode;
 use {{crate_name}}_db::entities::tasks::{
     create as create_task, load as load_task, load_all as load_tasks, Task, TaskChangeset,
 };
-use {{crate_name}}_db::test_helpers::users::create as create_user;
+use {{crate_name}}_db::test_helpers::users::{create as create_user, UserChangeset};
 use pacesetter::test::helpers::{request, DbTestContext};
 use pacesetter_procs::db_test;
 use serde_json::json;
@@ -57,17 +57,14 @@ async fn test_create_task_unauthorized(context: &DbTestContext) {
 
 #[db_test]
 async fn test_create_task_invalid(context: &DbTestContext) {
-    create_user(
-        String::from("Test User"),
-        String::from("s3kuR t0k3n!"),
-        &context.db_pool,
-    )
-    .await
-    .unwrap();
+    let user_changeset: UserChangeset = Faker.fake();
+    create_user(user_changeset.clone(), &context.db_pool)
+        .await
+        .unwrap();
 
     let mut headers = HashMap::new();
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
-    headers.insert(http::header::AUTHORIZATION.as_str(), "s3kuR t0k3n!");
+    headers.insert(http::header::AUTHORIZATION.as_str(), &user_changeset.token);
 
     let payload = json!(TaskChangeset {
         description: String::from("")
@@ -87,17 +84,14 @@ async fn test_create_task_invalid(context: &DbTestContext) {
 
 #[db_test]
 async fn test_create_task_authorized(context: &DbTestContext) {
-    create_user(
-        String::from("Test User"),
-        String::from("s3kuR t0k3n!"),
-        &context.db_pool,
-    )
-    .await
-    .unwrap();
+    let user_changeset: UserChangeset = Faker.fake();
+    create_user(user_changeset.clone(), &context.db_pool)
+        .await
+        .unwrap();
 
     let mut headers = HashMap::new();
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
-    headers.insert(http::header::AUTHORIZATION.as_str(), "s3kuR t0k3n!");
+    headers.insert(http::header::AUTHORIZATION.as_str(), &user_changeset.token);
 
     let task_changeset: TaskChangeset = Faker.fake();
     let payload = json!(task_changeset);
@@ -130,17 +124,14 @@ async fn test_create_tasks_unauthorized(context: &DbTestContext) {
 
 #[db_test]
 async fn test_create_tasks_invalid(context: &DbTestContext) {
-    create_user(
-        String::from("Test User"),
-        String::from("s3kuR t0k3n!"),
-        &context.db_pool,
-    )
-    .await
-    .unwrap();
+    let user_changeset: UserChangeset = Faker.fake();
+    create_user(user_changeset.clone(), &context.db_pool)
+        .await
+        .unwrap();
 
     let mut headers = HashMap::new();
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
-    headers.insert(http::header::AUTHORIZATION.as_str(), "s3kuR t0k3n!");
+    headers.insert(http::header::AUTHORIZATION.as_str(), &user_changeset.token);
 
     let task_changeset: TaskChangeset = Faker.fake();
     let payload = json!(vec![
@@ -167,17 +158,14 @@ async fn test_create_tasks_invalid(context: &DbTestContext) {
 
 #[db_test]
 async fn test_create_tasks_authorized(context: &DbTestContext) {
-    create_user(
-        String::from("Test User"),
-        String::from("s3kuR t0k3n!"),
-        &context.db_pool,
-    )
-    .await
-    .unwrap();
+    let user_changeset: UserChangeset = Faker.fake();
+    create_user(user_changeset.clone(), &context.db_pool)
+        .await
+        .unwrap();
 
     let mut headers = HashMap::new();
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
-    headers.insert(http::header::AUTHORIZATION.as_str(), "s3kuR t0k3n!");
+    headers.insert(http::header::AUTHORIZATION.as_str(), &user_changeset.token);
 
     let task_changeset1: TaskChangeset = Faker.fake();
     let task_changeset2: TaskChangeset = Faker.fake();
