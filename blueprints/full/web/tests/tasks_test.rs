@@ -40,7 +40,7 @@ async fn test_get_tasks(context: &DbTestContext) {
     let tasks: TasksList = json_body::<TasksList>(response).await;
     assert_eq!(tasks.len(), 1);
     assert_eq!(
-        tasks.get(0).unwrap().description,
+        tasks.first().unwrap().description,
         task_changeset.description
     );
 }
