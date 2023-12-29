@@ -1,3 +1,5 @@
+#[cfg(feature = "test-helpers")]
+use fake::{faker::lorem::en::*, Dummy};
 use serde::Deserialize;
 use serde::Serialize;
 use sqlx::Postgres;
@@ -10,9 +12,10 @@ pub struct Task {
     pub description: String,
 }
 
-#[derive(Deserialize, Validate)]
-#[cfg_attr(feature = "test-helpers", derive(Serialize))]
+#[derive(Deserialize, Validate, Clone)]
+#[cfg_attr(feature = "test-helpers", derive(Serialize, Dummy))]
 pub struct TaskChangeset {
+    #[cfg_attr(feature = "test-helpers", dummy(faker = "Sentence(3..8)"))]
     #[validate(length(min = 1))]
     pub description: String,
 }
