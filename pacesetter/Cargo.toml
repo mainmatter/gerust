@@ -10,6 +10,7 @@ license = "MIT"
 anyhow = "1"
 axum = "0.7"
 clap = { version = "4.4", features = ["derive"] }
+cruet = "0.14"
 dotenvy = "0.15"
 figment = { version = "0.10", features = ["toml", "env"] }
 rand = "0.8"

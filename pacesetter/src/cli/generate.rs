@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand};
+use cruet::string::{pluralize::to_plural, singularize::to_singular};
 use pacesetter_util::ui::UI;
 use std::fs::File;
 use std::path::Path;
@@ -26,6 +27,11 @@ enum Commands {
         #[arg(help = "The name of the migration.")]
         name: String,
     },
+    #[command(about = "Generate an entity")]
+    Entity {
+        #[arg(help = "The name of the entity.")]
+        name: String,
+    },
 }
 
 pub async fn cli() {
@@ -38,6 +44,13 @@ pub async fn cli() {
             match generate_migration(name).await {
                 Ok(file_name) => ui.success(&format!("Generated migration {}.", &file_name)),
                 Err(e) => ui.error("Could not generate migration!", e),
+            }
+        }
+        Commands::Entity { name } => {
+            ui.info("Generating entity…");
+            match generate_entity(name).await {
+                Ok(file_name) => ui.success(&format!("Generated entity {}.", &file_name)),
+                Err(e) => ui.error("Could not generate entity!", e),
             }
         }
     }
@@ -58,4 +71,15 @@ async fn generate_migration(name: String) -> Result<String, anyhow::Error> {
 
         Ok(file_name)
     }
+}
+
+async fn generate_entity(name: String) -> Result<String, anyhow::Error> {
+    let name = to_singular(&name).to_lowercase();
+    let name_plural = to_plural(&name);
+    let file_name = format!("{}.rs", name_plural);
+    let full_file_name = format!("./db/src/entities/{}", file_name);
+    let path = Path::new(&full_file_name);
+    File::create(path)?;
+
+    Ok(file_name)
 }
