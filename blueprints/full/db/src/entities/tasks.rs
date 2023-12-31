@@ -39,6 +39,20 @@ pub async fn load(
     Ok(task)
 }
 
+pub async fn delete(
+    id: Uuid,
+    executor: impl sqlx::Executor<'_, Database = Postgres>,
+) -> Result<(), crate::Error> {
+    match sqlx::query!("DELETE FROM tasks WHERE id = $1 RETURNING id", id)
+        .fetch_optional(executor)
+        .await
+        .map_err(|e| crate::Error::DbError(e.into()))?
+    {
+        Some(_) => Ok(()),
+        None => Err(crate::Error::NoRecordFound),
+    }
+}
+
 pub async fn create(
     task: TaskChangeset,
     executor: impl sqlx::Executor<'_, Database = Postgres>,

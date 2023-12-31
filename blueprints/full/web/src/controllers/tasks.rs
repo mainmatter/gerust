@@ -30,6 +30,17 @@ pub async fn get_task(
     Ok(Json(task))
 }
 
+pub async fn delete_task(
+    State(app_state): State<AppState>,
+    Path(id): Path<Uuid>,
+) -> Result<(), (StatusCode, String)> {
+    match tasks::delete(id, &app_state.db_pool).await {
+        Ok(_) => Ok(()),
+        Err(Error::NoRecordFound) => Err((StatusCode::NOT_FOUND, "".into())),
+        Err(e) => Err((internal_error(e), "".into())),
+    }
+}
+
 pub async fn create_task(
     State(app_state): State<AppState>,
     Json(task): Json<tasks::TaskChangeset>,
