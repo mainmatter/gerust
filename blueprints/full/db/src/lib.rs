@@ -31,6 +31,8 @@ pub async fn transaction(
 pub enum Error {
     #[error("database query failed")]
     DbError(anyhow::Error),
+    #[error("no record found where one was expected")]
+    NoRecordFound,
     #[error("validation failed")]
     ValidationError(validator::ValidationErrors),
 }

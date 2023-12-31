@@ -14,6 +14,7 @@ use pacesetter::test::helpers::{request, DbTestContext};
 use pacesetter_procs::db_test;
 use serde_json::json;
 use std::collections::HashMap;
+use uuid::Uuid;
 
 mod common;
 
@@ -192,6 +193,77 @@ async fn test_create_tasks_authorized(context: &DbTestContext) {
 
     let tasks = load_tasks(&context.db_pool).await.unwrap();
     assert_eq!(tasks.len(), 2);
+}
+
+#[db_test]
+async fn test_delete_task_unauthorized(context: &DbTestContext) {
+    let task_changeset: TaskChangeset = Faker.fake();
+    let task = create_task(task_changeset.clone(), &context.db_pool)
+        .await
+        .unwrap();
+
+    let response = request(
+        &context.app,
+        &format!("/tasks/{}", task.id),
+        HashMap::new(),
+        Body::empty(),
+        Method::DELETE,
+    )
+    .await;
+
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[db_test]
+async fn test_delete_task_nonexistent(context: &DbTestContext) {
+    let user_changeset: UserChangeset = Faker.fake();
+    create_user(user_changeset.clone(), &context.db_pool)
+        .await
+        .unwrap();
+
+    let mut headers = HashMap::<&str, &str>::new();
+    headers.insert(http::header::AUTHORIZATION.as_str(), &user_changeset.token);
+
+    let response = request(
+        &context.app,
+        &format!("/tasks/{}", Uuid::new_v4()),
+        headers,
+        Body::empty(),
+        Method::DELETE,
+    )
+    .await;
+
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+}
+
+#[db_test]
+async fn test_delete_task_authorized(context: &DbTestContext) {
+    let user_changeset: UserChangeset = Faker.fake();
+    create_user(user_changeset.clone(), &context.db_pool)
+        .await
+        .unwrap();
+
+    let mut headers = HashMap::<&str, &str>::new();
+    headers.insert(http::header::AUTHORIZATION.as_str(), &user_changeset.token);
+
+    let task_changeset: TaskChangeset = Faker.fake();
+    let task = create_task(task_changeset.clone(), &context.db_pool)
+        .await
+        .unwrap();
+
+    let response = request(
+        &context.app,
+        &format!("/tasks/{}", task.id),
+        headers,
+        Body::empty(),
+        Method::DELETE,
+    )
+    .await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let result = load_task(task.id, &context.db_pool).await;
+    assert!(result.is_err());
 }
 
 #[db_test]
