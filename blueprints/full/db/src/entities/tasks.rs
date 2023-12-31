@@ -72,3 +72,27 @@ pub async fn create(
         description: task.description,
     })
 }
+
+pub async fn update(
+    id: Uuid,
+    task: TaskChangeset,
+    executor: impl sqlx::Executor<'_, Database = Postgres>,
+) -> Result<Task, crate::Error> {
+    task.validate().map_err(crate::Error::ValidationError)?;
+
+    match sqlx::query!(
+        "UPDATE tasks SET description = $1 WHERE id = $2 RETURNING id, description",
+        task.description,
+        id
+    )
+    .fetch_optional(executor)
+    .await
+    .map_err(|e| crate::Error::DbError(e.into()))?
+    {
+        Some(record) => Ok(Task {
+            id: record.id,
+            description: record.description,
+        }),
+        None => Err(crate::Error::NoRecordFound),
+    }
+}

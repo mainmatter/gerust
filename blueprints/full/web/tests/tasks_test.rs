@@ -84,7 +84,61 @@ async fn test_create_task_invalid(context: &DbTestContext) {
 }
 
 #[db_test]
-async fn test_create_task_authorized(context: &DbTestContext) {
+async fn test_update_task_unauthorized(context: &DbTestContext) {
+    let mut headers = HashMap::new();
+    headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
+
+    let task_changeset: TaskChangeset = Faker.fake();
+    let task = create_task(task_changeset.clone(), &context.db_pool)
+        .await
+        .unwrap();
+
+    let response = request(
+        &context.app,
+        &format!("/tasks/{}", task.id),
+        headers,
+        Body::empty(),
+        Method::PUT,
+    )
+    .await;
+
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[db_test]
+async fn test_update_task_invalid(context: &DbTestContext) {
+    let user_changeset: UserChangeset = Faker.fake();
+    create_user(user_changeset.clone(), &context.db_pool)
+        .await
+        .unwrap();
+
+    let task_changeset: TaskChangeset = Faker.fake();
+    let task = create_task(task_changeset.clone(), &context.db_pool)
+        .await
+        .unwrap();
+
+    let mut headers = HashMap::new();
+    headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
+    headers.insert(http::header::AUTHORIZATION.as_str(), &user_changeset.token);
+
+    let payload = json!(TaskChangeset {
+        description: String::from("")
+    });
+
+    let response = request(
+        &context.app,
+        &format!("/tasks/{}", task.id),
+        headers,
+        Body::from(payload.to_string()),
+        Method::PUT,
+    )
+    .await;
+
+    assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+}
+
+#[db_test]
+async fn test_update_task_non_existent(context: &DbTestContext) {
     let user_changeset: UserChangeset = Faker.fake();
     create_user(user_changeset.clone(), &context.db_pool)
         .await
@@ -99,10 +153,41 @@ async fn test_create_task_authorized(context: &DbTestContext) {
 
     let response = request(
         &context.app,
-        "/tasks",
+        &format!("/tasks/{}", Uuid::new_v4()),
         headers,
         Body::from(payload.to_string()),
-        Method::POST,
+        Method::PUT,
+    )
+    .await;
+
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+}
+
+#[db_test]
+async fn test_update_task_authorized(context: &DbTestContext) {
+    let user_changeset: UserChangeset = Faker.fake();
+    create_user(user_changeset.clone(), &context.db_pool)
+        .await
+        .unwrap();
+
+    let task_changeset: TaskChangeset = Faker.fake();
+    let task = create_task(task_changeset.clone(), &context.db_pool)
+        .await
+        .unwrap();
+
+    let mut headers = HashMap::new();
+    headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
+    headers.insert(http::header::AUTHORIZATION.as_str(), &user_changeset.token);
+
+    let task_changeset: TaskChangeset = Faker.fake();
+    let payload = json!(task_changeset);
+
+    let response = request(
+        &context.app,
+        &format!("/tasks/{}", task.id),
+        headers,
+        Body::from(payload.to_string()),
+        Method::PUT,
     )
     .await;
 
