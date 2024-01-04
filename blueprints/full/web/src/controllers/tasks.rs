@@ -81,3 +81,19 @@ pub async fn create_tasks(
         Err(e) => Err((internal_error(e), "".into())),
     }
 }
+
+pub async fn update_task(
+    State(app_state): State<AppState>,
+    Path(id): Path<Uuid>,
+    Json(task): Json<tasks::TaskChangeset>,
+) -> Result<Json<tasks::Task>, (StatusCode, String)> {
+    match tasks::update(id, task, &app_state.db_pool).await {
+        Ok(task) => Ok(Json(task)),
+        Err(Error::NoRecordFound) => Err((StatusCode::NOT_FOUND, "".into())),
+        Err(Error::ValidationError(e)) => {
+            info!(err.msg = %e, err.details = ?e, "Validation failed");
+            Err((StatusCode::UNPROCESSABLE_ENTITY, e.to_string()))
+        }
+        Err(e) => Err((internal_error(e), "".into())),
+    }
+}
