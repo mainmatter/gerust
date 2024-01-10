@@ -1,16 +1,16 @@
-use anyhow::{anyhow, Context};
+use anyhow::Context;
 use clap::{Parser, Subcommand};
 use cruet::{
     string::{pluralize::to_plural, singularize::to_singular},
     to_title_case,
 };
+use liquid::Template;
 use pacesetter_util::ui::UI;
-use std::fs::{self, File, OpenOptions};
-use std::io::Write;
-use std::path::Path;
+use std::fs::{File, OpenOptions};
+use std::io::prelude::*;
 use std::time::SystemTime;
 
-static VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), " (", env!("VERGEN_GIT_SHA"), ")");
+static _VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), " (", env!("VERGEN_GIT_SHA"), ")");
 
 static BLUEPRINTS_DIR: include_dir::Dir =
     include_dir::include_dir!("$CARGO_MANIFEST_DIR/src/cli/generate/blueprints");
@@ -58,7 +58,7 @@ pub async fn cli() {
         Commands::Entity { name } => {
             ui.info("Generating entity…");
             match generate_entity(name).await {
-                Ok(file_name) => ui.success(&format!("Generated entity {}.", &file_name)),
+                Ok(struct_name) => ui.success(&format!("Generated entity {}.", &struct_name)),
                 Err(e) => ui.error("Could not generate entity!", e),
             }
         }
@@ -66,20 +66,12 @@ pub async fn cli() {
 }
 
 async fn generate_migration(name: String) -> Result<String, anyhow::Error> {
-    let timestamp = SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .context("Failed to get timestamp!")?;
+    let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
     let file_name = format!("V{}__{}.sql", timestamp.as_secs(), name);
-    let full_file_name = format!("./db/migrations/{}", file_name);
-    let path = Path::new(&full_file_name);
+    let path = format!("./db/migrations/{}", file_name);
+    create_project_file(&path, "".as_bytes())?;
 
-    if Path::new(path).exists() {
-        Err(anyhow!("File already exists: {}", full_file_name))
-    } else {
-        File::create(path).context("Failed to create file!")?;
-
-        Ok(file_name)
-    }
+    Ok(path)
 }
 
 async fn generate_entity(name: String) -> Result<String, anyhow::Error> {
@@ -87,49 +79,60 @@ async fn generate_entity(name: String) -> Result<String, anyhow::Error> {
     let name_plural = to_plural(&name);
     let struct_name = to_title_case(&name);
 
-    let tmp_directory = std::env::temp_dir().join(format!("pacesetter-blueprint-{}", VERSION));
-    std::fs::create_dir_all(&tmp_directory)
-        .context("Failed to create a temporary directory for Pacesetter's blueprints")
-        .unwrap();
-    BLUEPRINTS_DIR
-        .extract(&tmp_directory)
-        .context("Failed to extract Pacesetter's blueprints to a temporary directory")
-        .unwrap();
-    let blueprint_path = tmp_directory.join("entity").join("file.rs.liquid");
-    let blueprint_path = blueprint_path
-        .to_str()
-        .unwrap_or("Failed to get full path to Pacesetter's blueprint");
-    let template_source =
-        fs::read_to_string(blueprint_path).expect("Should have been able to read the file");
-    let template = liquid::ParserBuilder::with_stdlib()
-        .build()
-        .unwrap()
-        .parse(&template_source)
-        .unwrap();
+    let template = get_liquid_template("entity/file.rs.liquid")?;
     let variables = liquid::object!({
         "entity_struct_name": struct_name,
         "entity_singular_name": name,
         "entity_plural_name": name_plural,
     });
-    let output = template.render(&variables).unwrap();
+    let output = template
+        .render(&variables)
+        .context("Failed to render Liquid template")?;
 
-    let file_name = format!("{}.rs", name_plural);
-    let full_file_name = format!("./db/src/entities/{}", file_name);
-    let path = Path::new(&full_file_name);
-    let mut file = File::create(path)?;
-    if let Err(_) = file.write_all(output.as_bytes()) {
-        return Err(anyhow!("File to write to file: {}!", full_file_name));
-    }
+    create_project_file(
+        &format!("./db/src/entities/{}.rs", name_plural),
+        output.as_bytes(),
+    )?;
+    append_to_project_file(
+        "./db/src/entities/mod.rs",
+        &format!("pub mod {};", name_plural),
+    )?;
 
-    let full_file_name = "./db/src/entities/mod.rs";
+    Ok(struct_name)
+}
+
+fn get_liquid_template(path: &str) -> Result<Template, anyhow::Error> {
+    let blueprint = BLUEPRINTS_DIR
+        .get_file(path)
+        .context(format!("Failed to get blueprint {}!", path))?;
+    let template_source = blueprint
+        .contents_utf8()
+        .context(format!("Failed to read blueprint {}!", path))?;
+    let template = liquid::ParserBuilder::with_stdlib()
+        .build()
+        .unwrap()
+        .parse(template_source)
+        .context("Failed to parse blueprint as Liquid template")?;
+
+    Ok(template)
+}
+
+fn create_project_file(path: &str, contents: &[u8]) -> Result<(), anyhow::Error> {
+    let mut file = File::create(path).context(format!(r#"Could not create file "{}""#, path))?;
+    file.write_all(contents)
+        .context(format!(r#"Could not write file "{}""#, path))?;
+
+    Ok(())
+}
+
+fn append_to_project_file(path: &str, contents: &str) -> Result<(), anyhow::Error> {
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
-        .open(full_file_name)?;
+        .open(path)
+        .context(format!(r#"Could not open file "{}"!"#, path))?;
 
-    if let Err(_) = file.write_all(output.as_bytes()) {
-        Err(anyhow!("File to write to file: {}!", full_file_name))
-    } else {
-        Ok(file_name)
-    }
+    writeln!(file, "{}", contents).context(format!(r#"Failed to append to file "{}"!"#, path))?;
+
+    Ok(())
 }
