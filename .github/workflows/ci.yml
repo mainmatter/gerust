@@ -349,6 +349,11 @@ jobs:
         cd my-app
         cargo generate entity Person
 
+    - name: generate-entity-test-helper
+      run: |
+        cd my-app
+        cargo generate entity-test-helper Person
+
   clippy-generated-default:
     name: "Run Clippy on generated default example app"
     runs-on: ubuntu-latest

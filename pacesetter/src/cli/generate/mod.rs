@@ -41,6 +41,11 @@ enum Commands {
         #[arg(help = "The name of the entity.")]
         name: String,
     },
+    #[command(about = "Generate an entity test helper")]
+    EntityTestHelper {
+        #[arg(help = "The name of the entity the test helper is for.")]
+        name: String,
+    },
 }
 
 pub async fn cli() {
@@ -60,6 +65,16 @@ pub async fn cli() {
             match generate_entity(name).await {
                 Ok(struct_name) => ui.success(&format!("Generated entity {}.", &struct_name)),
                 Err(e) => ui.error("Could not generate entity!", e),
+            }
+        }
+        Commands::EntityTestHelper { name } => {
+            ui.info("Generating entity test helper…");
+            match generate_entity_test_helper(name).await {
+                Ok(struct_name) => ui.success(&format!(
+                    "Generated test helper for entity {}.",
+                    &struct_name
+                )),
+                Err(e) => ui.error("Could not generate entity test helper!", e),
             }
         }
     }
@@ -95,6 +110,33 @@ async fn generate_entity(name: String) -> Result<String, anyhow::Error> {
     )?;
     append_to_project_file(
         "./db/src/entities/mod.rs",
+        &format!("pub mod {};", name_plural),
+    )?;
+
+    Ok(struct_name)
+}
+
+async fn generate_entity_test_helper(name: String) -> Result<String, anyhow::Error> {
+    let name = to_singular(&name).to_lowercase();
+    let name_plural = to_plural(&name);
+    let struct_name = to_title_case(&name);
+
+    let template = get_liquid_template("entity-test-helper/file.rs.liquid")?;
+    let variables = liquid::object!({
+        "entity_struct_name": struct_name,
+        "entity_singular_name": name,
+        "entity_plural_name": name_plural,
+    });
+    let output = template
+        .render(&variables)
+        .context("Failed to render Liquid template")?;
+
+    create_project_file(
+        &format!("./db/src/test_helpers/{}.rs", name_plural),
+        output.as_bytes(),
+    )?;
+    append_to_project_file(
+        "./db/src/test_helpers/mod.rs",
         &format!("pub mod {};", name_plural),
     )?;
 
