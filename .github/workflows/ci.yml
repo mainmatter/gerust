@@ -354,6 +354,11 @@ jobs:
         cd my-app
         cargo generate entity-test-helper Person
 
+    - name: generate-middleware
+      run: |
+        cd my-app
+        cargo generate middleware rate-limit
+
   clippy-generated-default:
     name: "Run Clippy on generated default example app"
     runs-on: ubuntu-latest

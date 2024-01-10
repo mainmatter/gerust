@@ -1,8 +1,8 @@
 use anyhow::Context;
 use clap::{Parser, Subcommand};
 use cruet::{
+    case::{snake::to_snake_case, title::to_title_case},
     string::{pluralize::to_plural, singularize::to_singular},
-    to_title_case,
 };
 use liquid::Template;
 use pacesetter_util::ui::UI;
@@ -46,6 +46,11 @@ enum Commands {
         #[arg(help = "The name of the entity the test helper is for.")]
         name: String,
     },
+    #[command(about = "Generate a middleware")]
+    Middleware {
+        #[arg(help = "The name of the middleware.")]
+        name: String,
+    },
 }
 
 pub async fn cli() {
@@ -75,6 +80,13 @@ pub async fn cli() {
                     &struct_name
                 )),
                 Err(e) => ui.error("Could not generate entity test helper!", e),
+            }
+        }
+        Commands::Middleware { name } => {
+            ui.info("Generating middleware…");
+            match generate_middleware(name).await {
+                Ok(file_name) => ui.success(&format!("Generated middleware {}.", &file_name)),
+                Err(e) => ui.error("Could not generate middleware!", e),
             }
         }
     }
@@ -141,6 +153,27 @@ async fn generate_entity_test_helper(name: String) -> Result<String, anyhow::Err
     )?;
 
     Ok(struct_name)
+}
+
+async fn generate_middleware(name: String) -> Result<String, anyhow::Error> {
+    let name = to_snake_case(&name).to_lowercase();
+
+    let template = get_liquid_template("middleware/file.rs.liquid")?;
+    let variables = liquid::object!({
+        "name": name
+    });
+    let output = template
+        .render(&variables)
+        .context("Failed to render Liquid template")?;
+
+    let file_path = format!("./web/src/middlewares/{}.rs", name);
+    create_project_file(&file_path, output.as_bytes())?;
+    append_to_project_file(
+        "./web/src/middlewares/mod.rs",
+        &format!("pub mod {};", name),
+    )?;
+
+    Ok(file_path)
 }
 
 fn get_liquid_template(path: &str) -> Result<Template, anyhow::Error> {
