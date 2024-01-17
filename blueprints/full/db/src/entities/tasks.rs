@@ -32,11 +32,15 @@ pub async fn load_all(
 pub async fn load(
     id: Uuid,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
-) -> Result<Task, anyhow::Error> {
-    let task = sqlx::query_as!(Task, "SELECT id, description FROM tasks WHERE id = $1", id)
-        .fetch_one(executor)
-        .await?;
-    Ok(task)
+) -> Result<Task, crate::Error> {
+    match sqlx::query_as!(Task, "SELECT id, description FROM tasks WHERE id = $1", id)
+        .fetch_optional(executor)
+        .await
+        .map_err(|e| crate::Error::DbError(e.into()))?
+    {
+        Some(task) => Ok(task),
+        None => Err(crate::Error::NoRecordFound),
+    }
 }
 
 pub async fn delete(
