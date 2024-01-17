@@ -1,9 +1,10 @@
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand};
 use cruet::{
     case::{snake::to_snake_case, title::to_title_case},
     string::{pluralize::to_plural, singularize::to_singular},
 };
+use guppy::{graph::PackageGraph, MetadataCommand};
 use liquid::Template;
 use pacesetter_util::ui::UI;
 use std::fs::{File, OpenOptions};
@@ -51,6 +52,11 @@ enum Commands {
         #[arg(help = "The name of the middleware.")]
         name: String,
     },
+    #[command(about = "Generate a controller")]
+    Controller {
+        #[arg(help = "The name of the controller.")]
+        name: String,
+    },
 }
 
 pub async fn cli() {
@@ -87,6 +93,13 @@ pub async fn cli() {
             match generate_middleware(name).await {
                 Ok(file_name) => ui.success(&format!("Generated middleware {}.", &file_name)),
                 Err(e) => ui.error("Could not generate middleware!", e),
+            }
+        }
+        Commands::Controller { name } => {
+            ui.info("Generating controller…");
+            match generate_controller(name).await {
+                Ok(file_name) => ui.success(&format!("Generated controller {}.", &file_name)),
+                Err(e) => ui.error("Could not generate controller!", e),
             }
         }
     }
@@ -176,6 +189,35 @@ async fn generate_middleware(name: String) -> Result<String, anyhow::Error> {
     Ok(file_path)
 }
 
+async fn generate_controller(name: String) -> Result<String, anyhow::Error> {
+    let name = to_snake_case(&name).to_lowercase();
+    let name_plural = to_plural(&name);
+    let name_singular = to_singular(&name);
+    let struct_name = to_title_case(&name);
+    let db_crate_name = get_member_package_name("db")?;
+    let db_crate_name = to_snake_case(&db_crate_name);
+
+    let template = get_liquid_template("controller/crud/controller.rs.liquid")?;
+    let variables = liquid::object!({
+        "entity_struct_name": struct_name,
+        "entity_singular_name": name_singular,
+        "entity_plural_name": name_plural,
+        "db_crate_name": db_crate_name
+    });
+    let output = template
+        .render(&variables)
+        .context("Failed to render Liquid template")?;
+
+    let file_path = format!("./web/src/controllers/{}.rs", name);
+    create_project_file(&file_path, output.as_bytes())?;
+    append_to_project_file(
+        "./web/src/controllers/mod.rs",
+        &format!("pub mod {};", name),
+    )?;
+
+    Ok(file_path)
+}
+
 fn get_liquid_template(path: &str) -> Result<Template, anyhow::Error> {
     let blueprint = BLUEPRINTS_DIR
         .get_file(path)
@@ -210,4 +252,17 @@ fn append_to_project_file(path: &str, contents: &str) -> Result<(), anyhow::Erro
     writeln!(file, "{}", contents).context(format!(r#"Failed to append to file "{}"!"#, path))?;
 
     Ok(())
+}
+
+fn get_member_package_name(path: &str) -> Result<String, anyhow::Error> {
+    let mut cmd = MetadataCommand::new();
+    let package_graph = PackageGraph::from_command(cmd.manifest_path("./Cargo.toml")).unwrap();
+    let workspace = package_graph.workspace();
+    for member in workspace.iter_by_path() {
+        let (member_path, metadata) = member;
+        if member_path == path {
+            return Ok(String::from(metadata.name()));
+        }
+    }
+    Err(anyhow!("Could not find workspace member at path: {}", path))
 }

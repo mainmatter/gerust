@@ -13,6 +13,7 @@ clap = { version = "4.4", features = ["derive"] }
 cruet = "0.14"
 dotenvy = "0.15"
 figment = { version = "0.10", features = ["toml", "env"] }
+guppy = "0.17"
 include_dir = "0.7"
 liquid = "~0.26"
 liquid-core = "~0.26"
