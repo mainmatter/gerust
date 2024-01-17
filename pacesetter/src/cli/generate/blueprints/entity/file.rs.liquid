@@ -35,12 +35,16 @@ pub async fn load_all(
 pub async fn load(
     id: Uuid,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
-) -> Result<{{entity_struct_name}}, anyhow::Error> {
+) -> Result<{{entity_struct_name}}, crate::Error> {
     todo!("Adopt the SQL query as necessary!");
-    let {{entity_singular_name}} = sqlx::query_as!({{entity_struct_name}}, "SELECT id, name FROM {{entity_plural_name}} WHERE id = $1", id)
-        .fetch_one(executor)
-        .await?;
-    Ok({{entity_singular_name}})
+    match sqlx::query_as!({{entity_struct_name}}, "SELECT id, description FROM {{entity_plural_name}} WHERE id = $1", id)
+        .fetch_optional(executor)
+        .await
+        .map_err(|e| crate::Error::DbError(e.into()))?
+    {
+        Some({{entity_singular_name}}) => Ok({{entity_singular_name}}),
+        None => Err(crate::Error::NoRecordFound),
+    }
 }
 
 pub async fn create(
