@@ -1,5 +1,6 @@
 use crate::controllers::tasks::{
-    create_task, create_tasks, delete_task, get_task, get_tasks, update_task,
+    create as create_task, create_batch as create_tasks, delete as delete_task,
+    read_all as get_tasks, read_one as get_task, update as update_task,
 };
 use crate::middlewares::auth::auth;
 use crate::state::AppState;
