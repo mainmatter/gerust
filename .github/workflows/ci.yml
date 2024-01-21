@@ -154,7 +154,7 @@ jobs:
     - name: fmt-generated
       run: |
         cd my-app
-        cargo fmt --all -- --check
+        cargo fmt -- --check
 
   clippy-generated-full:
     name: "Run Clippy on generated full example app"
@@ -323,7 +323,7 @@ jobs:
     - name: fmt-generated
       run: |
         cd my-app
-        cargo fmt --all -- --check
+        cargo fmt -- --check
   
   run-generators-with-generated-default:
     name: "Run generators on generated default example app"
@@ -484,7 +484,7 @@ jobs:
     - name: fmt-generated
       run: |
         cd my-app
-        cargo fmt --all -- --check
+        cargo fmt -- --check
   
   clippy-generated-minimal:
     name: "Run Clippy on generated minimal example app"
