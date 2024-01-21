@@ -97,7 +97,7 @@ pub async fn cli() {
         }
         Commands::Controller { name } => {
             ui.info("Generating controller…");
-            match generate_controller(name).await {
+            match generate_crud_controller(name).await {
                 Ok(file_name) => ui.success(&format!("Generated controller {}.", &file_name)),
                 Err(e) => ui.error("Could not generate controller!", e),
             }
@@ -189,7 +189,7 @@ async fn generate_middleware(name: String) -> Result<String, anyhow::Error> {
     Ok(file_path)
 }
 
-async fn generate_controller(name: String) -> Result<String, anyhow::Error> {
+async fn generate_crud_controller(name: String) -> Result<String, anyhow::Error> {
     let name = to_snake_case(&name).to_lowercase();
     let name_plural = to_plural(&name);
     let name_singular = to_singular(&name);
