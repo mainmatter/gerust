@@ -51,6 +51,7 @@ pub async fn read_one(
         Err(Error::NoRecordFound) => Err(StatusCode::NOT_FOUND),
         Err(e) => Err(internal_error(e)),
     }
+    */
 }
 
 pub async fn update(
