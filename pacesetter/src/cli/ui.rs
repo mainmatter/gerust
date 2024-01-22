@@ -1,12 +1,5 @@
 use std::cmp::max;
 
-#[allow(dead_code)]
-pub enum LogType {
-    Info,
-    Success,
-    Error,
-}
-
 pub struct UI {
     debug: bool,
     indentation: usize,
@@ -78,13 +71,5 @@ impl UI {
 
     pub fn outdent(&mut self) {
         self.indentation = max(0, self.indentation - 1);
-    }
-}
-
-pub fn log(log_type: LogType, log: &str) {
-    match log_type {
-        LogType::Info => println!("ℹ️  {}", log),
-        LogType::Success => println!("✅ {}", log),
-        LogType::Error => println!("❌ {}", log),
     }
 }
