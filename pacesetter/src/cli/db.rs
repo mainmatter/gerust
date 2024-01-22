@@ -2,7 +2,7 @@ use crate::cli::ui::{log, log_per_env, LogType};
 use crate::cli::util::parse_env;
 use crate::config::DatabaseConfig;
 use crate::Environment;
-use clap::{arg, value_parser, Command};
+use clap::{Parser, Subcommand};
 use sqlx::postgres::{PgConnectOptions, PgConnection};
 use sqlx::{
     migrate::{Migrate, Migrator},
@@ -13,73 +13,47 @@ use std::fs;
 use std::path::Path;
 use url::Url;
 
-fn commands() -> Command {
-    Command::new("db")
-        .about("A CLI tool to manage the project's database.")
-        .subcommand_required(true)
-        .arg_required_else_help(true)
-        .subcommand(
-            Command::new("drop")
-                .about("Drop the database")
-                .arg(arg!(env: -e <ENV>).value_parser(value_parser!(String))),
-        )
-        .subcommand(
-            Command::new("create")
-                .about("Create the database")
-                .arg(arg!(env: -e <ENV>).value_parser(value_parser!(String))),
-        )
-        .subcommand(
-            Command::new("migrate")
-                .about("Migrate the database")
-                .arg(arg!(env: -e <ENV>).value_parser(value_parser!(String))),
-        )
-        .subcommand(
-            Command::new("reset")
-                .about("Reset the database (drop, re-create, migrate)")
-                .arg(arg!(env: -e <ENV>).value_parser(value_parser!(String))),
-        )
-        .subcommand(
-            Command::new("seed")
-                .about("Seed the database")
-                .arg(arg!(env: -e <ENV>).value_parser(value_parser!(String))),
-        )
+#[derive(Parser)]
+#[command(author, version, about = "A CLI tool to manage the project's database.", long_about = None)]
+#[command(propagate_version = true)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+
+    #[arg(short, long, global = true, help = "Choose the environment (development, test, production).", value_parser = parse_env, default_value = "development")]
+    env: Environment,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    #[command(about = "Drop the database")]
+    Drop,
+    #[command(about = "Create the database")]
+    Create,
+    #[command(about = "Migrate the database")]
+    Migrate,
+    #[command(about = "Reset (drop, create, migrate) the database")]
+    Reset,
+    #[command(about = "Seed the database")]
+    Seed,
 }
 
 pub async fn cli<F>(load_config: F)
 where
     F: Fn(&Environment) -> DatabaseConfig,
 {
-    let matches = commands().get_matches();
-
-    match matches.subcommand() {
-        Some(("drop", sub_matches)) => {
-            let env = parse_env(sub_matches);
-            let config = load_config(&env);
-            drop(&env, &config).await;
+    let cli = Cli::parse();
+    let config = load_config(&cli.env);
+    match cli.command {
+        Commands::Drop => drop(&cli.env, &config).await,
+        Commands::Create => create(&cli.env, &config).await,
+        Commands::Migrate => migrate(&cli.env, &config).await,
+        Commands::Seed => seed(&cli.env, &config).await,
+        Commands::Reset => {
+            drop(&cli.env, &config).await;
+            create(&cli.env, &config).await;
+            migrate(&cli.env, &config).await;
         }
-        Some(("create", sub_matches)) => {
-            let env = parse_env(sub_matches);
-            let config = load_config(&env);
-            create(&env, &config).await;
-        }
-        Some(("migrate", sub_matches)) => {
-            let env = parse_env(sub_matches);
-            let config = load_config(&env);
-            migrate(&env, &config).await;
-        }
-        Some(("reset", sub_matches)) => {
-            let env = parse_env(sub_matches);
-            let config = load_config(&env);
-            drop(&env, &config).await;
-            create(&env, &config).await;
-            migrate(&env, &config).await;
-        }
-        Some(("seed", sub_matches)) => {
-            let env = parse_env(sub_matches);
-            let config = load_config(&env);
-            seed(&env, &config).await;
-        }
-        _ => unreachable!(),
     }
 }
 
