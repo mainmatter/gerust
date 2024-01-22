@@ -1,4 +1,4 @@
-use crate::cli::ui::UI;
+use pacesetter_util::ui::UI;
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand};
 use std::fs::File;

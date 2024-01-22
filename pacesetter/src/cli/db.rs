@@ -1,4 +1,4 @@
-use crate::cli::ui::UI;
+use pacesetter_util::ui::UI;
 use crate::cli::util::parse_env;
 use crate::config::DatabaseConfig;
 use crate::Environment;
