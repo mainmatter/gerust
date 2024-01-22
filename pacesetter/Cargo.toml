@@ -7,6 +7,7 @@ description = "Meta-framework on top of axum"
 license = "MIT"
 
 [dependencies]
+anyhow = "1"
 axum = "0.7"
 clap = { version = "4.4", features = ["derive"] }
 dotenvy = "0.15"
