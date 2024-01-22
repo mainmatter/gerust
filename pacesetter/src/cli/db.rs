@@ -1,9 +1,9 @@
-use pacesetter_util::ui::UI;
 use crate::cli::util::parse_env;
 use crate::config::DatabaseConfig;
 use crate::Environment;
 use anyhow::Context;
 use clap::{Parser, Subcommand};
+use pacesetter_util::ui::UI;
 use sqlx::postgres::{PgConnectOptions, PgConnection};
 use sqlx::{
     migrate::{Migrate, Migrator},

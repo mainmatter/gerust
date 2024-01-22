@@ -31,7 +31,7 @@ struct Cli {
 
     #[arg(long, global = true, help = "Disable colored output.")]
     no_color: bool,
-    
+
     #[arg(long, global = true, help = "Enable debug output.")]
     debug: bool,
 }
@@ -58,11 +58,15 @@ async fn main() {
     match generate(&cli.name, cli.outdir, is_local, blueprint, &ui).await {
         Ok(output_dir) => {
             ui.outdent();
-            ui.success(&format!("Generated {} at {}.", cli.name, output_dir.display()));
+            ui.success(&format!(
+                "Generated {} at {}.",
+                cli.name,
+                output_dir.display()
+            ));
         }
         Err(e) => {
             ui.outdent();
-            ui.error(&format!("Could not generate project!"), e);
+            ui.error("Could not generate project!", e);
         }
     }
 }
@@ -72,7 +76,7 @@ async fn generate(
     output_dir: Option<PathBuf>,
     is_local: bool,
     blueprint: Blueprint,
-    ui: &UI
+    ui: &UI,
 ) -> Result<PathBuf, anyhow::Error> {
     if is_local {
         ui.log("Using local template ./template");

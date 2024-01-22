@@ -1,6 +1,6 @@
-use pacesetter_util::ui::UI;
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand};
+use pacesetter_util::ui::UI;
 use std::fs::File;
 use std::path::Path;
 use std::time::SystemTime;
