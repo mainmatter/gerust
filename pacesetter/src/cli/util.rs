@@ -1,17 +1,13 @@
 use crate::Environment;
-use clap::ArgMatches;
 
-pub fn parse_env(sub_matches: &ArgMatches) -> Environment {
-    let env = sub_matches
-        .get_one::<String>("env")
-        .map(|s| s.as_str())
-        .unwrap_or("development");
-
-    if env == "test" {
-        Environment::Test
-    } else if env == "production" {
-        Environment::Production
-    } else {
-        Environment::Development
+pub fn parse_env(s: &str) -> Result<Environment, &'static str> {
+    let s = &s.to_lowercase();
+    match s.as_str() {
+        "dev" => Ok(Environment::Development),
+        "development" => Ok(Environment::Development),
+        "test" => Ok(Environment::Test),
+        "prod" => Ok(Environment::Production),
+        "production" => Ok(Environment::Production),
+        _ => Err("Cannot parse environment!"),
     }
 }

@@ -1,8 +1,9 @@
-use crate::cli::ui::{log, log_per_env, LogType};
 use crate::cli::util::parse_env;
 use crate::config::DatabaseConfig;
 use crate::Environment;
-use clap::{arg, value_parser, Command};
+use anyhow::Context;
+use clap::{Parser, Subcommand};
+use pacesetter_util::ui::UI;
 use sqlx::postgres::{PgConnectOptions, PgConnection};
 use sqlx::{
     migrate::{Migrate, Migrator},
@@ -13,151 +14,149 @@ use std::fs;
 use std::path::Path;
 use url::Url;
 
-fn commands() -> Command {
-    Command::new("db")
-        .about("A CLI tool to manage the project's database.")
-        .subcommand_required(true)
-        .arg_required_else_help(true)
-        .subcommand(
-            Command::new("drop")
-                .about("Drop the database")
-                .arg(arg!(env: -e <ENV>).value_parser(value_parser!(String))),
-        )
-        .subcommand(
-            Command::new("create")
-                .about("Create the database")
-                .arg(arg!(env: -e <ENV>).value_parser(value_parser!(String))),
-        )
-        .subcommand(
-            Command::new("migrate")
-                .about("Migrate the database")
-                .arg(arg!(env: -e <ENV>).value_parser(value_parser!(String))),
-        )
-        .subcommand(
-            Command::new("reset")
-                .about("Reset the database (drop, re-create, migrate)")
-                .arg(arg!(env: -e <ENV>).value_parser(value_parser!(String))),
-        )
-        .subcommand(
-            Command::new("seed")
-                .about("Seed the database")
-                .arg(arg!(env: -e <ENV>).value_parser(value_parser!(String))),
-        )
+#[derive(Parser)]
+#[command(author, version, about = "A CLI tool to manage the project's database.", long_about = None)]
+#[command(propagate_version = true)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+
+    #[arg(short, long, global = true, help = "Choose the environment (development, test, production).", value_parser = parse_env, default_value = "development")]
+    env: Environment,
+
+    #[arg(long, global = true, help = "Disable colored output.")]
+    no_color: bool,
+
+    #[arg(long, global = true, help = "Enable debug output.")]
+    debug: bool,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    #[command(about = "Drop the database")]
+    Drop,
+    #[command(about = "Create the database")]
+    Create,
+    #[command(about = "Migrate the database")]
+    Migrate,
+    #[command(about = "Reset (drop, create, migrate) the database")]
+    Reset,
+    #[command(about = "Seed the database")]
+    Seed,
 }
 
 pub async fn cli<F>(load_config: F)
 where
     F: Fn(&Environment) -> DatabaseConfig,
 {
-    let matches = commands().get_matches();
+    let cli = Cli::parse();
+    let config = load_config(&cli.env);
+    let mut ui = UI::new(!cli.no_color, cli.debug);
 
-    match matches.subcommand() {
-        Some(("drop", sub_matches)) => {
-            let env = parse_env(sub_matches);
-            let config = load_config(&env);
-            drop(&env, &config).await;
+    match cli.command {
+        Commands::Drop => {
+            ui.info(&format!("Dropping {} database…", &cli.env));
+            match drop(&config).await {
+                Ok(db_name) => ui.success(&format!("Dropped database {} successfully.", &db_name)),
+                Err(e) => ui.error("Could not drop database!", e),
+            }
         }
-        Some(("create", sub_matches)) => {
-            let env = parse_env(sub_matches);
-            let config = load_config(&env);
-            create(&env, &config).await;
+        Commands::Create => {
+            ui.info(&format!("Creating {} database…", &cli.env));
+            match create(&config).await {
+                Ok(db_name) => ui.success(&format!("Created database {} successfully.", &db_name)),
+                Err(e) => ui.error("Could not create database!", e),
+            }
         }
-        Some(("migrate", sub_matches)) => {
-            let env = parse_env(sub_matches);
-            let config = load_config(&env);
-            migrate(&env, &config).await;
+        Commands::Migrate => {
+            ui.info(&format!("Migrating {} database…", &cli.env));
+            ui.indent();
+            match migrate(&ui, &config).await {
+                Ok(migrations) => {
+                    ui.outdent();
+                    ui.success(&format!("{} migrations applied.", migrations));
+                }
+                Err(e) => {
+                    ui.outdent();
+                    ui.error("Could not migrate database!", e);
+                }
+            }
         }
-        Some(("reset", sub_matches)) => {
-            let env = parse_env(sub_matches);
-            let config = load_config(&env);
-            drop(&env, &config).await;
-            create(&env, &config).await;
-            migrate(&env, &config).await;
+        Commands::Seed => {
+            ui.info(&format!("Seeding {} database…", &cli.env));
+            match seed(&config).await {
+                Ok(_) => ui.success("Seeded database successfully."),
+                Err(e) => ui.error("Could not seed database!", e),
+            }
         }
-        Some(("seed", sub_matches)) => {
-            let env = parse_env(sub_matches);
-            let config = load_config(&env);
-            seed(&env, &config).await;
+        Commands::Reset => {
+            ui.info(&format!("Resetting {} database…", &cli.env));
+            ui.indent();
+            match reset(&mut ui, &config).await {
+                Ok(db_name) => {
+                    ui.outdent();
+                    ui.success(&format!("Reset database {} successfully.", db_name));
+                }
+                Err(e) => {
+                    ui.outdent();
+                    ui.error("Could not reset database!", e)
+                }
+            }
         }
-        _ => unreachable!(),
     }
 }
 
-async fn drop(env: &Environment, config: &DatabaseConfig) {
-    log_per_env(
-        env,
-        LogType::Info,
-        "Dropping development database…",
-        "Dropping test database…",
-        "Dropping production database…",
-    );
-
+async fn drop(config: &DatabaseConfig) -> Result<String, anyhow::Error> {
     let db_config = get_db_config(config);
-    let db_name = db_config.get_database().unwrap();
+    let db_name = db_config
+        .get_database()
+        .context("Failed to get database name!")?;
     let mut root_connection = get_root_db_client(config).await;
 
-    let query = format!("DROP DATABASE IF EXISTS {}", db_name);
-    let result = root_connection.execute(query.as_str()).await;
+    let query = format!("DROP DATABASE {}", db_name);
+    root_connection
+        .execute(query.as_str())
+        .await
+        .context("Failed to drop database!")?;
 
-    match result {
-        Ok(_) => log(
-            LogType::Success,
-            format!("Database {} dropped successfully.", &db_name).as_str(),
-        ),
-        Err(_) => log(
-            LogType::Error,
-            format!("Dropping database {} failed!", &db_name).as_str(),
-        ),
-    }
+    Ok(String::from(db_name))
 }
 
-async fn create(env: &Environment, config: &DatabaseConfig) {
-    log_per_env(
-        env,
-        LogType::Info,
-        "Creating development database…",
-        "Creating test database…",
-        "Creating production database…",
-    );
-
+async fn create(config: &DatabaseConfig) -> Result<String, anyhow::Error> {
     let db_config = get_db_config(config);
-    let db_name = db_config.get_database().unwrap();
+    let db_name = db_config
+        .get_database()
+        .context("Failed to get database name!")?;
     let mut root_connection = get_root_db_client(config).await;
 
     let query = format!("CREATE DATABASE {}", db_name);
-    let result = root_connection.execute(query.as_str()).await;
+    root_connection
+        .execute(query.as_str())
+        .await
+        .context("Failed to create database!")?;
 
-    match result {
-        Ok(_) => log(
-            LogType::Success,
-            format!("Database {} created successfully.", &db_name).as_str(),
-        ),
-        Err(_) => log(
-            LogType::Error,
-            format!("Creating database {} failed!", &db_name).as_str(),
-        ),
-    }
+    Ok(String::from(db_name))
 }
 
-async fn migrate(env: &Environment, config: &DatabaseConfig) {
-    log_per_env(
-        env,
-        LogType::Info,
-        "Migrating development database…",
-        "Migrating test database…",
-        "Migrating production database…",
-    );
-
+async fn migrate(ui: &UI, config: &DatabaseConfig) -> Result<i32, anyhow::Error> {
     let db_config = get_db_config(config);
-    let migrator = Migrator::new(Path::new("db/migrations")).await.unwrap();
-    let mut connection = db_config.connect().await.unwrap();
+    let migrator = Migrator::new(Path::new("db/migrations"))
+        .await
+        .context("Failed to create migrator!")?;
+    let mut connection = db_config
+        .connect()
+        .await
+        .context("Failed to connect to database!")?;
 
-    connection.ensure_migrations_table().await.unwrap();
+    connection
+        .ensure_migrations_table()
+        .await
+        .context("Failed to ensure migrations table!")?;
 
     let applied_migrations: HashMap<_, _> = connection
         .list_applied_migrations()
         .await
-        .unwrap()
+        .context("Failed to list applied migrations!")?
         .into_iter()
         .map(|m| (m.version, m))
         .collect();
@@ -165,59 +164,49 @@ async fn migrate(env: &Environment, config: &DatabaseConfig) {
     let mut applied = 0;
     for migration in migrator.iter() {
         if applied_migrations.get(&migration.version).is_none() {
-            match connection.apply(migration).await {
-                Ok(_) => log(
-                    LogType::Info,
-                    format!("Migration {} applied.", migration.version).as_str(),
-                ),
-                Err(_) => {
-                    log(
-                        LogType::Error,
-                        format!("Coulnd't apply migration {}!", migration.version).as_str(),
-                    );
-                    return;
-                }
-            }
+            connection
+                .apply(migration)
+                .await
+                .context("Failed to apply migration {}!")?;
+            ui.log(&format!("Applied migration {}.", migration.version));
             applied += 1;
         }
     }
 
-    log(
-        LogType::Success,
-        format!(
-            "Migrated database successfully ({} migrations applied).",
-            applied
-        )
-        .as_str(),
-    );
+    Ok(applied)
 }
 
-async fn seed(env: &Environment, config: &DatabaseConfig) {
-    log_per_env(
-        env,
-        LogType::Info,
-        "Seeding development database…",
-        "Seeding test database…",
-        "Seeding production database…",
-    );
-
+async fn seed(config: &DatabaseConfig) -> Result<(), anyhow::Error> {
     let mut connection = get_db_client(config).await;
 
     let statements = fs::read_to_string("./db/seeds.sql")
         .expect("Could not read seeds – make sure db/seeds.sql exists!");
 
-    let mut transaction = connection.begin().await.unwrap();
-    let result = transaction.execute(statements.as_str()).await;
+    let mut transaction = connection
+        .begin()
+        .await
+        .context("Failed to start transaction!")?;
+    transaction
+        .execute(statements.as_str())
+        .await
+        .context("Failed to execute seeds!")?;
 
-    match result {
-        Ok(_) => {
-            let _ = transaction
-                .commit()
-                .await
-                .map_err(|_| log(LogType::Error, "Seeding database failed!"));
-            log(LogType::Info, "Seeded database.");
-        }
-        Err(_) => log(LogType::Error, "Seeding database failed!"),
+    Ok(())
+}
+
+async fn reset(ui: &mut UI, config: &DatabaseConfig) -> Result<String, anyhow::Error> {
+    ui.log("Dropping database…");
+    drop(config).await?;
+    ui.log("Recreating database…");
+    let db_name = create(config).await?;
+    ui.log("Migrating database…");
+    ui.indent();
+    let migration_result = migrate(ui, config).await;
+    ui.outdent();
+
+    match migration_result {
+        Ok(_) => Ok(db_name),
+        Err(e) => Err(e),
     }
 }
 
