@@ -1,6 +1,7 @@
 use anyhow::Context;
 use cargo_generate::{GenerateArgs, TemplatePath};
 use clap::{ArgAction, Parser};
+use pacesetter_util::ui::UI;
 use std::env;
 use std::fs;
 use std::path::PathBuf;
@@ -27,11 +28,19 @@ struct Cli {
     full: bool,
     #[arg(short, long, action(ArgAction::SetTrue))]
     minimal: bool,
+
+    #[arg(long, global = true, help = "Disable colored output.")]
+    no_color: bool,
+    
+    #[arg(long, global = true, help = "Enable debug output.")]
+    debug: bool,
 }
 
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
+
+    let mut ui = UI::new(!cli.no_color, cli.debug);
 
     let is_local = env::var("PS_CLI_LOCAL_DEV").is_ok();
 
@@ -43,13 +52,18 @@ async fn main() {
         Blueprint::Default
     };
 
-    info(format!("Generating {}…", cli.name).as_str());
+    ui.info(&format!("Generating {}…", cli.name));
+    ui.indent();
 
-    match generate(&cli.name, cli.outdir, is_local, blueprint).await {
+    match generate(&cli.name, cli.outdir, is_local, blueprint, &ui).await {
         Ok(output_dir) => {
-            success(format!("Generated {} at {}", cli.name, output_dir.display()).as_str())
+            ui.outdent();
+            ui.success(&format!("Generated {} at {}.", cli.name, output_dir.display()));
         }
-        Err(e) => error(format!("Error: {:?}", e).as_str()),
+        Err(e) => {
+            ui.outdent();
+            ui.error(&format!("Could not generate project!"), e);
+        }
     }
 }
 
@@ -58,11 +72,12 @@ async fn generate(
     output_dir: Option<PathBuf>,
     is_local: bool,
     blueprint: Blueprint,
+    ui: &UI
 ) -> Result<PathBuf, anyhow::Error> {
     if is_local {
-        info("Using local template ./template");
-        info("Using local pacesetter ./pacesetter");
-        info("Using local pacesetter-procs ./pacesetter-procs");
+        ui.log("Using local template ./template");
+        ui.log("Using local pacesetter ./pacesetter");
+        ui.log("Using local pacesetter-procs ./pacesetter-procs");
     }
 
     let output_dir = if let Some(output_dir) = output_dir {
@@ -130,16 +145,4 @@ fn get_local_pacesetter_path(lib: &str) -> Result<String, anyhow::Error> {
     let local_pacesetter = fs::canonicalize(local_pacesetter)?;
     let local_pacesetter = local_pacesetter.as_path().display().to_string();
     Ok(local_pacesetter)
-}
-
-fn info(text: &str) {
-    println!("ℹ️  {}", text);
-}
-
-fn success(text: &str) {
-    println!("✅ {}", text);
-}
-
-fn error(text: &str) {
-    eprintln!("❌ {}", text);
 }

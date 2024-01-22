@@ -2008,6 +2008,7 @@ dependencies = [
  "cargo-generate",
  "clap",
  "include_dir",
+ "pacesetter-util",
  "tokio",
  "vergen",
 ]
