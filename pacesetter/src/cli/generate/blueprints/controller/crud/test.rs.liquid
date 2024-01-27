@@ -6,9 +6,7 @@ use axum::{
 };
 use fake::{Fake, Faker};
 use hyper::StatusCode;
-use my_app_db::entities::tasks::{
-    create as create_task, load as load_task, load_all as load_tasks, Task, TaskChangeset,
-};
+use {{db_crate_name}}::{entities, transaction, Error};
 use pacesetter::test::helpers::{request, DbTestContext};
 use pacesetter_procs::db_test;
 use serde_json::json;
@@ -17,14 +15,15 @@ use uuid::Uuid;
 
 mod common;
 
-type TasksList = Vec<Task>;
-
 #[db_test]
 async fn test_create_invalid(context: &DbTestContext) {
+    todo!("send invalid changeset, asset 422 response!")
+
+    /* Example:
     let mut headers = HashMap::new();
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
 
-    let payload = json!(TaskChangeset {
+    let payload = json!(entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset {
         description: String::from("")
     });
 
@@ -38,15 +37,19 @@ async fn test_create_invalid(context: &DbTestContext) {
     .await;
 
     assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+    */
 }
 
 #[db_test]
 async fn test_create_success(context: &DbTestContext) {
+    todo!("send valid changeset, asset 201 response!")
+
+    /* Example:
     let mut headers = HashMap::new();
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
 
-    let task_changeset: TaskChangeset = Faker.fake();
-    let payload = json!(task_changeset);
+    let changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
+    let payload = json!(changeset);
 
     let response = request(
         &context.app,
@@ -59,18 +62,21 @@ async fn test_create_success(context: &DbTestContext) {
 
     assert_eq!(response.status(), StatusCode::CREATED);
 
-    let tasks = load_tasks(&context.db_pool).await.unwrap();
-    assert_eq!(tasks.len(), 1);
+    let {{entity_plural_name}} = {{entity_plural_name}} = entities::{{entity_plural_name}}::load_all(&app_state.db_pool);
+    assert_eq!({{entity_plural_name}}.len(), 1);
     assert_eq!(
-        tasks.first().unwrap().description,
-        task_changeset.description
+        {{entity_plural_name}}.first().unwrap().description,
+        changeset.description
     );
+    */
 }
 
 #[db_test]
 async fn test_read_all(context: &DbTestContext) {
-    let task_changeset: TaskChangeset = Faker.fake();
-    create_task(task_changeset.clone(), &context.db_pool)
+    todo!("arrange DB, load all entities, assert all are returned!")
+
+    let changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
+    entities::{{entity_plural_name}}::create(changeset.clone(), &context.db_pool)
         .await
         .unwrap();
 
@@ -85,11 +91,11 @@ async fn test_read_all(context: &DbTestContext) {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    let tasks: TasksList = json_body::<TasksList>(response).await;
-    assert_eq!(tasks.len(), 1);
+    let {{entity_plural_name}}: Vec<entities::{{entity_plural_name}}::{{entity_struct_name}}> = json_body::<Vec<entities::{{entity_plural_name}}::{{entity_struct_name}}>>(response).await;
+    assert_eq!({{entity_plural_name}}.len(), 1);
     assert_eq!(
-        tasks.first().unwrap().description,
-        task_changeset.description
+        {{entity_plural_name}}.first().unwrap().description,
+        changeset.description
     );
 }
 

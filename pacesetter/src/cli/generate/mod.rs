@@ -97,9 +97,13 @@ pub async fn cli() {
         }
         Commands::Controller { name } => {
             ui.info("Generating controller…");
-            match generate_crud_controller(name).await {
+            match generate_crud_controller(name.clone()).await {
                 Ok(file_name) => ui.success(&format!("Generated controller {}.", &file_name)),
                 Err(e) => ui.error("Could not generate controller!", e),
+            }
+            match generate_crud_controller_test(name).await {
+                Ok(file_name) => ui.success(&format!("Generated controller test {}.", &file_name)),
+                Err(e) => ui.error("Could not generate controller test!", e),
             }
         }
     }
@@ -214,6 +218,31 @@ async fn generate_crud_controller(name: String) -> Result<String, anyhow::Error>
         "./web/src/controllers/mod.rs",
         &format!("pub mod {};", name),
     )?;
+
+    Ok(file_path)
+}
+
+async fn generate_crud_controller_test(name: String) -> Result<String, anyhow::Error> {
+    let name = to_snake_case(&name).to_lowercase();
+    let name_plural = to_plural(&name);
+    let name_singular = to_singular(&name);
+    let struct_name = to_title_case(&name);
+    let db_crate_name = get_member_package_name("db")?;
+    let db_crate_name = to_snake_case(&db_crate_name);
+
+    let template = get_liquid_template("controller/crud/test.rs.liquid")?;
+    let variables = liquid::object!({
+        "entity_struct_name": struct_name,
+        "entity_singular_name": name_singular,
+        "entity_plural_name": name_plural,
+        "db_crate_name": db_crate_name
+    });
+    let output = template
+        .render(&variables)
+        .context("Failed to render Liquid template")?;
+
+    let file_path = format!("./web/tests/{}_test.rs", name);
+    create_project_file(&file_path, output.as_bytes())?;
 
     Ok(file_path)
 }
