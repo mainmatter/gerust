@@ -38,9 +38,9 @@ pub async fn load(
 ) -> Result<{{entity_struct_name}}, crate::Error> {
     todo!("Adopt the SQL query as necessary!");
     match sqlx::query_as!(
-    {{entity_struct_name}},
-    "SELECT id, description FROM {{entity_plural_name}} WHERE id = $1",
-    id
+        {{entity_struct_name}},
+        "SELECT id, description FROM {{entity_plural_name}} WHERE id = $1",
+        id
     )
     .fetch_optional(executor)
     .await
