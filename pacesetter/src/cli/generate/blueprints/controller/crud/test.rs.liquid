@@ -17,7 +17,7 @@ mod common;
 
 #[db_test]
 async fn test_create_invalid(context: &DbTestContext) {
-    todo!("send invalid changeset, asset 422 response!")
+    todo!("send invalid changeset, assert 422 response!");
 
     /* Example:
     let mut headers = HashMap::new();
@@ -29,7 +29,7 @@ async fn test_create_invalid(context: &DbTestContext) {
 
     let response = request(
         &context.app,
-        "/tasks",
+        "/{{entity_plural_name}}",
         headers,
         Body::from(payload.to_string()),
         Method::POST,
@@ -42,7 +42,7 @@ async fn test_create_invalid(context: &DbTestContext) {
 
 #[db_test]
 async fn test_create_success(context: &DbTestContext) {
-    todo!("send valid changeset, asset 201 response!")
+    todo!("send valid changeset, assert 201 response!");
 
     /* Example:
     let mut headers = HashMap::new();
@@ -53,7 +53,7 @@ async fn test_create_success(context: &DbTestContext) {
 
     let response = request(
         &context.app,
-        "/tasks",
+        "/{{entity_plural_name}}",
         headers,
         Body::from(payload.to_string()),
         Method::POST,
@@ -73,8 +73,9 @@ async fn test_create_success(context: &DbTestContext) {
 
 #[db_test]
 async fn test_read_all(context: &DbTestContext) {
-    todo!("arrange DB, load all entities, assert all are returned!")
+    todo!("arrange DB, load all entities, assert all are returned!");
 
+    /* Example:
     let changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
     entities::{{entity_plural_name}}::create(changeset.clone(), &context.db_pool)
         .await
@@ -82,7 +83,7 @@ async fn test_read_all(context: &DbTestContext) {
 
     let response = request(
         &context.app,
-        "/tasks",
+        "/{{entity_plural_name}}",
         HashMap::new(),
         Body::empty(),
         Method::GET,
@@ -97,13 +98,17 @@ async fn test_read_all(context: &DbTestContext) {
         {{entity_plural_name}}.first().unwrap().description,
         changeset.description
     );
+    */
 }
 
 #[db_test]
 async fn test_read_one_nonexistent(context: &DbTestContext) {
+    todo!("read non-existent entity, assert 404 response!");
+
+    /* Example:
     let response = request(
         &context.app,
-        format!("/tasks/{}", Uuid::new_v4()).as_str(),
+        format!("/{{entity_plural_name}}/{}", Uuid::new_v4()).as_str(),
         HashMap::new(),
         Body::empty(),
         Method::GET,
@@ -111,19 +116,23 @@ async fn test_read_one_nonexistent(context: &DbTestContext) {
     .await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    */
 }
 
 #[db_test]
 async fn test_read_one_success(context: &DbTestContext) {
-    let task_changeset: TaskChangeset = Faker.fake();
-    let task = create_task(task_changeset.clone(), &context.db_pool)
+    todo!("arrange DB, load entity, assert it is returned!");
+
+    /* Example:
+    let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
+    let {{entity_singular_name}} = create_task{{entity_singular_name}}({{entity_singular_name}}_changeset.clone(), &context.db_pool)
         .await
         .unwrap();
-    let task_id = task.id;
+    let {{entity_singular_name}}_id = {{entity_singular_name}}.id;
 
     let response = request(
         &context.app,
-        format!("/tasks/{}", task_id).as_str(),
+        format!("/{{entity_plural_name}}/{}", {{entity_singular_name}}_id).as_str(),
         HashMap::new(),
         Body::empty(),
         Method::GET,
@@ -132,28 +141,32 @@ async fn test_read_one_success(context: &DbTestContext) {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    let task: Task = json_body::<Task>(response).await;
-    assert_eq!(task.id, task_id);
-    assert_eq!(task.description, task_changeset.description);
+    let {{entity_singular_name}}: entities::{{entity_plural_name}}::{{entity_struct_name}} = json_body::<entities::{{entity_plural_name}}::{{entity_struct_name}}>(response).await;
+    assert_eq!({{entity_singular_name}}.id, {{entity_singular_name}}_id);
+    assert_eq!({{entity_singular_name}}.description, {{entity_singular_name}}_changeset.description);
+    */
 }
 
 #[db_test]
 async fn test_update_invalid(context: &DbTestContext) {
-    let task_changeset: TaskChangeset = Faker.fake();
-    let task = create_task(task_changeset.clone(), &context.db_pool)
+    todo!("arrange DB, send invalid changeset, assert 422 response and nothing changes in DB!");
+
+    /* Example:
+    let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}ChangesetChangeset = Faker.fake();
+    let {{entity_singular_name}} = create_task({{entity_singular_name}}_changeset.clone(), &context.db_pool)
         .await
         .unwrap();
 
     let mut headers = HashMap::new();
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
 
-    let payload = json!(TaskChangeset {
+    let payload = json!(entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset {
         description: String::from("")
     });
 
     let response = request(
         &context.app,
-        &format!("/tasks/{}", task.id),
+        &format!("/{{entity_plural_name}}/{}", {{entity_singular_name}}.id),
         headers,
         Body::from(payload.to_string()),
         Method::PUT,
@@ -161,19 +174,26 @@ async fn test_update_invalid(context: &DbTestContext) {
     .await;
 
     assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+
+    let {{entity_singular_name}}_after = load_{{entity_singular_name}}({{entity_singular_name}}.id, &context.db_pool).await.unwrap();
+    assert_eq!({{entity_singular_name}}_after.description, {{entity_singular_name}}.description);
+    */
 }
 
 #[db_test]
-async fn test_update_update_nonexistent(context: &DbTestContext) {
+async fn test_update_nonexistent(context: &DbTestContext) {
+    todo!("send valid changeset for non-existent ID, assert 404 response!");
+
+    /* Example:
     let mut headers = HashMap::new();
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
 
-    let task_changeset: TaskChangeset = Faker.fake();
-    let payload = json!(task_changeset);
+    let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
+    let payload = json!({{entity_singular_name}}_changeset);
 
     let response = request(
         &context.app,
-        &format!("/tasks/{}", Uuid::new_v4()),
+        &format!("/{{entity_plural_name}}/{}", Uuid::new_v4()),
         headers,
         Body::from(payload.to_string()),
         Method::PUT,
@@ -181,42 +201,52 @@ async fn test_update_update_nonexistent(context: &DbTestContext) {
     .await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    */
 }
 
 #[db_test]
 async fn test_update_success(context: &DbTestContext) {
-    let task_changeset: TaskChangeset = Faker.fake();
-    let task = create_task(task_changeset.clone(), &context.db_pool)
+    todo!("arrange DB, send valid changeset, assert 200 response and changes applied in DB!");
+
+    /* Example:
+    let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
+    let {{entity_singular_name}} = create_{{entity_singular_name}}({{entity_singular_name}}_changeset.clone(), &context.db_pool)
         .await
         .unwrap();
 
     let mut headers = HashMap::new();
     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
 
-    let task_changeset: TaskChangeset = Faker.fake();
-    let payload = json!(task_changeset);
+    let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
+    let payload = json!({{entity_singular_name}}_changeset);
 
     let response = request(
         &context.app,
-        &format!("/tasks/{}", task.id),
+        &format!("/{{entity_plural_name}}/{}", {{entity_singular_name}}.id),
         headers,
         Body::from(payload.to_string()),
         Method::PUT,
     )
     .await;
 
-    let task: Task = json_body::<Task>(response).await;
-    assert_eq!(task.description, task_changeset.description);
+    assert_eq!(response.status(), StatusCode::OK);
 
-    let task = load_task(task.id, &context.db_pool).await.unwrap();
-    assert_eq!(task.description, task_changeset.description);
+    let {{entity_singular_name}}: entities::{{entity_plural_name}}::{{entity_struct_name}} = json_body::<Task>(response).await;
+    assert_eq!({{entity_singular_name}}.description, {{entity_singular_name}}_changeset.description);
+
+    let {{entity_singular_name}} = load_{{entity_singular_name}}({{entity_singular_name}}.id, &context.db_pool).await.unwrap();
+    assert_eq!({{entity_singular_name}}.description, {{entity_singular_name}}_changeset.description);
+    */
 }
 
 #[db_test]
 async fn test_delete_nonexistent(context: &DbTestContext) {
+    todo!("delete non-existing ID, assert 404 response!");
+
+    /* Example:
     let response = request(
         &context.app,
-        &format!("/tasks/{}", Uuid::new_v4()),
+        &format!("/{{entity_plural_name}}/{}", Uuid::new_v4()),
         HashMap::<&str, &str>::new(),
         Body::empty(),
         Method::DELETE,
@@ -224,18 +254,22 @@ async fn test_delete_nonexistent(context: &DbTestContext) {
     .await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    */
 }
 
 #[db_test]
 async fn test_delete_success(context: &DbTestContext) {
-    let task_changeset: TaskChangeset = Faker.fake();
-    let task = create_task(task_changeset.clone(), &context.db_pool)
+    todo!("arrange DB, delete, assert 204 response and record deleted in dB!");
+
+    /* Example:
+    let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
+    let {{entity_singular_name}} = create_{{entity_singular_name}}({{entity_singular_name}}_changeset.clone(), &context.db_pool)
         .await
         .unwrap();
 
     let response = request(
         &context.app,
-        &format!("/tasks/{}", task.id),
+        &format!("/{{entity_plural_name}}/{}", {{entity_singular_name}}.id),
         HashMap::<&str, &str>::new(),
         Body::empty(),
         Method::DELETE,
@@ -244,8 +278,9 @@ async fn test_delete_success(context: &DbTestContext) {
 
     assert_eq!(response.status(), StatusCode::NO_CONTENT);
 
-    let result = load_task(task.id, &context.db_pool).await;
+    let result = load_{{entity_singular_name}}({{entity_singular_name}}.id, &context.db_pool).await;
     assert!(result.is_err());
+    */
 }
 
 async fn json_body<T>(response: Response<Body>) -> T

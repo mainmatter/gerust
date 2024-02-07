@@ -197,7 +197,7 @@ async fn generate_crud_controller(name: String) -> Result<String, anyhow::Error>
     let name = to_snake_case(&name).to_lowercase();
     let name_plural = to_plural(&name);
     let name_singular = to_singular(&name);
-    let struct_name = to_title_case(&name);
+    let struct_name = to_title_case(&name_singular);
     let db_crate_name = get_member_package_name("db")?;
     let db_crate_name = to_snake_case(&db_crate_name);
 
@@ -226,7 +226,7 @@ async fn generate_crud_controller_test(name: String) -> Result<String, anyhow::E
     let name = to_snake_case(&name).to_lowercase();
     let name_plural = to_plural(&name);
     let name_singular = to_singular(&name);
-    let struct_name = to_title_case(&name);
+    let struct_name = to_title_case(&name_singular);
     let db_crate_name = get_member_package_name("db")?;
     let db_crate_name = to_snake_case(&db_crate_name);
 
