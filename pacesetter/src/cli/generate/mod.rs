@@ -52,9 +52,9 @@ enum Commands {
         #[arg(help = "The name of the middleware.")]
         name: String,
     },
-    #[command(about = "Generate a controller")]
-    Controller {
-        #[arg(help = "The name of the controller.")]
+    #[command(about = "Generate an example CRUD controller")]
+    CrudController {
+        #[arg(help = "The name of the entity the controller is for.")]
         name: String,
     },
 }
@@ -95,15 +95,18 @@ pub async fn cli() {
                 Err(e) => ui.error("Could not generate middleware!", e),
             }
         }
-        Commands::Controller { name } => {
-            ui.info("Generating controller…");
+        Commands::CrudController { name } => {
+            ui.info("Generating CRUD controller…");
             match generate_crud_controller(name.clone()).await {
-                Ok(file_name) => ui.success(&format!("Generated controller {}.", &file_name)),
-                Err(e) => ui.error("Could not generate controller!", e),
+                Ok(file_name) => ui.success(&format!("Generated CRUD controller {}.", &file_name)),
+                Err(e) => ui.error("Could not generate CRUD controller!", e),
             }
             match generate_crud_controller_test(name).await {
-                Ok(file_name) => ui.success(&format!("Generated controller test {}.", &file_name)),
-                Err(e) => ui.error("Could not generate controller test!", e),
+                Ok(file_name) => ui.success(&format!(
+                    "Generated test for CRUD controller {}.",
+                    &file_name
+                )),
+                Err(e) => ui.error("Could not generate test for CRUD controller!", e),
             }
         }
     }
