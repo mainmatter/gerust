@@ -369,6 +369,12 @@ jobs:
         cd my-app
         cargo generate crud-controller people
 
+    # check the generators didn't produce mal-formatted code
+    - name: fmt-generated
+      run: |
+        cd my-app
+        cargo fmt -- --check
+
   clippy-generated-default:
     name: "Run Clippy on generated default example app"
     runs-on: ubuntu-latest
