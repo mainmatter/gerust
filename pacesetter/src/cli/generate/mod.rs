@@ -123,20 +123,18 @@ pub async fn cli() {
             }
             ui.info("Generating test for controller…");
             match generate_controller_test(name).await {
-                Ok(file_name) => ui.success(&format!(
-                    "Generated test for controller {}.",
-                    &file_name
-                )),
+                Ok(file_name) => {
+                    ui.success(&format!("Generated test for controller {}.", &file_name))
+                }
                 Err(e) => ui.error("Could not generate test for controller!", e),
             }
         }
         Commands::ControllerTest { name } => {
             ui.info("Generating test for controller…");
             match generate_controller_test(name).await {
-                Ok(file_name) => ui.success(&format!(
-                    "Generated test for controller {}.",
-                    &file_name
-                )),
+                Ok(file_name) => {
+                    ui.success(&format!("Generated test for controller {}.", &file_name))
+                }
                 Err(e) => ui.error("Could not generate test for controller!", e),
             }
         }
