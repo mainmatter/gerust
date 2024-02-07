@@ -359,6 +359,16 @@ jobs:
         cd my-app
         cargo generate middleware rate-limit
 
+    - name: generate-controller
+      run: |
+        cd my-app
+        cargo generate controller message
+
+    - name: generate-crud-controller
+      run: |
+        cd my-app
+        cargo generate crud-controller people
+
   clippy-generated-default:
     name: "Run Clippy on generated default example app"
     runs-on: ubuntu-latest
