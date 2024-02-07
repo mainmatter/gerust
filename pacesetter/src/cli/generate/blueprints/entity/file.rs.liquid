@@ -37,10 +37,14 @@ pub async fn load(
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<{{entity_struct_name}}, crate::Error> {
     todo!("Adopt the SQL query as necessary!");
-    match sqlx::query_as!({{entity_struct_name}}, "SELECT id, description FROM {{entity_plural_name}} WHERE id = $1", id)
-        .fetch_optional(executor)
-        .await
-        .map_err(|e| crate::Error::DbError(e.into()))?
+    match sqlx::query_as!(
+    {{entity_struct_name}},
+    "SELECT id, description FROM {{entity_plural_name}} WHERE id = $1",
+    id
+    )
+    .fetch_optional(executor)
+    .await
+    .map_err(|e| crate::Error::DbError(e.into()))?
     {
         Some({{entity_singular_name}}) => Ok({{entity_singular_name}}),
         None => Err(crate::Error::NoRecordFound),

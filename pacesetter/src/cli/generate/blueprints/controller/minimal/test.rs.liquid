@@ -1,8 +1,5 @@
 use axum::response::Response;
-use axum::{
-    body::Body,
-    http::Method,
-};
+use axum::{body::Body, http::Method};
 use hyper::StatusCode;
 use pacesetter::test::helpers::{request, DbTestContext};
 use pacesetter_procs::db_test;
@@ -23,7 +20,7 @@ async fn test_action(context: &DbTestContext) {
         Method::GET,
     )
     .await;
-    
+
     assert_eq!(response.status(), StatusCode::OK);
     */
 }

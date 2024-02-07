@@ -20,7 +20,5 @@ pub async fn create({{entity_singular_name}}: {{entity_struct_name}}Changeset, d
     .fetch_one(db)
     .await?;
 
-    Ok({{entity_struct_name}} {
-        name: {{entity_singular_name}}.name,
-    })
+    Ok({{entity_struct_name}} { name: {{entity_singular_name}}.name })
 }
