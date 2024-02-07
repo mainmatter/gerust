@@ -98,7 +98,12 @@ pub async fn cli() {
         Commands::CrudController { name } => {
             ui.info("Generating CRUD controller…");
             match generate_crud_controller(name.clone()).await {
-                Ok(file_name) => ui.success(&format!("Generated CRUD controller {}.", &file_name)),
+                Ok(file_name) => {
+                    ui.success(&format!("Generated CRUD controller {}.", &file_name));
+                    ui.info(
+                        "Do not forget to route the controller's actions in ./web/src/routes.rs!",
+                    );
+                }
                 Err(e) => ui.error("Could not generate CRUD controller!", e),
             }
             match generate_crud_controller_test(name).await {
