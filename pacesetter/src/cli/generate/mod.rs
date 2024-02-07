@@ -57,6 +57,11 @@ enum Commands {
         #[arg(help = "The name of the entity the controller is for.")]
         name: String,
     },
+    #[command(about = "Generate a test for a CRUD controller")]
+    CrudControllerTest {
+        #[arg(help = "The name of the entity the controller is for.")]
+        name: String,
+    },
 }
 
 pub async fn cli() {
@@ -106,6 +111,17 @@ pub async fn cli() {
                 }
                 Err(e) => ui.error("Could not generate CRUD controller!", e),
             }
+            ui.info("Generating test for CRUD controller…");
+            match generate_crud_controller_test(name).await {
+                Ok(file_name) => ui.success(&format!(
+                    "Generated test for CRUD controller {}.",
+                    &file_name
+                )),
+                Err(e) => ui.error("Could not generate test for CRUD controller!", e),
+            }
+        }
+        Commands::CrudControllerTest { name } => {
+            ui.info("Generating test for CRUD controller…");
             match generate_crud_controller_test(name).await {
                 Ok(file_name) => ui.success(&format!(
                     "Generated test for CRUD controller {}.",
