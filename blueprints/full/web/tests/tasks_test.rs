@@ -290,6 +290,9 @@ async fn test_update_invalid(context: &DbTestContext) {
     .await;
 
     assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+
+    let task_after = load_task(task.id, &context.db_pool).await.unwrap();
+    assert_eq!(task_after.description, task_changeset.description);
 }
 
 #[db_test]
