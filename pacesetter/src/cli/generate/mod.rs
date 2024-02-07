@@ -52,6 +52,11 @@ enum Commands {
         #[arg(help = "The name of the middleware.")]
         name: String,
     },
+    #[command(about = "Generate a controller")]
+    Controller {
+        #[arg(help = "The name of the controller.")]
+        name: String,
+    },
     #[command(about = "Generate an example CRUD controller")]
     CrudController {
         #[arg(help = "The name of the entity the controller is for.")]
@@ -98,6 +103,26 @@ pub async fn cli() {
             match generate_middleware(name).await {
                 Ok(file_name) => ui.success(&format!("Generated middleware {}.", &file_name)),
                 Err(e) => ui.error("Could not generate middleware!", e),
+            }
+        }
+        Commands::Controller { name } => {
+            ui.info("Generating controller…");
+            match generate_controller(name.clone()).await {
+                Ok(file_name) => {
+                    ui.success(&format!("Generated controller {}.", &file_name));
+                    ui.info(
+                        "Do not forget to route the controller's actions in ./web/src/routes.rs!",
+                    );
+                }
+                Err(e) => ui.error("Could not generate controller!", e),
+            }
+            ui.info("Generating test for controller…");
+            match generate_controller_test(name).await {
+                Ok(file_name) => ui.success(&format!(
+                    "Generated test for controller {}.",
+                    &file_name
+                )),
+                Err(e) => ui.error("Could not generate test for controller!", e),
             }
         }
         Commands::CrudController { name } => {
@@ -213,6 +238,44 @@ async fn generate_middleware(name: String) -> Result<String, anyhow::Error> {
         "./web/src/middlewares/mod.rs",
         &format!("pub mod {};", name),
     )?;
+
+    Ok(file_path)
+}
+
+async fn generate_controller(name: String) -> Result<String, anyhow::Error> {
+    let name = to_snake_case(&name).to_lowercase();
+
+    let template = get_liquid_template("controller/minimal/controller.rs.liquid")?;
+    let variables = liquid::object!({
+        "name": name,
+    });
+    let output = template
+        .render(&variables)
+        .context("Failed to render Liquid template")?;
+
+    let file_path = format!("./web/src/controllers/{}.rs", name);
+    create_project_file(&file_path, output.as_bytes())?;
+    append_to_project_file(
+        "./web/src/controllers/mod.rs",
+        &format!("pub mod {};", name),
+    )?;
+
+    Ok(file_path)
+}
+
+async fn generate_controller_test(name: String) -> Result<String, anyhow::Error> {
+    let name = to_snake_case(&name).to_lowercase();
+
+    let template = get_liquid_template("controller/minimal/test.rs.liquid")?;
+    let variables = liquid::object!({
+        "name": name,
+    });
+    let output = template
+        .render(&variables)
+        .context("Failed to render Liquid template")?;
+
+    let file_path = format!("./web/tests/{}_test.rs", name);
+    create_project_file(&file_path, output.as_bytes())?;
 
     Ok(file_path)
 }

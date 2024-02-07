@@ -1,0 +1,14 @@
+use crate::state::AppState;
+use axum::{extract::State, http::StatusCode};
+use pacesetter::web::internal_error;
+use tracing::info;
+
+pub async fn action(
+    State(app_state): State<AppState>,
+) -> Result<StatusCode, (StatusCode, String)> {
+    todo!("implement!");
+
+    info!("responding with {:?}", StatusCode::OK);
+
+    Ok(StatusCode::OK)
+}

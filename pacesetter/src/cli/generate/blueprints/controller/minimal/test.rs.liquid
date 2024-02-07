@@ -1,0 +1,29 @@
+use axum::response::Response;
+use axum::{
+    body::Body,
+    http::Method,
+};
+use hyper::StatusCode;
+use pacesetter::test::helpers::{request, DbTestContext};
+use pacesetter_procs::db_test;
+use std::collections::HashMap;
+
+mod common;
+
+#[db_test]
+async fn test_action(context: &DbTestContext) {
+    todo!("implement and assert on status code!");
+
+    /* Example:
+    let response = request(
+        &context.app,
+        "/{{name}}/action",
+        HashMap::new(),
+        Body::empty(),
+        Method::GET,
+    )
+    .await;
+    
+    assert_eq!(response.status(), StatusCode::OK);
+    */
+}
