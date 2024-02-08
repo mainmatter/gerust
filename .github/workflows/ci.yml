@@ -374,6 +374,7 @@ jobs:
     - name: fmt-generated
       run: |
         cd my-app
+        cat web/src/controllers/mod.rs
         cargo fmt -- --config reorder_modules=false --check
 
   clippy-generated-default:
