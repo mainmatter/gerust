@@ -7,7 +7,7 @@ use cruet::{
 use guppy::{graph::PackageGraph, MetadataCommand};
 use liquid::Template;
 use pacesetter_util::ui::UI;
-use std::fs::{File, OpenOptions};
+use std::fs::{self, File, OpenOptions};
 use std::io::prelude::*;
 use std::time::SystemTime;
 
@@ -372,9 +372,20 @@ fn create_project_file(path: &str, contents: &[u8]) -> Result<(), anyhow::Error>
 }
 
 fn append_to_project_file(path: &str, contents: &str) -> Result<(), anyhow::Error> {
-    let mut file = OpenOptions::new()
-        .write(true)
-        .append(true)
+    let file_contents =
+        fs::read_to_string(path).context(format!(r#"Could not read file "{}"!"#, path))?;
+    let file_contents = file_contents.trim();
+
+    let mut options = OpenOptions::new();
+    options.write(true);
+
+    if file_contents.is_empty() {
+        options.truncate(true);
+    } else {
+        options.append(true);
+    }
+
+    let mut file = options
         .open(path)
         .context(format!(r#"Could not open file "{}"!"#, path))?;
 
