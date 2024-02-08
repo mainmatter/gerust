@@ -369,11 +369,12 @@ jobs:
         cd my-app
         cargo generate crud-controller people
 
-    # check the generators didn't produce mal-formatted code
+    # check the generators didn't produce mal-formatted code (ignoring order of module declarations
+    # since we don't control that and it depends on the exact names we use for the generated items)
     - name: fmt-generated
       run: |
         cd my-app
-        cargo fmt -- --check
+        cargo fmt -- --config reorder_modules=false --check
 
   clippy-generated-default:
     name: "Run Clippy on generated default example app"
