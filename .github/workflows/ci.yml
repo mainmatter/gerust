@@ -154,7 +154,7 @@ jobs:
     - name: fmt-generated
       run: |
         cd my-app
-        cargo fmt --all -- --check
+        cargo fmt -- --check
 
   clippy-generated-full:
     name: "Run Clippy on generated full example app"
@@ -323,8 +323,59 @@ jobs:
     - name: fmt-generated
       run: |
         cd my-app
-        cargo fmt --all -- --check
+        cargo fmt -- --check
   
+  run-generators-with-generated-default:
+    name: "Run generators on generated default example app"
+    runs-on: ubuntu-latest
+    needs: generate-default
+    
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    
+    - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3
+      with:
+        name: my-app-default
+        path: my-app
+
+    - name: generate-migration
+      run: |
+        cd my-app
+        cargo generate migration CreatePeopleTable
+
+    - name: generate-entity
+      run: |
+        cd my-app
+        cargo generate entity Person
+
+    - name: generate-entity-test-helper
+      run: |
+        cd my-app
+        cargo generate entity-test-helper Person
+
+    - name: generate-middleware
+      run: |
+        cd my-app
+        cargo generate middleware rate-limit
+
+    - name: generate-controller
+      run: |
+        cd my-app
+        cargo generate controller message
+
+    - name: generate-crud-controller
+      run: |
+        cd my-app
+        cargo generate crud-controller people
+
+    # check the generators didn't produce mal-formatted code (ignoring order of module declarations
+    # since we don't control that and it depends on the exact names we use for the generated items)
+    - name: fmt-generated
+      run: |
+        cd my-app
+        cargo fmt -- --config reorder_modules=false --check
+
   clippy-generated-default:
     name: "Run Clippy on generated default example app"
     runs-on: ubuntu-latest
@@ -450,7 +501,7 @@ jobs:
     - name: fmt-generated
       run: |
         cd my-app
-        cargo fmt --all -- --check
+        cargo fmt -- --check
   
   clippy-generated-minimal:
     name: "Run Clippy on generated minimal example app"
