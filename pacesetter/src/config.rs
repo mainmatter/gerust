@@ -31,15 +31,16 @@ impl Default for ServerConfig {
 }
 
 impl ServerConfig {
-    pub fn get_bind_addr(&self) -> SocketAddr {
-        SocketAddr::from_str(format!("{}:{}", self.interface, self.port).as_str()).unwrap_or_else(
-            |_| {
-                panic!(
-                    r#"Could not parse bind addr "{}:{}"!"#,
-                    self.interface, self.port
-                )
-            },
+    pub fn get_bind_addr(&self) -> Result<SocketAddr, anyhow::Error> {
+        let socket_addr = SocketAddr::from_str(
+            format!("{}:{}", self.interface, self.port).as_str(),
         )
+        .context(format!(
+            r#"Could not parse bind addr "{}:{}"!"#,
+            self.interface, self.port
+        ))?;
+
+        Ok(socket_addr)
     }
 }
 
