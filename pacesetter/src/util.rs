@@ -28,17 +28,24 @@ pub fn get_env() -> Result<Environment, anyhow::Error> {
     match env::var("APP_ENVIRONMENT") {
         Ok(val) => {
             info!(r#"Setting environment from APP_ENVIRONMENT: "{}""#, val);
-            match val.to_lowercase().as_str() {
-                "dev" | "development" => Ok(Environment::Development),
-                "prod" | "production" => Ok(Environment::Production),
-                "test" => Ok(Environment::Test),
-                unknown => Err(anyhow!(r#"Unknown environment: "{}"!"#, unknown)),
-            }
+            parse_env(&val)
         }
         Err(_) => {
             info!("Defaulting to environment: development");
             Ok(Environment::Development)
         }
+    }
+}
+
+pub(crate) fn parse_env(env: &str) -> Result<Environment, anyhow::Error> {
+    let env = &env.to_lowercase();
+    match env.as_str() {
+        "dev" => Ok(Environment::Development),
+        "development" => Ok(Environment::Development),
+        "test" => Ok(Environment::Test),
+        "prod" => Ok(Environment::Production),
+        "production" => Ok(Environment::Production),
+        unknown => Err(anyhow!(r#"Unknown environment: "{}"!"#, unknown)),
     }
 }
 
