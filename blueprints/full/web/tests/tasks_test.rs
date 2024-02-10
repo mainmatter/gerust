@@ -1,5 +1,3 @@
-use axum::body::Bytes;
-use axum::response::Response;
 use axum::{
     body::Body,
     http::{self, Method},
@@ -10,7 +8,7 @@ use {{crate_name}}_db::entities::tasks::{
     create as create_task, load as load_task, load_all as load_tasks, Task, TaskChangeset,
 };
 use {{crate_name}}_db::test_helpers::users::{create as create_user, UserChangeset};
-use pacesetter::test::helpers::{request, DbTestContext};
+use pacesetter::test::helpers::{request, response_body_json, DbTestContext};
 use pacesetter_procs::db_test;
 use serde_json::json;
 use std::collections::HashMap;
@@ -160,7 +158,7 @@ async fn test_create_batch_success(context: &DbTestContext) {
 
     assert_eq!(response.status(), StatusCode::CREATED);
 
-    let tasks: Vec<Task> = json_body::<Vec<Task>>(response).await;
+    let tasks: Vec<Task> = response_body_json::<Vec<Task>>(response).await;
     assert_eq!(
         tasks.first().unwrap().description,
         task_changeset1.description
@@ -192,7 +190,7 @@ async fn test_read_all(context: &DbTestContext) {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    let tasks: TasksList = json_body::<TasksList>(response).await;
+    let tasks: TasksList = response_body_json::<TasksList>(response).await;
     assert_eq!(tasks.len(), 1);
     assert_eq!(
         tasks.first().unwrap().description,
@@ -233,7 +231,7 @@ async fn test_read_one_success(context: &DbTestContext) {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    let task: Task = json_body::<Task>(response).await;
+    let task: Task = response_body_json::<Task>(response).await;
     assert_eq!(task.id, task_id);
     assert_eq!(task.description, task_changeset.description);
 }
@@ -349,7 +347,7 @@ async fn test_update_success(context: &DbTestContext) {
     )
     .await;
 
-    let task: Task = json_body::<Task>(response).await;
+    let task: Task = response_body_json::<Task>(response).await;
     assert_eq!(task.description, task_changeset.description);
 
     let task = load_task(task.id, &context.db_pool).await.unwrap();
@@ -425,19 +423,4 @@ async fn test_delete_success(context: &DbTestContext) {
 
     let result = load_task(task.id, &context.db_pool).await;
     assert!(result.is_err());
-}
-
-async fn json_body<T>(response: Response<Body>) -> T
-where
-    T: serde::de::DeserializeOwned,
-{
-    let body = response_body(response).await;
-    serde_json::from_slice::<T>(&body).expect("Failed to deserialize JSON body")
-}
-
-async fn response_body(response: Response<Body>) -> Bytes {
-    // We don't care about the size limit in tests.
-    axum::body::to_bytes(response.into_body(), usize::MAX)
-        .await
-        .expect("Failed to read response body")
 }
