@@ -1,6 +1,9 @@
 use std::cmp::max;
+use std::io::Write;
 
 pub struct UI {
+    out: Box<dyn Write>,
+    errout: Box<dyn Write>,
     debug: bool,
     indentation: usize,
     log_prefix: String,
@@ -10,7 +13,12 @@ pub struct UI {
 }
 
 impl UI {
-    pub fn new(color: bool, debug: bool) -> UI {
+    pub fn new(
+        out: impl Write + 'static,
+        errout: impl Write + 'static,
+        color: bool,
+        debug: bool,
+    ) -> UI {
         let info_prefix = if color {
             String::from("ℹ️  ")
         } else {
@@ -33,6 +41,8 @@ impl UI {
         };
 
         UI {
+            out: Box::new(out),
+            errout: Box::new(errout),
             debug,
             indentation: 0,
             log_prefix,
@@ -42,26 +52,30 @@ impl UI {
         }
     }
 
-    fn indentation(&self) -> String {
+    fn indentation(&mut self) -> String {
         "  ".repeat(self.indentation)
     }
 
-    pub fn log(&self, msg: &str) {
-        println!("{}{}{}", self.indentation(), self.log_prefix, msg);
+    pub fn log(&mut self, msg: &str) {
+        let indentation = self.indentation();
+        self.out(&format!("{}{}{}", indentation, self.log_prefix, msg));
     }
 
-    pub fn info(&self, msg: &str) {
-        println!("{}{}{}", self.indentation(), self.info_prefix, msg);
+    pub fn info(&mut self, msg: &str) {
+        let indentation = self.indentation();
+        self.out(&format!("{}{}{}", indentation, self.info_prefix, msg));
     }
 
-    pub fn success(&self, msg: &str) {
-        println!("{}{}{}", self.indentation(), self.success_prefix, msg);
+    pub fn success(&mut self, msg: &str) {
+        let indentation = self.indentation();
+        self.out(&format!("{}{}{}", indentation, self.success_prefix, msg));
     }
 
-    pub fn error(&self, msg: &str, e: anyhow::Error) {
-        eprintln!("{}{}{}", self.indentation(), self.error_prefix, msg);
+    pub fn error(&mut self, msg: &str, e: anyhow::Error) {
+        let indentation = self.indentation();
+        self.errout(&format!("{}{}{}", indentation, self.error_prefix, msg));
         if self.debug {
-            eprintln!("{:?}", e);
+            self.errout(&format!("{:?}", e));
         }
     }
 
@@ -71,5 +85,13 @@ impl UI {
 
     pub fn outdent(&mut self) {
         self.indentation = max(0, self.indentation - 1);
+    }
+
+    fn out(&mut self, msg: &str) {
+        writeln!(&mut self.out, "{}", msg).expect("Cannot write to the output buffer!");
+    }
+
+    fn errout(&mut self, msg: &str) {
+        writeln!(&mut self.errout, "{}", msg).expect("Cannot write to the error output buffer!");
     }
 }

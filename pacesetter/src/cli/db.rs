@@ -51,7 +51,12 @@ where
 {
     let cli = Cli::parse();
     let config = load_config(&cli.env);
-    let mut ui = UI::new(!cli.no_color, cli.debug);
+    let mut ui = UI::new(
+        std::io::stdout(),
+        std::io::stderr(),
+        !cli.no_color,
+        cli.debug,
+    );
 
     match cli.command {
         Commands::Drop => {
@@ -71,7 +76,7 @@ where
         Commands::Migrate => {
             ui.info(&format!("Migrating {} database…", &cli.env));
             ui.indent();
-            match migrate(&ui, &config).await {
+            match migrate(&mut ui, &config).await {
                 Ok(migrations) => {
                     ui.outdent();
                     ui.success(&format!("{} migrations applied.", migrations));
@@ -138,7 +143,7 @@ async fn create(config: &DatabaseConfig) -> Result<String, anyhow::Error> {
     Ok(String::from(db_name))
 }
 
-async fn migrate(ui: &UI, config: &DatabaseConfig) -> Result<i32, anyhow::Error> {
+async fn migrate(ui: &mut UI, config: &DatabaseConfig) -> Result<i32, anyhow::Error> {
     let db_config = get_db_config(config);
     let migrator = Migrator::new(Path::new("db/migrations"))
         .await

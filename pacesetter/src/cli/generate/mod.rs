@@ -76,7 +76,12 @@ enum Commands {
 
 pub async fn cli() {
     let cli = Cli::parse();
-    let ui = UI::new(!cli.no_color, cli.debug);
+    let mut ui = UI::new(
+        std::io::stdout(),
+        std::io::stderr(),
+        !cli.no_color,
+        cli.debug,
+    );
 
     match cli.command {
         Commands::Migration { name } => {
