@@ -1,0 +1,6 @@
+---
+source: pacesetter-util/tests/ui_test.rs
+expression: error_output
+---
+❌ an error message :(
+

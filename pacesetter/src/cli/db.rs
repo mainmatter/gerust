@@ -53,12 +53,7 @@ where
     let config = load_config(&cli.env);
     let mut stdout = std::io::stdout();
     let mut stderr = std::io::stderr();
-    let mut ui = UI::new(
-        &mut stdout,
-        &mut stderr,
-        !cli.no_color,
-        cli.debug,
-    );
+    let mut ui = UI::new(&mut stdout, &mut stderr, !cli.no_color, cli.debug);
 
     match cli.command {
         Commands::Drop => {

@@ -42,12 +42,7 @@ async fn main() {
 
     let mut stdout = std::io::stdout();
     let mut stderr = std::io::stderr();
-    let mut ui = UI::new(
-        &mut stdout,
-        &mut stderr,
-        !cli.no_color,
-        cli.debug,
-    );
+    let mut ui = UI::new(&mut stdout, &mut stderr, !cli.no_color, cli.debug);
 
     let is_local = env::var("PS_CLI_LOCAL_DEV").is_ok();
 

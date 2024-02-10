@@ -78,12 +78,7 @@ pub async fn cli() {
     let cli = Cli::parse();
     let mut stdout = std::io::stdout();
     let mut stderr = std::io::stderr();
-    let mut ui = UI::new(
-        &mut stdout,
-        &mut stderr,
-        !cli.no_color,
-        cli.debug,
-    );
+    let mut ui = UI::new(&mut stdout, &mut stderr, !cli.no_color, cli.debug);
 
     match cli.command {
         Commands::Migration { name } => {

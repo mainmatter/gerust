@@ -1,4 +1,3 @@
-use std::cmp::max;
 use std::io::Write;
 
 pub struct UI<'a> {
@@ -84,7 +83,9 @@ impl<'a> UI<'a> {
     }
 
     pub fn outdent(&mut self) {
-        self.indentation = max(0, self.indentation - 1);
+        if self.indentation > 0 {
+            self.indentation -= 1;
+        }
     }
 
     fn out(&mut self, msg: &str) {
