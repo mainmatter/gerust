@@ -1,3 +1,4 @@
+use anyhow::Context;
 use axum::serve;
 use {{crate_name}}_config::Config;
 use pacesetter::{get_env, load_config};
@@ -10,7 +11,7 @@ pub mod routes;
 pub mod state;
 
 pub async fn run() -> anyhow::Result<()> {
-    let env = get_env();
+    let env = get_env().context("Cannot get environment!")?;
     let config: Config = load_config(&env);
 
     let app_state = state::app_state(config.clone()).await;
