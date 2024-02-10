@@ -10,7 +10,7 @@ use std::cell::OnceCell;
 
 pub async fn setup() -> TestContext {
     let init_config: OnceCell<Config> = OnceCell::new();
-    let _config = init_config.get_or_init(|| load_config(&Environment::Test));
+    let _config = init_config.get_or_init(|| load_config(&Environment::Test).unwrap());
 
     let app = routes(AppState {});
 

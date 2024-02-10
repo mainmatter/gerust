@@ -11,7 +11,7 @@ use std::cell::OnceCell;
 
 pub async fn setup_with_db() -> DbTestContext {
     let init_config: OnceCell<Config> = OnceCell::new();
-    let config = init_config.get_or_init(|| load_config(&Environment::Test));
+    let config = init_config.get_or_init(|| load_config(&Environment::Test).unwrap());
 
     let test_db_config = prepare_db(&config.database).await;
     let db_pool = connect_pool(test_db_config)

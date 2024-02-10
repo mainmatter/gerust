@@ -12,7 +12,7 @@ pub mod state;
 
 pub async fn run() -> anyhow::Result<()> {
     let env = get_env().context("Cannot get environment!")?;
-    let config: Config = load_config(&env);
+    let config: Config = load_config(&env).context("Cannot load config!")?;
 
     let app_state = state::app_state(config.clone()).await;
     let app = routes::routes(app_state);
