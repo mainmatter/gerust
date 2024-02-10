@@ -81,6 +81,14 @@ mod tests {
     }
 
     #[test]
+    fn test_get_env_with_env_var_all_caps_dev() {
+        env::set_var("APP_ENVIRONMENT", "DEV");
+        let env = get_env().unwrap();
+
+        assert_eq!(env, Environment::Development);
+    }
+
+    #[test]
     fn test_get_env_with_env_var_devevelopment() {
         env::set_var("APP_ENVIRONMENT", "development");
         let env = get_env().unwrap();
@@ -105,8 +113,24 @@ mod tests {
     }
 
     #[test]
+    fn test_get_env_with_env_var_capitalized_production() {
+        env::set_var("APP_ENVIRONMENT", "Production");
+        let env = get_env().unwrap();
+
+        assert_eq!(env, Environment::Production);
+    }
+
+    #[test]
     fn test_get_env_with_env_var_test() {
         env::set_var("APP_ENVIRONMENT", "test");
+        let env = get_env().unwrap();
+
+        assert_eq!(env, Environment::Test);
+    }
+
+    #[test]
+    fn test_get_env_with_env_var_weirdly_cased_test() {
+        env::set_var("APP_ENVIRONMENT", "tEsT");
         let env = get_env().unwrap();
 
         assert_eq!(env, Environment::Test);
