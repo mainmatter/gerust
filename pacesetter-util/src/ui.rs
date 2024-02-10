@@ -1,9 +1,9 @@
 use std::cmp::max;
 use std::io::Write;
 
-pub struct UI {
-    out: Box<dyn Write>,
-    errout: Box<dyn Write>,
+pub struct UI<'a> {
+    out: &'a mut dyn Write,
+    errout: &'a mut dyn Write,
     debug: bool,
     indentation: usize,
     log_prefix: String,
@@ -12,13 +12,13 @@ pub struct UI {
     error_prefix: String,
 }
 
-impl UI {
+impl<'a> UI<'a> {
     pub fn new(
-        out: impl Write + 'static,
-        errout: impl Write + 'static,
+        out: &'a mut dyn Write,
+        errout: &'a mut dyn Write,
         color: bool,
         debug: bool,
-    ) -> UI {
+    ) -> UI<'a> {
         let info_prefix = if color {
             String::from("ℹ️  ")
         } else {
@@ -41,8 +41,8 @@ impl UI {
         };
 
         UI {
-            out: Box::new(out),
-            errout: Box::new(errout),
+            out,
+            errout,
             debug,
             indentation: 0,
             log_prefix,

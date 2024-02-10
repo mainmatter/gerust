@@ -40,9 +40,11 @@ struct Cli {
 async fn main() {
     let cli = Cli::parse();
 
+    let mut stdout = std::io::stdout();
+    let mut stderr = std::io::stderr();
     let mut ui = UI::new(
-        std::io::stdout(),
-        std::io::stderr(),
+        &mut stdout,
+        &mut stderr,
         !cli.no_color,
         cli.debug,
     );
@@ -81,7 +83,7 @@ async fn generate(
     output_dir: Option<PathBuf>,
     is_local: bool,
     blueprint: Blueprint,
-    ui: &mut UI,
+    ui: &mut UI<'_>,
 ) -> Result<PathBuf, anyhow::Error> {
     if is_local {
         ui.log("Using local template ./template");
