@@ -4,7 +4,7 @@ use pacesetter::{cli::db::cli, load_config};
 #[tokio::main]
 async fn main() {
     cli(|env| {
-        let config: Config = load_config(&env);
+        let config: Config = load_config(&env).expect("Cannot load config!");
         config.database
     })
     .await;

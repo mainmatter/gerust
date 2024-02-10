@@ -8,3 +8,6 @@ license = "MIT"
 
 [dependencies]
 anyhow = "1"
+
+[dev-dependencies]
+insta = "1.34"

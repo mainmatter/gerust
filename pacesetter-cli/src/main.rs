@@ -40,7 +40,9 @@ struct Cli {
 async fn main() {
     let cli = Cli::parse();
 
-    let mut ui = UI::new(!cli.no_color, cli.debug);
+    let mut stdout = std::io::stdout();
+    let mut stderr = std::io::stderr();
+    let mut ui = UI::new(&mut stdout, &mut stderr, !cli.no_color, cli.debug);
 
     let is_local = env::var("PS_CLI_LOCAL_DEV").is_ok();
 
@@ -55,7 +57,7 @@ async fn main() {
     ui.info(&format!("Generating {}…", cli.name));
     ui.indent();
 
-    match generate(&cli.name, cli.outdir, is_local, blueprint, &ui).await {
+    match generate(&cli.name, cli.outdir, is_local, blueprint, &mut ui).await {
         Ok(output_dir) => {
             ui.outdent();
             ui.success(&format!(
@@ -76,7 +78,7 @@ async fn generate(
     output_dir: Option<PathBuf>,
     is_local: bool,
     blueprint: Blueprint,
-    ui: &UI,
+    ui: &mut UI<'_>,
 ) -> Result<PathBuf, anyhow::Error> {
     if is_local {
         ui.log("Using local template ./template");

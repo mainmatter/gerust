@@ -1,0 +1,10 @@
+---
+source: pacesetter-util/tests/ui_test.rs
+expression: output
+---
+   a log message
+     an indented message
+           more indentation
+       less indentation
+   no indentation
+
