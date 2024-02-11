@@ -34,6 +34,15 @@ pub struct ServerConfig {
 }
 
 impl ServerConfig {
+    /// Returns the full address the server binds to, including both the ip and port.
+    ///
+    /// This can be used when creating a TCP Listener:
+    ///
+    /// ```rust
+    /// let config: Config = load_config(Environment::Development);
+    /// let listener = TcpListener::bind(&config.server.addr).await?;
+    /// serve(listener, app.into_make_service()).await?;
+    ///  ```
     pub fn addr(&self) -> SocketAddr {
         SocketAddr::new(self.ip, self.port)
     }
@@ -61,6 +70,41 @@ pub struct DatabaseConfig {
     pub url: String,
 }
 
+/// Loads the application's configuration.
+///
+/// Examples:
+/// ```rust
+/// use my_app_config::Config;
+/// use pacesetter::{get_env, load_config};
+///
+/// let env = get_env();
+/// let config: Config = load_config(&env);
+/// ```
+///
+/// The returned `Config` struct is defined in the `config` crate, e.g.
+///
+/// ```rust
+/// #[derive(Deserialize, Debug)]
+/// pub struct Config {
+///     pub server: ServerConfig,
+///     pub database: DatabaseConfig,
+/// 
+///     pub app_setting: String,
+/// }
+/// ```
+///
+/// `ServerConfig` and `DatabaseConfig` are always populated based on environment variables:
+///
+/// * SERVER_ID and SERVER_PORT for `ServerConfig`
+/// * DATABASE_URL for `DatabaseConfig`
+///
+/// For the Development and Test environment, this function will define environment variables
+/// based on the contents of the `.env` and `.env.test` files respectively. Any `.evn` files are
+/// ignored in the production environment.
+///
+/// All application-specific configuration is read from the respective configuration files in
+/// the `config/app.toml` and `config/environments/<environment>.toml` files such that settings
+/// in the latter override settings in the former.
 pub fn load_config<'a, T>(env: &Environment) -> Result<T, anyhow::Error>
 where
     T: Deserialize<'a>,
