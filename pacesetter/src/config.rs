@@ -2,11 +2,11 @@ use crate::util::Environment;
 use anyhow::Context;
 use dotenvy::dotenv;
 use figment::{
-    providers::{Env, Format, Toml},
+    providers::{Env, Format, Serialized, Toml},
     Figment,
 };
-use serde::Deserialize;
-use std::net::{IpAddr, SocketAddr};
+use serde::{Deserialize, Serialize};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 /// The server configuration.
 ///
@@ -23,7 +23,7 @@ use std::net::{IpAddr, SocketAddr};
 ///     // add your config settings here…
 /// }
 /// ```
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct ServerConfig {
     /// The port to bind to, e.g. 3000
@@ -31,6 +31,15 @@ pub struct ServerConfig {
 
     /// The ip to bind to, e.g. 127.0.0.1 or ::1
     pub ip: IpAddr,
+}
+
+impl Default for ServerConfig {
+    fn default() -> Self {
+        Self {
+            ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+            port: 3000,
+        }
+    }
 }
 
 impl ServerConfig {
@@ -88,7 +97,7 @@ pub struct DatabaseConfig {
 /// pub struct Config {
 ///     pub server: ServerConfig,
 ///     pub database: DatabaseConfig,
-/// 
+///
 ///     pub app_setting: String,
 /// }
 /// ```
