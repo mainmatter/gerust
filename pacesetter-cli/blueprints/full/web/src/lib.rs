@@ -17,8 +17,9 @@ pub async fn run() -> anyhow::Result<()> {
     let app_state = state::app_state(config.clone()).await;
     let app = routes::routes(app_state);
 
-    let listener = TcpListener::bind(&config.server.addr).await?;
-    info!("Listening on {}", &config.server.addr);
+    let addr = config.server.addr();
+    let listener = TcpListener::bind(&addr).await?;
+    info!("Listening on {}", &addr);
     serve(listener, app.into_make_service()).await?;
 
     Ok(())
