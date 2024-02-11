@@ -6,42 +6,59 @@ use figment::{
     Figment,
 };
 use serde::Deserialize;
-use std::{net::SocketAddr, str::FromStr};
+use std::net::{IpAddr, SocketAddr};
 
+/// The server configuration.
+///
+/// This struct keeps all settings specific to the server – currently that is the interface the server binds to
+/// but more might be added in the future. The struct is provided pre-defined by Pacesetter and cannot be changed. It
+/// **must** be used for the `server` field in the application-specific `Config` struct:
+///
+/// ```rust
+/// #[derive(Deserialize, Clone, Debug)]
+/// pub struct Config {
+///     #[serde(default)]
+///     pub server: ServerConfig,
+///     pub database: DatabaseConfig,
+///     // add your config settings here…
+/// }
+/// ```
 #[derive(Deserialize, Clone, Debug)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct ServerConfig {
-    pub interface: String,
-    pub port: i32,
-}
+    /// The port to bind to, e.g. 3000
+    pub port: u16,
 
-#[derive(Deserialize, Clone, Debug)]
-#[cfg_attr(test, derive(PartialEq))]
-pub struct DatabaseConfig {
-    pub url: String,
-}
-
-impl Default for ServerConfig {
-    fn default() -> Self {
-        ServerConfig {
-            interface: String::from("127.0.0.1"),
-            port: 3000,
-        }
-    }
+    /// The ip to bind to, e.g. 127.0.0.1 or ::1
+    pub ip: IpAddr,
 }
 
 impl ServerConfig {
-    pub fn get_bind_addr(&self) -> Result<SocketAddr, anyhow::Error> {
-        let socket_addr = SocketAddr::from_str(
-            format!("{}:{}", self.interface, self.port).as_str(),
-        )
-        .context(format!(
-            r#"Could not parse bind addr "{}:{}"!"#,
-            self.interface, self.port
-        ))?;
-
-        Ok(socket_addr)
+    pub fn addr(&self) -> SocketAddr {
+        SocketAddr::new(self.ip, self.port)
     }
+}
+
+/// The database configuration.
+///
+/// This struct keeps all settings specific to the database – currently that is the database URL to use to connect to the database
+/// but more might be added in the future. The struct is provided pre-defined by Pacesetter and cannot be changed. It
+/// **must** be used for the `database` field in the application-specific `Config` struct:
+///
+/// ```rust
+/// #[derive(Deserialize, Clone, Debug)]
+/// pub struct Config {
+///     #[serde(default)]
+///     pub server: ServerConfig,
+///     pub database: DatabaseConfig,
+///     // add your config settings here…
+/// }
+/// ```
+#[derive(Deserialize, Clone, Debug)]
+#[cfg_attr(test, derive(PartialEq))]
+pub struct DatabaseConfig {
+    /// The URL to use to connect to the database, e.g. "postgresql://user:password@localhost:5432/database"
+    pub url: String,
 }
 
 pub fn load_config<'a, T>(env: &Environment) -> Result<T, anyhow::Error>
@@ -81,10 +98,10 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::net::{IpAddr, Ipv4Addr};
 
     #[derive(Deserialize, PartialEq, Debug)]
     pub struct Config {
-        #[serde(default)]
         pub server: ServerConfig,
         pub database: DatabaseConfig,
 
@@ -121,7 +138,7 @@ mod tests {
                 config,
                 Config {
                     server: ServerConfig {
-                        interface: String::from("localhost"),
+                        ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
                         port: 3000,
                     },
                     database: DatabaseConfig {
@@ -166,7 +183,7 @@ mod tests {
                 config,
                 Config {
                     server: ServerConfig {
-                        interface: String::from("localhost"),
+                        ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
                         port: 3000,
                     },
                     database: DatabaseConfig {
@@ -211,7 +228,7 @@ mod tests {
                 config,
                 Config {
                     server: ServerConfig {
-                        interface: String::from("localhost"),
+                        ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
                         port: 3000,
                     },
                     database: DatabaseConfig {
