@@ -66,80 +66,64 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_env_default() {
-        let env = get_env().unwrap();
+    fn test_parse_env_dev() {
+        let env = parse_env("dev").unwrap();
 
         assert_eq!(env, Environment::Development);
     }
 
     #[test]
-    fn test_get_env_with_env_var_dev() {
-        env::set_var("APP_ENVIRONMENT", "dev");
-        let env = get_env().unwrap();
+    fn test_parse_env_dev_all_caps() {
+        let env = parse_env("DEV").unwrap();
 
         assert_eq!(env, Environment::Development);
     }
 
     #[test]
-    fn test_get_env_with_env_var_all_caps_dev() {
-        env::set_var("APP_ENVIRONMENT", "DEV");
-        let env = get_env().unwrap();
+    fn test_parse_env_devevelopment() {
+        let env = parse_env("development").unwrap();
 
         assert_eq!(env, Environment::Development);
     }
 
     #[test]
-    fn test_get_env_with_env_var_devevelopment() {
-        env::set_var("APP_ENVIRONMENT", "development");
-        let env = get_env().unwrap();
-
-        assert_eq!(env, Environment::Development);
-    }
-
-    #[test]
-    fn test_get_env_with_env_var_prod() {
-        env::set_var("APP_ENVIRONMENT", "prod");
-        let env = get_env().unwrap();
+    fn test_parse_env_prod() {
+        let env = parse_env("prod").unwrap();
 
         assert_eq!(env, Environment::Production);
     }
 
     #[test]
-    fn test_get_env_with_env_var_production() {
-        env::set_var("APP_ENVIRONMENT", "production");
-        let env = get_env().unwrap();
+    fn test_parse_env_production() {
+        let env = parse_env("production").unwrap();
 
         assert_eq!(env, Environment::Production);
     }
 
     #[test]
-    fn test_get_env_with_env_var_capitalized_production() {
-        env::set_var("APP_ENVIRONMENT", "Production");
-        let env = get_env().unwrap();
+    fn test_parse_env_capitalized_production() {
+        let env = parse_env("Production").unwrap();
 
         assert_eq!(env, Environment::Production);
     }
 
     #[test]
-    fn test_get_env_with_env_var_test() {
-        env::set_var("APP_ENVIRONMENT", "test");
-        let env = get_env().unwrap();
+    fn test_parse_env_test() {
+        let env = parse_env("test").unwrap();
 
         assert_eq!(env, Environment::Test);
     }
 
     #[test]
-    fn test_get_env_with_env_var_weirdly_cased_test() {
-        env::set_var("APP_ENVIRONMENT", "tEsT");
-        let env = get_env().unwrap();
+    fn test_parse_env_weirdly_cased_test() {
+        let env = parse_env("tEsT").unwrap();
 
         assert_eq!(env, Environment::Test);
     }
 
     #[test]
-    fn test_get_env_with_env_var_unknown() {
-        env::set_var("APP_ENVIRONMENT", "not-an-env");
-        let env = get_env();
+    fn test_parse_env_invalid() {
+        let env = parse_env("not-an-env");
 
         assert!(env.is_err())
     }
