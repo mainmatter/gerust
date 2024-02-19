@@ -6,6 +6,10 @@ use tracing::info;
 use tracing_panic::panic_hook;
 use tracing_subscriber::{filter::EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
+/// The environment the application runs in – either Development, Production, or Test.
+///
+/// Aspects of the application might behave differently based on the currently active environment.
+#[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum Environment {
     Development,
@@ -23,6 +27,16 @@ impl Display for Environment {
     }
 }
 
+/// Gets the [`Environment`] from the `APP_ENVIRONMENT` environment variable or defaults to [`Environment::Development`] if that is not set.
+///
+/// Example
+/// ```rust
+/// assert_eq(env::var("APP_ENVIRONMENT"), Ok("dev"));
+/// let env = get_env();
+/// assert_eq(env, Environment::Development);
+/// ```
+///
+/// "dev" and "development" are parsed as [`Environment::Development`], "prod" and "production" are parsed as [`Environment::Production`] and "test" is parsed as [`Environment::Test`]. Parsing environments is case-insensitive.
 pub fn get_env() -> Result<Environment, anyhow::Error> {
     // TODO: come up with a better name for the env var!
     match env::var("APP_ENVIRONMENT") {
@@ -49,6 +63,14 @@ pub(crate) fn parse_env(env: &str) -> Result<Environment, anyhow::Error> {
     }
 }
 
+/// Initializes tracing.
+///
+/// This function
+///
+/// * registers a [`tracing_subscriber::fmt::Subscriber`]
+/// * registers a [`tracing_panic::panic_hook`]
+///
+/// The function respects the `RUST_LOG` if set or defaults to filtering spans and events with level [`tracing_subscriber::filter::LevelFilter::INFO`] and higher.
 pub fn init_tracing() {
     let filter = EnvFilter::try_from_default_env()
         .or_else(|_| EnvFilter::try_new("info"))
