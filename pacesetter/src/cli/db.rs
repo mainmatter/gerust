@@ -45,6 +45,7 @@ enum Commands {
     Seed,
 }
 
+#[allow(missing_docs)]
 pub async fn cli<F>(load_config: F)
 where
     F: Fn(&Environment) -> DatabaseConfig,
