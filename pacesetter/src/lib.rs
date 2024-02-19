@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 //! Pacesetter is a framework built upon [axum].
 //! TODO: explain what pacesetter does and why it's needed (maybe list of topics it handles)
 //! TODO: example
