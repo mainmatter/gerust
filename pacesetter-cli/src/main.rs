@@ -9,7 +9,7 @@ use std::path::PathBuf;
 static VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), " (", env!("VERGEN_GIT_SHA"), ")");
 
 static BLUEPRINTS_DIR: include_dir::Dir =
-    include_dir::include_dir!("$CARGO_MANIFEST_DIR/../blueprints");
+    include_dir::include_dir!("$CARGO_MANIFEST_DIR/blueprints");
 
 enum Blueprint {
     Minimal,
