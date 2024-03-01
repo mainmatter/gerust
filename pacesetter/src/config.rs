@@ -71,8 +71,7 @@ where
             "config/environments/{}",
             env_config_file
         )))
-        .merge(Env::prefixed("SERVER_").map(|k| format!("server.{}", k.as_str()).into()))
-        .merge(Env::prefixed("DATABASE_").map(|k| format!("database.{}", k.as_str()).into()))
+        .merge(Env::prefixed("APP_").split("__"))
         .extract()
         .context("Could not read configuration!")?;
 
@@ -110,10 +109,10 @@ mod tests {
             "#,
             )?;
 
-            jail.set_env("SERVER_INTERFACE", "localhost");
-            jail.set_env("SERVER_PORT", "3000");
+            jail.set_env("APP_SERVER__INTERFACE", "localhost");
+            jail.set_env("APP_SERVER__PORT", "3000");
             jail.set_env(
-                "DATABASE_URL",
+                "APP_DATABASE__URL",
                 "postgresql://user:pass@localhost:5432/my_app",
             );
             let config = load_config::<Config>(&Environment::Development).unwrap();
@@ -155,10 +154,10 @@ mod tests {
             "#,
             )?;
 
-            jail.set_env("SERVER_INTERFACE", "localhost");
-            jail.set_env("SERVER_PORT", "3000");
+            jail.set_env("APP_SERVER__INTERFACE", "localhost");
+            jail.set_env("APP_SERVER__PORT", "3000");
             jail.set_env(
-                "DATABASE_URL",
+                "APP_DATABASE__URL",
                 "postgresql://user:pass@localhost:5432/my_app",
             );
             let config = load_config::<Config>(&Environment::Test).unwrap();
@@ -200,10 +199,10 @@ mod tests {
             "#,
             )?;
 
-            jail.set_env("SERVER_INTERFACE", "localhost");
-            jail.set_env("SERVER_PORT", "3000");
+            jail.set_env("APP_SERVER__INTERFACE", "localhost");
+            jail.set_env("APP_SERVER__PORT", "3000");
             jail.set_env(
-                "DATABASE_URL",
+                "APP_DATABASE__URL",
                 "postgresql://user:pass@localhost:5432/my_app",
             );
             let config = load_config::<Config>(&Environment::Production).unwrap();
