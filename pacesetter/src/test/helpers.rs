@@ -19,7 +19,7 @@ use tower::ServiceExt;
 ///
 /// This is used together with the [`pacesetter-procs::test`] proc macro which will pass a `TestContext` into the test function as an argument:
 ///
-/// ```rust
+/// ```no_run
 /// #[test]
 /// async fn test_hello(context: &TestContext) {
 ///     let response = request(
