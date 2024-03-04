@@ -179,7 +179,7 @@ mod tests {
             "#,
             )?;
 
-            jail.set_env("APP_SERVER__INTERFACE", "localhost");
+            jail.set_env("APP_SERVER__IP", "127.0.0.1");
             jail.set_env("APP_SERVER__PORT", "3000");
             jail.set_env(
                 "APP_DATABASE__URL",
@@ -224,7 +224,7 @@ mod tests {
             "#,
             )?;
 
-            jail.set_env("APP_SERVER__INTERFACE", "localhost");
+            jail.set_env("APP_SERVER__IP", "127.0.0.1");
             jail.set_env("APP_SERVER__PORT", "3000");
             jail.set_env(
                 "APP_DATABASE__URL",
@@ -269,7 +269,7 @@ mod tests {
             "#,
             )?;
 
-            jail.set_env("APP_SERVER__INTERFACE", "localhost");
+            jail.set_env("APP_SERVER__IP", "127.0.0.1");
             jail.set_env("APP_SERVER__PORT", "3000");
             jail.set_env(
                 "APP_DATABASE__URL",
