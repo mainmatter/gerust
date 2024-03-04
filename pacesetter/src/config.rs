@@ -2,7 +2,7 @@ use crate::util::Environment;
 use anyhow::Context;
 use dotenvy::dotenv;
 use figment::{
-    providers::{Env, Format, Serialized, Toml},
+    providers::{Env, Format, Toml},
     Figment,
 };
 use serde::{Deserialize, Serialize};

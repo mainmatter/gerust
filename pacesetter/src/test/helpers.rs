@@ -30,7 +30,7 @@ use tower::ServiceExt;
 ///         Method::GET,
 ///     )
 ///     .await;
-/// 
+///
 ///     let greeting: Greeting = response_body_json(response).await;
 ///     assert_eq!(greeting.hello, String::from("world"));
 /// }
@@ -51,13 +51,13 @@ pub struct TestContext {
 ///     let task = create_task(task_changeset.clone(), &context.db_pool)
 ///         .await
 ///         .unwrap(); // create a task in the database
-/// 
+///
 ///     let mut headers = HashMap::new();
 ///     headers.insert(http::header::CONTENT_TYPE.as_str(), "application/json");
-/// 
+///
 ///     let task_changeset: TaskChangeset = Faker.fake();
 ///     let payload = json!(task_changeset);
-/// 
+///
 ///     let response = request(
 ///         &context.app,
 ///         &format!("/tasks/{}", task.id),
@@ -66,7 +66,7 @@ pub struct TestContext {
 ///         Method::PUT,
 ///     )
 ///     .await; // update the task with new data
-/// 
+///
 ///     let task = load_task(task.id, &context.db_pool).await.unwrap();
 ///     assert_eq!(task.description, task_changeset.description); // assert the task was changed in the database
 /// }
@@ -150,7 +150,7 @@ pub async fn teardown(context: DbTestContext) {
 ///         Method::GET,
 ///     )
 ///     .await;
-/// 
+///
 ///     let greeting = response_body(response).await;
 ///     assert_eq!(greeting, String::from("hi!"));
 /// ```
@@ -185,7 +185,7 @@ pub async fn request(
 ///     let task = create_task(task_changeset.clone(), &context.db_pool)
 ///         .await
 ///         .unwrap(); // create a test task in the database
-/// 
+///
 ///     let response = request(
 ///         &context.app,
 ///         format!("/tasks/{}", task.id).as_str(),
@@ -194,7 +194,7 @@ pub async fn request(
 ///         Method::GET,
 ///     )
 ///     .await; // load the task from the server
-/// 
+///
 ///     let task: Task = response_body_json::<Task>(response).await; // parse the task from the response
 ///     assert_eq!(task.description, task_changeset.description);
 /// }
@@ -220,7 +220,7 @@ where
 ///         Method::GET,
 ///     )
 ///     .await;
-/// 
+///
 ///     let greeting = response_body(response).await;
 ///     assert_eq!(greeting, String::from("world"));
 /// ```
