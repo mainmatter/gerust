@@ -2,7 +2,7 @@ use crate::util::Environment;
 use anyhow::Context;
 use dotenvy::dotenv;
 use figment::{
-    providers::{Env, Format, Toml},
+    providers::{Env, Format, Serialized, Toml},
     Figment,
 };
 use serde::{Deserialize, Serialize};
@@ -141,6 +141,7 @@ where
             "config/environments/{}",
             env_config_file
         )))
+        .merge(Serialized::defaults(ServerConfig::default()).key("server"))
         .merge(Env::prefixed("APP_").split("__"))
         .extract()
         .context("Could not read configuration!")?;
