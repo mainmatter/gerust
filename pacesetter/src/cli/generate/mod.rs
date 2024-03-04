@@ -74,6 +74,7 @@ enum Commands {
     },
 }
 
+#[allow(missing_docs)]
 pub async fn cli() {
     let cli = Cli::parse();
     let mut stdout = std::io::stdout();
