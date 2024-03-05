@@ -38,7 +38,6 @@ impl Display for Environment {
 ///
 /// "dev" and "development" are parsed as [`Environment::Development`], "prod" and "production" are parsed as [`Environment::Production`] and "test" is parsed as [`Environment::Test`]. Parsing environments is case-insensitive.
 pub fn get_env() -> Result<Environment, anyhow::Error> {
-    // TODO: come up with a better name for the env var!
     match env::var("APP_ENVIRONMENT") {
         Ok(val) => {
             info!(r#"Setting environment from APP_ENVIRONMENT: "{}""#, val);
