@@ -102,13 +102,8 @@ pub struct DatabaseConfig {
 /// }
 /// ```
 ///
-/// `ServerConfig` and `DatabaseConfig` are always populated based on environment variables:
-///
-/// * SERVER_ID and SERVER_PORT for `ServerConfig`
-/// * DATABASE_URL for `DatabaseConfig`
-///
 /// For the Development and Test environment, this function will define environment variables
-/// based on the contents of the `.env` and `.env.test` files respectively. Any `.evn` files are
+/// based on the contents of the `.env` and `.env.test` files respectively. `.env` files are
 /// ignored in the production environment.
 ///
 /// All application-specific configuration is read from the respective configuration files in
