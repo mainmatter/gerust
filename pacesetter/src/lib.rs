@@ -7,6 +7,7 @@
 //! [axum]: https://github.com/tokio-rs/axum
 
 #[doc(hidden)]
+#[cfg(feature = "cli")]
 pub mod cli;
 
 /// Confuguration handling structs and utilities
