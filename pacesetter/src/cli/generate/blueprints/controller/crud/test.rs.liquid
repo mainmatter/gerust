@@ -11,7 +11,7 @@ use serde_json::json;
 use std::collections::HashMap;
 use uuid::Uuid;
 
-mod common;
+use crate::common;
 
 #[db_test]
 async fn test_create_invalid(context: &DbTestContext) {
