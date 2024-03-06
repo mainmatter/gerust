@@ -1,0 +1,6 @@
+{% if template_type == "full" -%}
+pub mod tasks;
+{%- endif %}
+{% if template_type == "minimal" -%}
+pub mod greeting;
+{%- endif %}

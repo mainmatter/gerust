@@ -1,0 +1,25 @@
+use {{crate_name}}_config::Config;
+{% unless template_type == "minimal" -%}
+use {{crate_name}}_db::{connect_pool, DbPool};
+{%- endunless %}
+
+#[derive(Clone)]
+pub struct AppState {
+    {% unless template_type == "minimal" -%}
+    pub db_pool: DbPool,
+    {%- endunless %}
+}
+
+{% if template_type != "minimal" %}
+pub async fn app_state(config: Config) -> AppState {
+    let db_pool = connect_pool(config.database)
+        .await
+        .expect("Could not connect to database!");
+
+    AppState { db_pool }
+}
+{% else %}
+pub async fn app_state(_config: Config) -> AppState {
+    AppState {}
+}
+{%- endif %}

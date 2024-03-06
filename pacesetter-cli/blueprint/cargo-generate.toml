@@ -1,0 +1,42 @@
+[template]
+cargo_generate_version = ">=0.18.0"
+
+[placeholders]
+template_type = { type = "string", prompt = "What template do you want to use?", choices = ["default", "minimal", "full"], default = "default" }
+
+[conditional.'template_type == "minimal"']
+ignore = [
+    "target/",
+    "Cargo.lock",
+    ".cargo",
+    "cli",
+    "db",
+    "docker-compose.yml",
+    "web/src/middlewares/auth.rs",
+    "web/src/controllers/tasks.rs",
+    "web/tests/api/tasks_test.rs",
+]
+
+[conditional.'template_type == "full"']
+ignore = [
+    "target/",
+    "Cargo.lock",
+    "web/src/controllers/greeting.rs",
+    "web/tests/api/greeting_test.rs",
+]
+
+[conditional.'template_type == "default"']
+ignore = [
+    "target/",
+    "Cargo.lock",
+    "db/migrations/1674214685_create_tasks_table.sql",
+    "db/migrations/1674214687_create_users_table.sql",
+    "db/src/entities/tasks.rs",
+    "db/src/entities/users.rs",
+    "db/src/test_helpers/users.rs",
+    "web/src/controllers/tasks.rs",
+    "web/src/controllers/greeting.rs",
+    "web/src/middlewares/auth.rs",
+    "web/tests/api/greeting_test.rs",
+    "web/tests/api/tasks_test.rs",
+]
