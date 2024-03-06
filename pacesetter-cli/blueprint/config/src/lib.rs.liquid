@@ -1,0 +1,14 @@
+{% unless template_type == "minimal" -%}
+use pacesetter::config::DatabaseConfig;
+{%- endunless %}
+use pacesetter::config::ServerConfig;
+use serde::Deserialize;
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct Config {
+    pub server: ServerConfig,
+    {% unless template_type == "minimal" -%}
+    pub database: DatabaseConfig,
+    {%- endunless %}
+    // add your config settings here…
+}

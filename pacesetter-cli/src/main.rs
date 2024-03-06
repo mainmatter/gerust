@@ -9,12 +9,23 @@ use std::path::PathBuf;
 static VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), " (", env!("VERGEN_GIT_SHA"), ")");
 
 static BLUEPRINTS_DIR: include_dir::Dir =
-    include_dir::include_dir!("$CARGO_MANIFEST_DIR/blueprints");
+    include_dir::include_dir!("$CARGO_MANIFEST_DIR/blueprint");
 
+#[derive(Debug, Clone, Copy)]
 enum Blueprint {
     Minimal,
     Default,
     Full,
+}
+
+impl std::fmt::Display for Blueprint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Blueprint::Minimal => write!(f, "minimal"),
+            Blueprint::Default => write!(f, "default"),
+            Blueprint::Full => write!(f, "full"),
+        }
+    }
 }
 
 #[derive(Parser)]
@@ -103,8 +114,9 @@ async fn generate(
             get_local_pacesetter_path("pacesetter-procs")?
         ));
     }
+    defines.push(format!("template_type={blueprint}"));
 
-    let template_path = build_template_path(blueprint).await?;
+    let template_path = build_template_path().await?;
 
     let generate_args = GenerateArgs {
         template_path,
@@ -118,25 +130,23 @@ async fn generate(
     let output_dir = cargo_generate::generate(generate_args)
         .context("failed to generate project from template")?;
 
+    // Try to format the generated code.
+    let _ = std::process::Command::new("cargo")
+        .arg("fmt")
+        .current_dir(&output_dir)
+        .status();
+
     Ok(output_dir)
 }
 
-async fn build_template_path(blueprint: Blueprint) -> Result<TemplatePath, anyhow::Error> {
-    let blueprint_folder = match blueprint {
-        Blueprint::Full => "full",
-        Blueprint::Default => "default",
-        Blueprint::Minimal => "minimal",
-    };
-
-    let target_directory =
-        std::env::temp_dir().join(format!("pacesetter-cli-blueprint-{}", VERSION));
-    std::fs::create_dir_all(&target_directory)
+async fn build_template_path() -> Result<TemplatePath, anyhow::Error> {
+    let target_directory = env::temp_dir().join(format!("pacesetter-cli-blueprint-{}", VERSION));
+    fs::create_dir_all(&target_directory)
         .context("Failed to create a temporary directory for Pacesetter CLI's blueprints")?;
     BLUEPRINTS_DIR
         .extract(&target_directory)
         .context("Failed to extract Pacesetter CLI's blueprints to a temporary directory")?;
-    let bluprint_path = target_directory.join(blueprint_folder);
-    let bluprint_path = bluprint_path
+    let bluprint_path = target_directory
         .to_str()
         .unwrap_or("Failed to get full path to Pacesetter CLI's blueprint");
 

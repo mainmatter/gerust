@@ -4,7 +4,7 @@ use pacesetter::test::helpers::{request, response_body, DbTestContext};
 use pacesetter_procs::db_test;
 use std::collections::HashMap;
 
-mod common;
+use crate::common;
 
 #[db_test]
 async fn test_action(context: &DbTestContext) {
