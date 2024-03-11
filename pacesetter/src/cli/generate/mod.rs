@@ -290,8 +290,9 @@ async fn generate_controller_test(name: String) -> Result<String, anyhow::Error>
         .render(&variables)
         .context("Failed to render Liquid template")?;
 
-    let file_path = format!("./web/tests/{}_test.rs", name);
+    let file_path = format!("./web/tests/api/{name}_test.rs");
     create_project_file(&file_path, output.as_bytes())?;
+    append_to_project_file("./web/tests/api/main.rs", &format!("mod {name}_test;"))?;
 
     Ok(file_path)
 }
@@ -344,8 +345,9 @@ async fn generate_crud_controller_test(name: String) -> Result<String, anyhow::E
         .render(&variables)
         .context("Failed to render Liquid template")?;
 
-    let file_path = format!("./web/tests/{}_test.rs", name);
+    let file_path = format!("./web/tests/api/{name}_test.rs");
     create_project_file(&file_path, output.as_bytes())?;
+    append_to_project_file("./web/tests/api/main.rs", &format!("mod {name}_test;"))?;
 
     Ok(file_path)
 }

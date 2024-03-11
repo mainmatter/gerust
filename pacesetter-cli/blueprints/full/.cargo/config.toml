@@ -1,3 +1,0 @@
-[alias]
-db = ["run", "--package", "{{project-name}}-cli", "--bin", "db"]
-generate = ["run", "--package", "{{project-name}}-cli", "--bin", "generate"]
