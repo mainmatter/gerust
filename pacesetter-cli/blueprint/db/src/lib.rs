@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use pacesetter::config::DatabaseConfig;
+use {{crate_name}}_config::DatabaseConfig;
 use sqlx::{postgres::PgPoolOptions, Postgres, Transaction};
 use thiserror::Error;
 

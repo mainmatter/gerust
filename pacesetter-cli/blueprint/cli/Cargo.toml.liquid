@@ -13,6 +13,12 @@ name = "generate"
 path = "src/bin/generate.rs"
 
 [dependencies]
+anyhow = "1"
+clap = { version = "4.4", features = ["derive"] }
 pacesetter = { workspace = true, features = ["cli"] }
 {{project-name}}-config = { path = "../config" }
+{% unless template_type == "minimal" -%}
+sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-rustls", "postgres", "macros", "uuid", "migrate", "chrono" ] }
+url = "2.5"
+{%- endunless %}
 tokio = { version = "1.34", features = ["full"] }

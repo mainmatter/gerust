@@ -10,6 +10,7 @@ test-helpers = ["dep:fake"]
 [dependencies]
 anyhow = "1.0"
 fake = { version = "2.9", features = ["derive"], optional = true }
+{{project-name}}-config = { path = "../config" }
 pacesetter = { workspace = true }
 serde = { version = "1.0", features = ["derive"] }
 sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-rustls", "postgres", "macros", "uuid", "migrate", "chrono" ] }

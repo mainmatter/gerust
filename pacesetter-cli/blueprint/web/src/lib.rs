@@ -1,7 +1,7 @@
 use anyhow::Context;
 use axum::{serve, http::StatusCode};
-use {{crate_name}}_config::Config;
-use pacesetter::{get_env, load_config};
+use {{crate_name}}_config::{Config, load_config};
+use pacesetter::get_env;
 use std::fmt::{Debug, Display};
 use tokio::net::TcpListener;
 use tracing::info;

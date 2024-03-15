@@ -14,7 +14,7 @@ pub mod config;
 /// Helpers for writing tests.
 pub mod test;
 
-mod util;
+pub mod util;
 
 pub use config::load_config;
 pub use util::get_env;

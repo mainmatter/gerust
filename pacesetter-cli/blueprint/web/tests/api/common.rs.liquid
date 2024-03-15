@@ -1,14 +1,18 @@
+// TODO: this should always have all of the APIs so e.g. a minimal app can grow into sth. bigger
 {% if template_type != "minimal" %}
-use {{crate_name}}_config::Config;
+use axum::Router;
+use {{crate_name}}_config::{load_config, Config, DatabaseConfig};
 use {{crate_name}}_db::connect_pool;
 use {{crate_name}}_web::routes::routes;
 use {{crate_name}}_web::state::AppState;
-use pacesetter::{
-    load_config,
-    test::helpers::{build_db_test_context, prepare_db, DbTestContext},
-    Environment,
-};
+use pacesetter::{test::helpers::DbTestContext, Environment};
+use rand::distributions::Alphanumeric;
+use rand::{thread_rng, Rng};
+use regex::{Captures, Regex};
+use sqlx::postgres::{PgConnectOptions, PgConnection};
+use sqlx::{Connection, Executor, PgPool};
 use std::cell::OnceCell;
+use std::str::FromStr;
 
 {% if template_type == "default" %}#[allow(unused)]{% endif %}
 pub async fn setup_with_db() -> DbTestContext {
@@ -25,6 +29,48 @@ pub async fn setup_with_db() -> DbTestContext {
     });
 
     build_db_test_context(app, db_pool)
+}
+
+pub fn build_db_test_context(router: Router, db_pool: PgPool) -> DbTestContext {
+    DbTestContext {
+        app: router,
+        db_pool,
+    }
+}
+
+pub async fn prepare_db(config: &DatabaseConfig) -> DatabaseConfig {
+    let db_config = parse_db_config(&config.url);
+    let db_name = db_config.get_database().unwrap();
+
+    let root_db_config = db_config.clone().database("postgres");
+    let mut connection: PgConnection = Connection::connect_with(&root_db_config).await.unwrap();
+
+    let test_db_name = build_test_db_name(db_name);
+
+    let query = format!("CREATE DATABASE {} TEMPLATE {}", test_db_name, db_name);
+    connection.execute(query.as_str()).await.unwrap();
+
+    let regex = Regex::new(r"(.+)\/(.+$)").unwrap();
+    let test_db_url = regex.replace(&config.url, |caps: &Captures| {
+        format!("{}/{}", &caps[1], test_db_name)
+    });
+
+    DatabaseConfig {
+        url: test_db_url.to_string(),
+    }
+}
+
+fn build_test_db_name(base_name: &str) -> String {
+    let test_db_suffix: String = thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(30)
+        .map(char::from)
+        .collect();
+    format!("{}_{}", base_name, test_db_suffix).to_lowercase()
+}
+
+fn parse_db_config(url: &str) -> PgConnectOptions {
+    PgConnectOptions::from_str(url).expect("Invalid DATABASE_URL!")
 }
 {% else %}
 use {{crate_name}}_config::Config;
