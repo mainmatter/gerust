@@ -14,9 +14,6 @@ pub mod config;
 /// Helpers for writing tests.
 pub mod test;
 
-/// Web server helpers.
-pub mod web;
-
 mod util;
 
 pub use config::load_config;

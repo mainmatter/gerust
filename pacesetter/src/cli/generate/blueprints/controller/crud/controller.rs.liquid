@@ -1,7 +1,6 @@
-use crate::state::AppState;
+use crate::{internal_error, state::AppState};
 use axum::{extract::Path, extract::State, http::StatusCode, Json};
 use {{db_crate_name}}::{entities, Error};
-use pacesetter::web::internal_error;
 use tracing::info;
 use uuid::Uuid;
 

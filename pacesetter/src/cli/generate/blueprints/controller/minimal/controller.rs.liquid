@@ -1,6 +1,5 @@
-use crate::state::AppState;
+use crate::{internal_error, state::AppState};
 use axum::{extract::State, http::StatusCode};
-use pacesetter::web::internal_error;
 use tracing::info;
 
 pub async fn action(State(app_state): State<AppState>) -> Result<StatusCode, (StatusCode, String)> {
