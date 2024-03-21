@@ -2032,14 +2032,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pacesetter-procs"
-version = "0.0.1"
-dependencies = [
- "quote",
- "syn 2.0.48",
-]
-
-[[package]]
 name = "pacesetter-util"
 version = "0.0.1"
 dependencies = [

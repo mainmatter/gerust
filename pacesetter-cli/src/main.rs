@@ -94,7 +94,6 @@ async fn generate(
     if is_local {
         ui.log("Using local template ./template");
         ui.log("Using local pacesetter ./pacesetter");
-        ui.log("Using local pacesetter-procs ./pacesetter-procs");
     }
 
     let output_dir = if let Some(output_dir) = output_dir {
@@ -108,10 +107,6 @@ async fn generate(
         defines.push(format!(
             "use_local_pacesetter={}",
             get_local_pacesetter_path("pacesetter")?
-        ));
-        defines.push(format!(
-            "use_local_pacesetter_procs={}",
-            get_local_pacesetter_path("pacesetter-procs")?
         ));
     }
     defines.push(format!("template_type={blueprint}"));

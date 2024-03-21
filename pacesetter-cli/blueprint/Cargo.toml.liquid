@@ -19,8 +19,3 @@ pacesetter = { path = "{{use_local_pacesetter}}" }
 {%- else -%}
 pacesetter = "0.0.1"
 {%- endif %}
-{% if use_local_pacesetter_procs -%}
-pacesetter-procs = { path = "{{use_local_pacesetter_procs}}" }
-{%- else -%}
-pacesetter-procs = "0.0.1"
-{%- endif %}
