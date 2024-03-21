@@ -2,10 +2,8 @@ use axum::{body::Body, http::Method};
 use {{crate_name}}_web::controllers::greeting::Greeting;
 use pacesetter::test::helpers::response_body_json;
 use pacesetter::test::helpers::{request, TestContext};
-use pacesetter_procs::test;
+use {{crate_name}}_macros::test;
 use std::collections::HashMap;
-
-use crate::common;
 
 #[test]
 async fn test_hello(context: &TestContext) {

@@ -35,4 +35,4 @@ hyper = { version = "1.0", features = ["full"] }
 {% unless template_type == "minimal" -%}
 {{project-name}}-db = { path = "../db", features = ["test-helpers"] }
 {%- endunless %}
-pacesetter-procs = { workspace = true }
+{{project-name}}-macros = { path = "../macros" }
