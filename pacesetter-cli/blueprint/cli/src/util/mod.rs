@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use pacesetter::Environment;
+use {{crate_name}}_config::Environment;
 
 pub mod ui;
 

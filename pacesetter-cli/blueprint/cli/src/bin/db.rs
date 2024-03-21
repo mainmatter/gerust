@@ -2,9 +2,8 @@ use anyhow::Context;
 use clap::{Parser, Subcommand};
 use {{crate_name}}_cli::util::parse_env;
 use {{crate_name}}_cli::util::ui::UI;
-use {{crate_name}}_config::{load_config, Config};
+use {{crate_name}}_config::{load_config, Config, Environment};
 use {{crate_name}}_config::DatabaseConfig;
-use pacesetter::Environment;
 use sqlx::postgres::{PgConnectOptions, PgConnection};
 use sqlx::{
     migrate::{Migrate, Migrator},

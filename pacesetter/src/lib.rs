@@ -7,8 +7,3 @@
 #[doc(hidden)]
 #[cfg(feature = "cli")]
 pub mod cli;
-
-pub mod util;
-
-pub use util::get_env;
-pub use util::Environment;

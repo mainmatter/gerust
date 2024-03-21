@@ -5,11 +5,10 @@ use axum::{
     Router,
 };
 {%- if template_type != "minimal" -%}
-use {{crate_name}}_config::{load_config, Config, DatabaseConfig};
+use {{crate_name}}_config::{load_config, Config, DatabaseConfig, Environment};
 use {{crate_name}}_db::connect_pool;
 use {{crate_name}}_web::routes::routes;
 use {{crate_name}}_web::state::AppState;
-use pacesetter::Environment;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use regex::{Captures, Regex};
@@ -20,10 +19,9 @@ use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::Arc;
 {%- else -%}
-use {{crate_name}}_config::{load_config, Config};
+use {{crate_name}}_config::{load_config, Config, Environment};
 use {{crate_name}}_web::routes::routes;
 use {{crate_name}}_web::state::AppState;
-use pacesetter::Environment;
 use std::cell::OnceCell;
 use std::collections::HashMap;
 {%- endif -%}
