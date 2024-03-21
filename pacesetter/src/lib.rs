@@ -11,5 +11,4 @@ pub mod cli;
 pub mod util;
 
 pub use util::get_env;
-pub use util::init_tracing;
 pub use util::Environment;

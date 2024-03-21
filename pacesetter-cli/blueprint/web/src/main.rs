@@ -1,5 +1,4 @@
-use {{crate_name}}_web::run;
-use pacesetter::init_tracing;
+use my_app_web::{init_tracing, run};
 
 #[tokio::main]
 async fn main() {
