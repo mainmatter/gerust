@@ -8,12 +8,8 @@
 #[cfg(feature = "cli")]
 pub mod cli;
 
-/// Confuguration handling structs and utilities
-pub mod config;
-
 pub mod util;
 
-pub use config::load_config;
 pub use util::get_env;
 pub use util::init_tracing;
 pub use util::Environment;
