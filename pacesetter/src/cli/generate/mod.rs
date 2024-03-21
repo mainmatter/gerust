@@ -304,13 +304,16 @@ async fn generate_crud_controller(name: String) -> Result<String, anyhow::Error>
     let struct_name = to_title_case(&name_singular);
     let db_crate_name = get_member_package_name("db")?;
     let db_crate_name = to_snake_case(&db_crate_name);
+    let macros_crate_name = get_member_package_name("macros")?;
+    let macros_crate_name = to_snake_case(&macros_crate_name);
 
     let template = get_liquid_template("controller/crud/controller.rs.liquid")?;
     let variables = liquid::object!({
         "entity_struct_name": struct_name,
         "entity_singular_name": name_singular,
         "entity_plural_name": name_plural,
-        "db_crate_name": db_crate_name
+        "db_crate_name": db_crate_name,
+        "macros_crate_name": macros_crate_name
     });
     let output = template
         .render(&variables)
@@ -333,13 +336,16 @@ async fn generate_crud_controller_test(name: String) -> Result<String, anyhow::E
     let struct_name = to_title_case(&name_singular);
     let db_crate_name = get_member_package_name("db")?;
     let db_crate_name = to_snake_case(&db_crate_name);
+    let macros_crate_name = get_member_package_name("macros")?;
+    let macros_crate_name = to_snake_case(&macros_crate_name);
 
     let template = get_liquid_template("controller/crud/test.rs.liquid")?;
     let variables = liquid::object!({
         "entity_struct_name": struct_name,
         "entity_singular_name": name_singular,
         "entity_plural_name": name_plural,
-        "db_crate_name": db_crate_name
+        "db_crate_name": db_crate_name,
+        "macros_crate_name": macros_crate_name
     });
     let output = template
         .render(&variables)

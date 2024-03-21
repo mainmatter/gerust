@@ -1,7 +1,6 @@
+use crate::common::{request, response_body_json, TestContext};
 use axum::{body::Body, http::Method};
 use {{crate_name}}_web::controllers::greeting::Greeting;
-use pacesetter::test::helpers::response_body_json;
-use pacesetter::test::helpers::{request, TestContext};
 use {{crate_name}}_macros::test;
 use std::collections::HashMap;
 

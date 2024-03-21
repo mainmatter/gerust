@@ -1,4 +1,4 @@
-use crate::common::DbTestContext;
+use crate::common::{request, response_body_json, DbTestContext};
 use axum::{
     body::Body,
     http::{self, Method},
@@ -9,7 +9,6 @@ use {{crate_name}}_db::entities::tasks::{
     create as create_task, load as load_task, load_all as load_tasks, Task, TaskChangeset,
 };
 use {{crate_name}}_db::test_helpers::users::{create as create_user, UserChangeset};
-use pacesetter::test::helpers::{request, response_body_json};
 use {{crate_name}}_macros::db_test;
 use serde_json::json;
 use std::collections::HashMap;

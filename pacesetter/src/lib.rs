@@ -11,9 +11,6 @@ pub mod cli;
 /// Confuguration handling structs and utilities
 pub mod config;
 
-/// Helpers for writing tests.
-pub mod test;
-
 pub mod util;
 
 pub use config::load_config;

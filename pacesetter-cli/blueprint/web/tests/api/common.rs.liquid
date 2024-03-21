@@ -1,6 +1,10 @@
-// TODO: this should always have all of the APIs so e.g. a minimal app can grow into sth. bigger
-{% if template_type != "minimal" %}
-use axum::Router;
+use axum::{
+    body::{Body, Bytes},
+    http::{Method, Request},
+    response::Response,
+    Router,
+};
+{%- if template_type != "minimal" -%}
 use {{crate_name}}_config::{load_config, Config, DatabaseConfig};
 use {{crate_name}}_db::connect_pool;
 use {{crate_name}}_web::routes::routes;
@@ -12,9 +16,58 @@ use regex::{Captures, Regex};
 use sqlx::postgres::{PgConnectOptions, PgConnection};
 use sqlx::{Connection, Executor, PgPool};
 use std::cell::OnceCell;
+use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::Arc;
+{%- else -%}
+use {{crate_name}}_config::{load_config, Config};
+use {{crate_name}}_web::routes::routes;
+use {{crate_name}}_web::state::AppState;
+use pacesetter::Environment;
+use std::cell::OnceCell;
+use std::collections::HashMap;
+{%- endif -%}
+use tower::ServiceExt;
 
+#[allow(unused)]
+pub async fn request(
+    app: &Router,
+    uri: &str,
+    headers: HashMap<&str, &str>,
+    body: Body,
+    method: Method,
+) -> Response {
+    let mut request_builder = Request::builder().uri(uri);
+
+    for (key, value) in headers {
+        request_builder = request_builder.header(key, value);
+    }
+
+    request_builder = request_builder.method(method);
+
+    let request = request_builder.body(body);
+
+    app.clone().oneshot(request.unwrap()).await.unwrap()
+}
+
+#[allow(unused)]
+pub async fn response_body(response: Response<Body>) -> Bytes {
+    // We don't care about the size limit in tests.
+    axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .expect("Failed to read response body")
+}
+
+#[allow(unused)]
+pub async fn response_body_json<T>(response: Response<Body>) -> T
+where
+    T: serde::de::DeserializeOwned,
+{
+    let body = response_body(response).await;
+    serde_json::from_slice::<T>(&body).expect("Failed to deserialize JSON body")
+}
+
+{%- if template_type != "minimal" -%}
 pub struct DbTestContext {
     /// The application that is being tested.
     pub app: Router,
@@ -99,15 +152,14 @@ fn parse_db_config(url: &str) -> PgConnectOptions {
     PgConnectOptions::from_str(url).expect("Invalid DATABASE_URL!")
 }
 {% else %}
-use {{crate_name}}_config::Config;
-use {{crate_name}}_web::routes::routes;
-use {{crate_name}}_web::state::AppState;
-use pacesetter::{
-    load_config,
-    test::helpers::{build_test_context, TestContext},
-    Environment,
-};
-use std::cell::OnceCell;
+pub struct TestContext {
+    /// The application that is being tested.
+    pub app: Router,
+}
+
+pub fn build_test_context(router: Router) -> TestContext {
+    TestContext { app: router }
+}
 
 pub async fn setup() -> TestContext {
     let init_config: OnceCell<Config> = OnceCell::new();
