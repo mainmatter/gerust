@@ -93,7 +93,6 @@ async fn generate(
 ) -> Result<PathBuf, anyhow::Error> {
     if is_local {
         ui.log("Using local template ./template");
-        ui.log("Using local pacesetter ./pacesetter");
     }
 
     let output_dir = if let Some(output_dir) = output_dir {
@@ -103,12 +102,6 @@ async fn generate(
     };
 
     let mut defines: Vec<String> = vec![];
-    if is_local {
-        defines.push(format!(
-            "use_local_pacesetter={}",
-            get_local_pacesetter_path("pacesetter")?
-        ));
-    }
     defines.push(format!("template_type={blueprint}"));
 
     let template_path = build_template_path().await?;
@@ -149,12 +142,4 @@ async fn build_template_path() -> Result<TemplatePath, anyhow::Error> {
         path: Some(String::from(bluprint_path)),
         ..Default::default()
     })
-}
-
-fn get_local_pacesetter_path(lib: &str) -> Result<String, anyhow::Error> {
-    let current_dir = env::current_dir()?;
-    let local_pacesetter = current_dir.join(lib);
-    let local_pacesetter = fs::canonicalize(local_pacesetter)?;
-    let local_pacesetter = local_pacesetter.as_path().display().to_string();
-    Ok(local_pacesetter)
 }
