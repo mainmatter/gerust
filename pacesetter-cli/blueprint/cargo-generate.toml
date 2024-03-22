@@ -1,5 +1,6 @@
 [template]
 cargo_generate_version = ">=0.18.0"
+exclude = ["cli/blueprints"]
 
 [placeholders]
 template_type = { type = "string", prompt = "What template do you want to use?", choices = ["default", "minimal", "full"], default = "default" }

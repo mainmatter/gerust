@@ -15,8 +15,12 @@ path = "src/bin/generate.rs"
 [dependencies]
 anyhow = "1"
 clap = { version = "4.4", features = ["derive"] }
-pacesetter = { workspace = true, features = ["cli"] }
+cruet = "0.14"
+guppy = "0.17"
+include_dir = "0.7"
+liquid = "~0.26"
 {{project-name}}-config = { path = "../config" }
+pacesetter = { workspace = true, features = ["cli"] }
 {% unless template_type == "minimal" -%}
 sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-rustls", "postgres", "macros", "uuid", "migrate", "chrono" ] }
 url = "2.5"
