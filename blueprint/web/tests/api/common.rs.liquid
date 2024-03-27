@@ -1,0 +1,117 @@
+use axum::{
+    body::{Body, Bytes},
+    http::{Method, Request},
+    response::Response,
+    Router,
+};
+{%- if template_type != "minimal" -%}
+use {{crate_name}}_config::{load_config, Config, Environment};
+use {{crate_name}}_db::{
+    test_helpers::{setup_db, teardown_db},
+    DbPool,
+};
+use {{crate_name}}_web::routes::routes;
+use {{crate_name}}_web::state::AppState;
+use std::cell::OnceCell;
+use std::collections::HashMap;
+{%- else -%}
+use {{crate_name}}_config::{load_config, Config, Environment};
+use {{crate_name}}_web::routes::routes;
+use {{crate_name}}_web::state::AppState;
+use std::cell::OnceCell;
+use std::collections::HashMap;
+{%- endif -%}
+use tower::ServiceExt;
+
+#[allow(unused)]
+pub async fn request(
+    app: &Router,
+    uri: &str,
+    headers: HashMap<&str, &str>,
+    body: Body,
+    method: Method,
+) -> Response {
+    let mut request_builder = Request::builder().uri(uri);
+
+    for (key, value) in headers {
+        request_builder = request_builder.header(key, value);
+    }
+
+    request_builder = request_builder.method(method);
+
+    let request = request_builder.body(body);
+
+    app.clone().oneshot(request.unwrap()).await.unwrap()
+}
+
+#[allow(unused)]
+pub async fn response_body(response: Response<Body>) -> Bytes {
+    // We don't care about the size limit in tests.
+    axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .expect("Failed to read response body")
+}
+
+#[allow(unused)]
+pub async fn response_body_json<T>(response: Response<Body>) -> T
+where
+    T: serde::de::DeserializeOwned,
+{
+    let body = response_body(response).await;
+    serde_json::from_slice::<T>(&body).expect("Failed to deserialize JSON body")
+}
+
+{%- if template_type != "minimal" -%}
+pub struct DbTestContext {
+    /// The application that is being tested.
+    pub app: Router,
+    /// A connection pool connected to the same database that the application that is being tested uses as well.
+    pub db_pool: DbPool,
+}
+
+#[allow(unused)]
+pub async fn setup_with_db() -> DbTestContext {
+    let init_config: OnceCell<Config> = OnceCell::new();
+    let config = init_config.get_or_init(|| load_config(&Environment::Test).unwrap());
+
+    let test_db_pool = setup_db(&config.database).await;
+
+    let app = routes(AppState {
+        db_pool: test_db_pool.clone(),
+    });
+
+    build_db_test_context(app, test_db_pool)
+}
+
+#[allow(unused)]
+pub async fn teardown_with_db(context: DbTestContext) {
+    drop(context.app);
+
+    teardown_db(context.db_pool);
+}
+
+pub fn build_db_test_context(router: Router, db_pool: DbPool) -> DbTestContext {
+    DbTestContext {
+        app: router,
+        db_pool,
+    }
+}
+{% else %}
+pub struct TestContext {
+    /// The application that is being tested.
+    pub app: Router,
+}
+
+pub fn build_test_context(router: Router) -> TestContext {
+    TestContext { app: router }
+}
+
+pub async fn setup() -> TestContext {
+    let init_config: OnceCell<Config> = OnceCell::new();
+    let _config = init_config.get_or_init(|| load_config(&Environment::Test).unwrap());
+
+    let app = routes(AppState {});
+
+    build_test_context(app)
+}
+{%- endif %}

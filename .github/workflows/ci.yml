@@ -67,15 +67,12 @@ jobs:
     name: Generate full example app
     runs-on: ubuntu-latest
 
-    env:
-      PS_CLI_LOCAL_DEV: 1
-
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       
       - name: generate
-        run: cargo run --package pacesetter-cli -- --full my-app
+        run: cargo run -- --full my-app
 
       - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3
         with:
@@ -242,15 +239,12 @@ jobs:
     name: Generate default example app
     runs-on: ubuntu-latest
   
-    env:
-      PS_CLI_LOCAL_DEV: 1
-  
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       
       - name: generate
-        run: cargo run --package pacesetter-cli my-app
+        run: cargo run my-app
   
       - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3
         with:
@@ -448,15 +442,12 @@ jobs:
     name: Generate minimal example app
     runs-on: ubuntu-latest
   
-    env:
-      PS_CLI_LOCAL_DEV: 1
-  
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       
       - name: generate
-        run: cargo run --package pacesetter-cli -- --minimal my-app
+        run: cargo run -- --minimal my-app
   
       - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3
         with:

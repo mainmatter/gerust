@@ -1,0 +1,377 @@
+use anyhow::{anyhow, Context};
+use dotenvy::dotenv;
+use figment::{
+    providers::{Env, Format, Serialized, Toml},
+    Figment,
+};
+use serde::{Deserialize, Serialize};
+use std::env;
+use std::fmt::{Display, Formatter};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use tracing::info;
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct Config {
+    pub server: ServerConfig,
+    {% unless template_type == "minimal" -%}
+    pub database: DatabaseConfig,
+    {%- endunless %}
+    // add your config settings here…
+}
+
+/// The server configuration.
+///
+/// This struct keeps all settings specific to the server – currently that is the interface the server binds to
+/// but more might be added in the future. The struct is provided pre-defined by Pacesetter and cannot be changed. It
+/// **must** be used for the `server` field in the application-specific `Config` struct:
+///
+/// ```rust
+/// #[derive(Deserialize, Clone, Debug)]
+/// pub struct Config {
+///     #[serde(default)]
+///     pub server: ServerConfig,
+///     pub database: DatabaseConfig,
+///     // add your config settings here…
+/// }
+/// ```
+#[derive(Deserialize, Serialize, Clone, Debug)]
+#[cfg_attr(test, derive(PartialEq))]
+pub struct ServerConfig {
+    /// The port to bind to, e.g. 3000
+    pub port: u16,
+
+    /// The ip to bind to, e.g. 127.0.0.1 or ::1
+    pub ip: IpAddr,
+}
+
+impl Default for ServerConfig {
+    fn default() -> Self {
+        Self {
+            ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+            port: 3000,
+        }
+    }
+}
+
+impl ServerConfig {
+    /// Returns the full address the server binds to, including both the ip and port.
+    ///
+    /// This can be used when creating a TCP Listener:
+    ///
+    /// ```rust
+    /// let config: Config = load_config(Environment::Development);
+    /// let listener = TcpListener::bind(&config.server.addr).await?;
+    /// serve(listener, app.into_make_service()).await?;
+    ///  ```
+    pub fn addr(&self) -> SocketAddr {
+        SocketAddr::new(self.ip, self.port)
+    }
+}
+
+{% unless template_type == "minimal" -%}
+/// The database configuration.
+///
+/// This struct keeps all settings specific to the database – currently that is the database URL to use to connect to the database
+/// but more might be added in the future. The struct is provided pre-defined by Pacesetter and cannot be changed. It
+/// **must** be used for the `database` field in the application-specific `Config` struct:
+///
+/// ```rust
+/// #[derive(Deserialize, Clone, Debug)]
+/// pub struct Config {
+///     #[serde(default)]
+///     pub server: ServerConfig,
+///     pub database: DatabaseConfig,
+///     // add your config settings here…
+/// }
+/// ```
+#[derive(Deserialize, Clone, Debug)]
+#[cfg_attr(test, derive(PartialEq))]
+pub struct DatabaseConfig {
+    /// The URL to use to connect to the database, e.g. "postgresql://user:password@localhost:5432/database"
+    pub url: String,
+}
+{%- endunless %}
+
+/// Loads the application's configuration.
+///
+/// Examples:
+/// ```rust
+/// use my_app_config::Config;
+/// use pacesetter::{get_env, load_config};
+///
+/// let env = get_env();
+/// let config: Config = load_config(&env);
+/// ```
+///
+/// The returned `Config` struct is defined in the `config` crate, e.g.
+///
+/// ```rust
+/// #[derive(Deserialize, Debug)]
+/// pub struct Config {
+///     pub server: ServerConfig,
+{% unless template_type == "minimal" -%}
+///     pub database: DatabaseConfig,
+{%- endunless %}
+///
+///     pub app_setting: String,
+/// }
+/// ```
+///
+/// For the Development and Test environment, this function will define environment variables
+/// based on the contents of the `.env` and `.env.test` files respectively. `.env` files are
+/// ignored in the production environment.
+///
+/// All application-specific configuration is read from the respective configuration files in
+/// the `config/app.toml` and `config/environments/<environment>.toml` files such that settings
+/// in the latter override settings in the former.
+pub fn load_config<'a, T>(env: &Environment) -> Result<T, anyhow::Error>
+where
+    T: Deserialize<'a>,
+{
+    match env {
+        Environment::Development => {
+            dotenv().ok();
+        }
+        Environment::Test => {
+            dotenvy::from_filename(".env.test").ok();
+        }
+        _ => { /* don't use any .env file for production */ }
+    }
+    dotenv().ok();
+
+    let env_config_file = match env {
+        Environment::Development => "development.toml",
+        Environment::Production => "production.toml",
+        Environment::Test => "test.toml",
+    };
+
+    let config: T = Figment::new()
+        .merge(Toml::file("config/app.toml"))
+        .merge(Toml::file(format!(
+            "config/environments/{}",
+            env_config_file
+        )))
+        .merge(Serialized::defaults(ServerConfig::default()).key("server"))
+        .merge(Env::prefixed("APP_").split("__"))
+        .extract()
+        .context("Could not read configuration!")?;
+
+    Ok(config)
+}
+
+/// The environment the application runs in – either Development, Production, or Test.
+///
+/// Aspects of the application might behave differently based on the currently active environment.
+#[allow(missing_docs)]
+#[derive(Debug, Clone, PartialEq)]
+pub enum Environment {
+    Development,
+    Production,
+    Test,
+}
+
+impl Display for Environment {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        match self {
+            Environment::Development => write!(f, "development"),
+            Environment::Production => write!(f, "production"),
+            Environment::Test => write!(f, "test"),
+        }
+    }
+}
+
+/// Gets the [`Environment`] from the `APP_ENVIRONMENT` environment variable or defaults to [`Environment::Development`] if that is not set.
+///
+/// Example
+/// ```rust
+/// assert_eq(env::var("APP_ENVIRONMENT"), Ok("dev"));
+/// let env = get_env();
+/// assert_eq(env, Environment::Development);
+/// ```
+///
+/// "dev" and "development" are parsed as [`Environment::Development`], "prod" and "production" are parsed as [`Environment::Production`] and "test" is parsed as [`Environment::Test`]. Parsing environments is case-insensitive.
+pub fn get_env() -> Result<Environment, anyhow::Error> {
+    match env::var("APP_ENVIRONMENT") {
+        Ok(val) => {
+            info!(r#"Setting environment from APP_ENVIRONMENT: "{}""#, val);
+            parse_env(&val)
+        }
+        Err(_) => {
+            info!("Defaulting to environment: development");
+            Ok(Environment::Development)
+        }
+    }
+}
+
+pub(crate) fn parse_env(env: &str) -> Result<Environment, anyhow::Error> {
+    let env = &env.to_lowercase();
+    match env.as_str() {
+        "dev" => Ok(Environment::Development),
+        "development" => Ok(Environment::Development),
+        "test" => Ok(Environment::Test),
+        "prod" => Ok(Environment::Production),
+        "production" => Ok(Environment::Production),
+        unknown => Err(anyhow!(r#"Unknown environment: "{}"!"#, unknown)),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::net::{IpAddr, Ipv4Addr};
+
+    #[derive(Deserialize, PartialEq, Debug)]
+    pub struct Config {
+        pub server: ServerConfig,
+        {% unless template_type == "minimal" -%}
+        pub database: DatabaseConfig,
+        {%- endunless %}
+
+        pub app_setting: String,
+    }
+
+    #[test]
+    fn test_load_config_development() {
+        figment::Jail::expect_with(|jail| {
+            let config_dir = jail.create_dir("config")?;
+            jail.create_file(
+                config_dir.join("app.toml"),
+                r#"
+                app_setting = "Just a TOML App!"
+            "#,
+            )?;
+            let environments_dir = jail.create_dir("config/environments")?;
+            jail.create_file(
+                environments_dir.join("development.toml"),
+                r#"
+                app_setting = "override!"
+            "#,
+            )?;
+
+            jail.set_env("APP_SERVER__IP", "127.0.0.1");
+            jail.set_env("APP_SERVER__PORT", "3000");
+            {% unless template_type == "minimal" -%}
+            jail.set_env(
+                "APP_DATABASE__URL",
+                "postgresql://user:pass@localhost:5432/my_app",
+            );
+            {%- endunless %}
+            let config = load_config::<Config>(&Environment::Development).unwrap();
+
+            assert_eq!(
+                config,
+                Config {
+                    server: ServerConfig {
+                        ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+                        port: 3000,
+                    },
+                    {% unless template_type == "minimal" -%}
+                    database: DatabaseConfig {
+                        url: String::from("postgresql://user:pass@localhost:5432/my_app"),
+                    },
+                    {%- endunless %}
+                    app_setting: String::from("override!"),
+                }
+            );
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn test_load_config_test() {
+        figment::Jail::expect_with(|jail| {
+            let config_dir = jail.create_dir("config")?;
+            jail.create_file(
+                config_dir.join("app.toml"),
+                r#"
+                app_setting = "Just a TOML App!"
+            "#,
+            )?;
+            let environments_dir = jail.create_dir("config/environments")?;
+            jail.create_file(
+                environments_dir.join("test.toml"),
+                r#"
+                app_setting = "override!"
+            "#,
+            )?;
+
+            jail.set_env("APP_SERVER__IP", "127.0.0.1");
+            jail.set_env("APP_SERVER__PORT", "3000");
+            {% unless template_type == "minimal" -%}
+            jail.set_env(
+                "APP_DATABASE__URL",
+                "postgresql://user:pass@localhost:5432/my_app",
+            );
+            {%- endunless %}
+            let config = load_config::<Config>(&Environment::Test).unwrap();
+
+            assert_eq!(
+                config,
+                Config {
+                    server: ServerConfig {
+                        ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+                        port: 3000,
+                    },
+                    {% unless template_type == "minimal" -%}
+                    database: DatabaseConfig {
+                        url: String::from("postgresql://user:pass@localhost:5432/my_app"),
+                    },
+                    {%- endunless %}
+                    app_setting: String::from("override!"),
+                }
+            );
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn test_load_config_production() {
+        figment::Jail::expect_with(|jail| {
+            let config_dir = jail.create_dir("config")?;
+            jail.create_file(
+                config_dir.join("app.toml"),
+                r#"
+                app_setting = "Just a TOML App!"
+            "#,
+            )?;
+            let environments_dir = jail.create_dir("config/environments")?;
+            jail.create_file(
+                environments_dir.join("production.toml"),
+                r#"
+                app_setting = "override!"
+            "#,
+            )?;
+
+            jail.set_env("APP_SERVER__IP", "127.0.0.1");
+            jail.set_env("APP_SERVER__PORT", "3000");
+            {% unless template_type == "minimal" -%}
+            jail.set_env(
+                "APP_DATABASE__URL",
+                "postgresql://user:pass@localhost:5432/my_app",
+            );
+            {%- endunless %}
+            let config = load_config::<Config>(&Environment::Production).unwrap();
+
+            assert_eq!(
+                config,
+                Config {
+                    server: ServerConfig {
+                        ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+                        port: 3000,
+                    },
+                    {% unless template_type == "minimal" -%}
+                    database: DatabaseConfig {
+                        url: String::from("postgresql://user:pass@localhost:5432/my_app"),
+                    },
+                    {%- endunless %}
+                    app_setting: String::from("override!"),
+                }
+            );
+
+            Ok(())
+        });
+    }
+}
+

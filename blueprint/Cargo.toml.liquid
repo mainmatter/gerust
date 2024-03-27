@@ -1,0 +1,14 @@
+[workspace]
+members = [
+    {% unless template_type == "minimal" -%}
+    "cli",
+    {%- endunless %}
+    "config",
+    {% unless template_type == "minimal" -%}
+    "db",
+    {%- endunless %}
+    "web",
+    "macros"
+]
+resolver = "2"
+default-members = ["web"]
