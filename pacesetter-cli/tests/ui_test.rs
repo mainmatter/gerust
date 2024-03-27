@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use insta::assert_snapshot;
-use pacesetter_util::ui::UI;
+use pacesetter_cli::ui::UI;
 
 #[test]
 fn test_no_color() {

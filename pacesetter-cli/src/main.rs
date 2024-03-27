@@ -1,7 +1,7 @@
 use anyhow::Context;
 use cargo_generate::{GenerateArgs, TemplatePath};
 use clap::{ArgAction, Parser};
-use pacesetter_util::ui::UI;
+use pacesetter_cli::ui::UI;
 use std::env;
 use std::fs;
 use std::path::PathBuf;

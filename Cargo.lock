@@ -1281,17 +1281,9 @@ dependencies = [
  "cargo-generate",
  "clap",
  "include_dir",
- "pacesetter-util",
+ "insta",
  "tokio",
  "vergen",
-]
-
-[[package]]
-name = "pacesetter-util"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "insta",
 ]
 
 [[package]]
