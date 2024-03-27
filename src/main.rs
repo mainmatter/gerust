@@ -1,7 +1,7 @@
 use anyhow::Context;
 use cargo_generate::{GenerateArgs, TemplatePath};
 use clap::{ArgAction, Parser};
-use pacesetter_cli::ui::UI;
+use pacesetter::ui::UI;
 use std::env;
 use std::fs;
 use std::path::PathBuf;
@@ -66,7 +66,7 @@ async fn main() {
     ui.info(&format!("Generating {}…", cli.name));
     ui.indent();
 
-    match generate(&cli.name, cli.outdir, blueprint, &mut ui).await {
+    match generate(&cli.name, cli.outdir, blueprint).await {
         Ok(output_dir) => {
             ui.outdent();
             ui.success(&format!(
@@ -86,7 +86,6 @@ async fn generate(
     name: &str,
     output_dir: Option<PathBuf>,
     blueprint: Blueprint,
-    ui: &mut UI<'_>,
 ) -> Result<PathBuf, anyhow::Error> {
     let output_dir = if let Some(output_dir) = output_dir {
         output_dir
@@ -121,7 +120,7 @@ async fn generate(
 }
 
 async fn build_template_path() -> Result<TemplatePath, anyhow::Error> {
-    let target_directory = env::temp_dir().join(format!("pacesetter-cli-blueprint-{}", VERSION));
+    let target_directory = env::temp_dir().join(format!("pacesetter-blueprint-{}", VERSION));
     fs::create_dir_all(&target_directory)
         .context("Failed to create a temporary directory for Pacesetter CLI's blueprints")?;
     BLUEPRINTS_DIR

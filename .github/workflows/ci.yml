@@ -72,7 +72,7 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       
       - name: generate
-        run: cargo run --package pacesetter-cli -- --full my-app
+        run: cargo run -- --full my-app
 
       - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3
         with:
@@ -244,7 +244,7 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       
       - name: generate
-        run: cargo run --package pacesetter-cli my-app
+        run: cargo run my-app
   
       - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3
         with:
@@ -447,7 +447,7 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       
       - name: generate
-        run: cargo run --package pacesetter-cli -- --minimal my-app
+        run: cargo run -- --minimal my-app
   
       - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3
         with:
