@@ -55,8 +55,6 @@ async fn main() {
     let mut stderr = std::io::stderr();
     let mut ui = UI::new(&mut stdout, &mut stderr, !cli.no_color, cli.debug);
 
-    let is_local = env::var("PS_CLI_LOCAL_DEV").is_ok();
-
     let blueprint = if cli.full {
         Blueprint::Full
     } else if cli.minimal {
@@ -68,7 +66,7 @@ async fn main() {
     ui.info(&format!("Generating {}…", cli.name));
     ui.indent();
 
-    match generate(&cli.name, cli.outdir, is_local, blueprint, &mut ui).await {
+    match generate(&cli.name, cli.outdir, blueprint, &mut ui).await {
         Ok(output_dir) => {
             ui.outdent();
             ui.success(&format!(
@@ -87,14 +85,9 @@ async fn main() {
 async fn generate(
     name: &str,
     output_dir: Option<PathBuf>,
-    is_local: bool,
     blueprint: Blueprint,
     ui: &mut UI<'_>,
 ) -> Result<PathBuf, anyhow::Error> {
-    if is_local {
-        ui.log("Using local template ./template");
-    }
-
     let output_dir = if let Some(output_dir) = output_dir {
         output_dir
     } else {

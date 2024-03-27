@@ -67,9 +67,6 @@ jobs:
     name: Generate full example app
     runs-on: ubuntu-latest
 
-    env:
-      PS_CLI_LOCAL_DEV: 1
-
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -241,9 +238,6 @@ jobs:
   generate-default:
     name: Generate default example app
     runs-on: ubuntu-latest
-  
-    env:
-      PS_CLI_LOCAL_DEV: 1
   
     steps:
       - uses: actions/checkout@v3
@@ -447,9 +441,6 @@ jobs:
   generate-minimal:
     name: Generate minimal example app
     runs-on: ubuntu-latest
-  
-    env:
-      PS_CLI_LOCAL_DEV: 1
   
     steps:
       - uses: actions/checkout@v3
