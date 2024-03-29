@@ -1,0 +1,11 @@
+use crate::common::{response_body_json, TestContext, TestRequestExt};
+use {{crate_name}}_macros::test;
+use {{crate_name}}_web::controllers::greeting::Greeting;
+
+#[test]
+async fn test_hello(context: &TestContext) {
+    let response = context.app.request("/greet").send().await;
+
+    let greeting: Greeting = response_body_json(response).await;
+    assert_eq!(greeting.hello, String::from("world"));
+}
