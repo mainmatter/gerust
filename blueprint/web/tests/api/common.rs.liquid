@@ -4,6 +4,7 @@ use axum::{
     response::Response,
     Router,
 };
+use hyper::header::{HeaderMap, HeaderName};
 {%- if template_type != "minimal" -%}
 use {{crate_name}}_config::{load_config, Config, Environment};
 use {{crate_name}}_db::{
@@ -13,35 +14,77 @@ use {{crate_name}}_db::{
 use {{crate_name}}_web::routes::routes;
 use {{crate_name}}_web::state::AppState;
 use std::cell::OnceCell;
-use std::collections::HashMap;
 {%- else -%}
 use {{crate_name}}_config::{load_config, Config, Environment};
 use {{crate_name}}_web::routes::routes;
 use {{crate_name}}_web::state::AppState;
 use std::cell::OnceCell;
-use std::collections::HashMap;
 {%- endif -%}
 use tower::ServiceExt;
 
-#[allow(unused)]
-pub async fn request(
-    app: &Router,
-    uri: &str,
-    headers: HashMap<&str, &str>,
-    body: Body,
+pub struct TestRequest {
+    router: Router,
+    uri: String,
     method: Method,
-) -> Response {
-    let mut request_builder = Request::builder().uri(uri);
+    headers: HeaderMap,
+    body: Body,
+}
 
-    for (key, value) in headers {
-        request_builder = request_builder.header(key, value);
+impl TestRequest {
+    fn new(router: Router, uri: &str) -> Self {
+        Self {
+            router,
+            uri: String::from(uri),
+            headers: HeaderMap::new(),
+            body: Body::empty(),
+            method: Method::GET,
+        }
     }
 
-    request_builder = request_builder.method(method);
+    #[allow(unused)]
+    pub fn method(mut self, method: Method) -> Self {
+        self.method = method;
+        self
+    }
 
-    let request = request_builder.body(body);
+    #[allow(unused)]
+    pub fn header(mut self, name: HeaderName, value: &str) -> Self {
+        self.headers.insert(name, value.parse().unwrap());
+        self
+    }
 
-    app.clone().oneshot(request.unwrap()).await.unwrap()
+    #[allow(unused)]
+    pub fn body(mut self, body: Body) -> Self {
+        self.body = body;
+        self
+    }
+
+    #[allow(unused)]
+    pub async fn send(self) -> Response {
+        let mut request_builder = Request::builder().uri(&self.uri);
+
+        for (key, value) in &self.headers {
+            request_builder = request_builder.header(key, value);
+        }
+
+        request_builder = request_builder.method(&self.method);
+
+        let request = request_builder.body(self.body);
+
+        self.router.oneshot(request.unwrap()).await.unwrap()
+    }
+}
+
+pub trait TestRequestExt {
+    #[allow(unused)]
+    fn request(&self, uri: &str) -> TestRequest;
+}
+
+impl TestRequestExt for Router {
+    #[allow(unused)]
+    fn request(&self, uri: &str) -> TestRequest {
+        TestRequest::new(self.clone(), uri)
+    }
 }
 
 #[allow(unused)]
