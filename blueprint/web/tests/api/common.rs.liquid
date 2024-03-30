@@ -75,12 +75,12 @@ impl TestRequest {
     }
 }
 
-pub trait TestRequestExt {
+pub trait RouterExt {
     #[allow(unused)]
     fn request(&self, uri: &str) -> TestRequest;
 }
 
-impl TestRequestExt for Router {
+impl RouterExt for Router {
     #[allow(unused)]
     fn request(&self, uri: &str) -> TestRequest {
         TestRequest::new(self.clone(), uri)
