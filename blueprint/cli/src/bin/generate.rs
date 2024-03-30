@@ -286,11 +286,13 @@ async fn generate_controller_test(name: String) -> Result<String, anyhow::Error>
     let name = to_snake_case(&name).to_lowercase();
     let macros_crate_name = get_member_package_name("macros")?;
     let macros_crate_name = to_snake_case(&macros_crate_name);
+    let has_db = has_db();
 
     let template = get_liquid_template("controller/minimal/test.rs")?;
     let variables = liquid::object!({
         "name": name,
         "macros_crate_name": macros_crate_name,
+        "has_db": has_db,
     });
     let output = template
         .render(&variables)
@@ -409,6 +411,14 @@ fn append_to_project_file(path: &str, contents: &str) -> Result<(), anyhow::Erro
     writeln!(file, "{}", contents).context(format!(r#"Failed to append to file "{}"!"#, path))?;
 
     Ok(())
+}
+
+fn has_db() -> bool {
+    if let Ok(_) = get_member_package_name("db") {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 fn get_member_package_name(path: &str) -> Result<String, anyhow::Error> {

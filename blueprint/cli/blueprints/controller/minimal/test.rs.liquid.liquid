@@ -1,4 +1,8 @@
-use crate::common::{request, response_body, TestContext};
+{%- if has_db -%}
+use crate::common::{BodyExt, DbTestContext, RouterExt};
+{% else %}
+use crate::common::{BodyExt, TestContext, RouterExt};
+{%- endif -%}
 use axum::{body::Body, http::Method};
 use googletest::prelude::*;
 use hyper::StatusCode;
@@ -7,8 +11,12 @@ use std::collections::HashMap;
 
 use crate::common;
 
-#[test]
+#[db_test]
+{%- if has_db %}
+async fn test_action(context: &DbTestContext) {
+{%- else -%}
 async fn test_action(context: &TestContext) {
+{% endif %}
     todo!("implement and assert on status code!");
 
     /* Example:
