@@ -1,25 +1,22 @@
-use crate::common::{request, response_body, DbTestContext};
+use crate::common::{request, response_body, TestContext};
 use axum::{body::Body, http::Method};
 use googletest::prelude::*;
 use hyper::StatusCode;
-use {{macros_crate_name}}::db_test;
+use {{macros_crate_name}}::test;
 use std::collections::HashMap;
 
 use crate::common;
 
-#[db_test]
-async fn test_action(context: &DbTestContext) {
+#[test]
+async fn test_action(context: &TestContext) {
     todo!("implement and assert on status code!");
 
     /* Example:
-    let response = request(
-        &context.app,
-        "/{{name}}/action",
-        HashMap::new(),
-        Body::empty(),
-        Method::GET,
-    )
-    .await;
+    let response = context
+        .app
+        .request("/{{name}}/action")
+        .send()
+        .await;
 
     assert_that!(response.status(), eq(StatusCode::OK));
     */
