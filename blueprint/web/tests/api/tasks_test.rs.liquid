@@ -1,4 +1,4 @@
-use crate::common::{response_body_json, DbTestContext, RouterExt};
+use crate::common::{BodyExt, DbTestContext, RouterExt};
 use axum::{
     body::Body,
     http::{self, Method},
@@ -149,7 +149,7 @@ async fn test_create_batch_success(context: &DbTestContext) {
 
     assert_eq!(response.status(), StatusCode::CREATED);
 
-    let tasks: Vec<Task> = response_body_json::<Vec<Task>>(response).await;
+    let tasks: Vec<Task> = response.into_body().into_json::<Vec<Task>>().await;
     assert_eq!(
         tasks.first().unwrap().description,
         task_changeset1.description
@@ -179,7 +179,7 @@ async fn test_read_all(context: &DbTestContext) {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    let tasks: TasksList = response_body_json::<TasksList>(response).await;
+    let tasks: TasksList = response.into_body().into_json::<TasksList>().await;
     assert_eq!(tasks.len(), 1);
     assert_eq!(
         tasks.first().unwrap().description,
@@ -216,7 +216,7 @@ async fn test_read_one_success(context: &DbTestContext) {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    let task: Task = response_body_json::<Task>(response).await;
+    let task: Task = response.into_body().into_json::<Task>().await;
     assert_eq!(task.id, task_id);
     assert_eq!(task.description, task_changeset.description);
 }
@@ -319,7 +319,7 @@ async fn test_update_success(context: &DbTestContext) {
         .send()
         .await;
 
-    let task: Task = response_body_json::<Task>(response).await;
+    let task: Task = response.into_body().into_json::<Task>().await;
     assert_eq!(task.description, task_changeset.description);
 
     let task = load_task(task.id, &context.db_pool).await.unwrap();

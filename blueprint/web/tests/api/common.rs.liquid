@@ -87,21 +87,32 @@ impl RouterExt for Router {
     }
 }
 
-#[allow(unused)]
-pub async fn response_body(response: Response<Body>) -> Bytes {
-    // We don't care about the size limit in tests.
-    axum::body::to_bytes(response.into_body(), usize::MAX)
-        .await
-        .expect("Failed to read response body")
+pub trait BodyExt {
+    #[allow(unused)]
+    async fn into_bytes(self) -> Bytes;
+
+    async fn into_json<T>(self) -> T
+    where
+        T: serde::de::DeserializeOwned;
 }
 
-#[allow(unused)]
-pub async fn response_body_json<T>(response: Response<Body>) -> T
-where
-    T: serde::de::DeserializeOwned,
-{
-    let body = response_body(response).await;
-    serde_json::from_slice::<T>(&body).expect("Failed to deserialize JSON body")
+impl BodyExt for Body {
+    #[allow(unused)]
+    async fn into_bytes(self) -> Bytes {
+        // We don't care about the size limit in tests.
+        axum::body::to_bytes(self, usize::MAX)
+            .await
+            .expect("Failed to read response body")
+    }
+
+    #[allow(unused)]
+    async fn into_json<T>(self) -> T
+    where
+        T: serde::de::DeserializeOwned,
+    {
+        let body = self.into_bytes().await;
+        serde_json::from_slice::<T>(&body).expect("Failed to deserialize JSON body")
+    }
 }
 
 {%- if template_type != "minimal" -%}
