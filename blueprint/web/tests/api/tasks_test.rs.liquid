@@ -4,6 +4,7 @@ use axum::{
     http::{self, Method},
 };
 use fake::{Fake, Faker};
+use googletest::prelude::*;
 use hyper::StatusCode;
 use {{crate_name}}_db::entities::tasks::{
     create as create_task, load as load_task, load_all as load_tasks, Task, TaskChangeset,
@@ -25,7 +26,7 @@ async fn test_create_unauthorized(context: &DbTestContext) {
         .send()
         .await;
 
-    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    assert_that!(response.status(), eq(StatusCode::UNAUTHORIZED));
 }
 
 #[db_test]
@@ -49,7 +50,7 @@ async fn test_create_invalid(context: &DbTestContext) {
         .send()
         .await;
 
-    assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+    assert_that!(response.status(), eq(StatusCode::UNPROCESSABLE_ENTITY));
 }
 
 #[db_test]
@@ -72,13 +73,13 @@ async fn test_create_success(context: &DbTestContext) {
         .send()
         .await;
 
-    assert_eq!(response.status(), StatusCode::CREATED);
+    assert_that!(response.status(), eq(StatusCode::CREATED));
 
     let tasks = load_tasks(&context.db_pool).await.unwrap();
-    assert_eq!(tasks.len(), 1);
-    assert_eq!(
+    assert_that!(tasks, len(eq(1)));
+    assert_that!(
         tasks.first().unwrap().description,
-        task_changeset.description
+        eq(task_changeset.description)
     );
 }
 
@@ -92,7 +93,7 @@ async fn test_create_batch_unauthorized(context: &DbTestContext) {
         .send()
         .await;
 
-    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    assert_that!(response.status(), eq(StatusCode::UNAUTHORIZED));
 }
 
 #[db_test]
@@ -120,10 +121,10 @@ async fn test_create_batch_invalid(context: &DbTestContext) {
         .send()
         .await;
 
-    assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+    assert_that!(response.status(), eq(StatusCode::UNPROCESSABLE_ENTITY));
 
     let tasks = load_tasks(&context.db_pool).await.unwrap();
-    assert_eq!(tasks.len(), 0);
+    assert_that!(tasks, empty());
 }
 
 #[db_test]
@@ -147,20 +148,20 @@ async fn test_create_batch_success(context: &DbTestContext) {
         .send()
         .await;
 
-    assert_eq!(response.status(), StatusCode::CREATED);
+    assert_that!(response.status(), eq(StatusCode::CREATED));
 
     let tasks: Vec<Task> = response.into_body().into_json::<Vec<Task>>().await;
-    assert_eq!(
+    assert_that!(
         tasks.first().unwrap().description,
-        task_changeset1.description
+        eq(task_changeset1.description)
     );
-    assert_eq!(
+    assert_that!(
         tasks.get(1).unwrap().description,
-        task_changeset2.description
+        eq(task_changeset2.description)
     );
 
     let tasks = load_tasks(&context.db_pool).await.unwrap();
-    assert_eq!(tasks.len(), 2);
+    assert_that!(tasks, len(eq(2)));
 }
 
 #[db_test]
@@ -177,13 +178,13 @@ async fn test_read_all(context: &DbTestContext) {
         .send()
         .await;
 
-    assert_eq!(response.status(), StatusCode::OK);
+    assert_that!(response.status(), eq(StatusCode::OK));
 
     let tasks: TasksList = response.into_body().into_json::<TasksList>().await;
-    assert_eq!(tasks.len(), 1);
-    assert_eq!(
+    assert_that!(tasks, len(eq(1)));
+    assert_that!(
         tasks.first().unwrap().description,
-        task_changeset.description
+        eq(task_changeset.description)
     );
 }
 
@@ -196,7 +197,7 @@ async fn test_read_one_nonexistent(context: &DbTestContext) {
         .send()
         .await;
 
-    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    assert_that!(response.status(), eq(StatusCode::NOT_FOUND));
 }
 
 #[db_test]
@@ -214,11 +215,11 @@ async fn test_read_one_success(context: &DbTestContext) {
         .send()
         .await;
 
-    assert_eq!(response.status(), StatusCode::OK);
+    assert_that!(response.status(), eq(StatusCode::OK));
 
     let task: Task = response.into_body().into_json::<Task>().await;
-    assert_eq!(task.id, task_id);
-    assert_eq!(task.description, task_changeset.description);
+    assert_that!(task.id, eq(task_id));
+    assert_that!(task.description, eq(task_changeset.description));
 }
 
 #[db_test]
@@ -236,7 +237,7 @@ async fn test_update_unauthorized(context: &DbTestContext) {
         .send()
         .await;
 
-    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    assert_that!(response.status(), eq(StatusCode::UNAUTHORIZED));
 }
 
 #[db_test]
@@ -265,10 +266,10 @@ async fn test_update_invalid(context: &DbTestContext) {
         .send()
         .await;
 
-    assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+    assert_that!(response.status(), eq(StatusCode::UNPROCESSABLE_ENTITY));
 
     let task_after = load_task(task.id, &context.db_pool).await.unwrap();
-    assert_eq!(task_after.description, task_changeset.description);
+    assert_that!(task_after.description, eq(task_changeset.description));
 }
 
 #[db_test]
@@ -291,7 +292,7 @@ async fn test_update_nonexistent(context: &DbTestContext) {
         .send()
         .await;
 
-    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    assert_that!(response.status(), eq(StatusCode::NOT_FOUND));
 }
 
 #[db_test]
@@ -320,10 +321,10 @@ async fn test_update_success(context: &DbTestContext) {
         .await;
 
     let task: Task = response.into_body().into_json::<Task>().await;
-    assert_eq!(task.description, task_changeset.description);
+    assert_that!(task.description, eq(task_changeset.description.clone()));
 
     let task = load_task(task.id, &context.db_pool).await.unwrap();
-    assert_eq!(task.description, task_changeset.description);
+    assert_that!(task.description, eq(task_changeset.description));
 }
 
 #[db_test]
@@ -340,7 +341,7 @@ async fn test_delete_unauthorized(context: &DbTestContext) {
         .send()
         .await;
 
-    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    assert_that!(response.status(), eq(StatusCode::UNAUTHORIZED));
 }
 
 #[db_test]
@@ -358,7 +359,7 @@ async fn test_delete_nonexistent(context: &DbTestContext) {
         .send()
         .await;
 
-    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    assert_that!(response.status(), eq(StatusCode::NOT_FOUND));
 }
 
 #[db_test]
@@ -381,8 +382,8 @@ async fn test_delete_success(context: &DbTestContext) {
         .send()
         .await;
 
-    assert_eq!(response.status(), StatusCode::NO_CONTENT);
+    assert_that!(response.status(), eq(StatusCode::NO_CONTENT));
 
     let result = load_task(task.id, &context.db_pool).await;
-    assert!(result.is_err());
+    assert_that!(result, err(anything()));
 }
