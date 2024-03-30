@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand};
 use cruet::{
-    case::{snake::to_snake_case, title::to_title_case},
+    case::{snake::to_snake_case, {%- if template_type != "minimal" -%}title::to_title_case{%- endif -%}},
     string::{pluralize::to_plural, singularize::to_singular},
 };
 use guppy::{graph::PackageGraph, MetadataCommand};
@@ -9,7 +9,9 @@ use liquid::Template;
 use {{crate_name}}_cli::util::ui::UI;
 use std::fs::{self, File, OpenOptions};
 use std::io::prelude::*;
+{% if template_type != "minimal" -%}
 use std::time::SystemTime;
+{% endif -%}
 
 static BLUEPRINTS_DIR: include_dir::Dir =
     include_dir::include_dir!("$CARGO_MANIFEST_DIR/blueprints");
@@ -35,21 +37,6 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    #[command(about = "Generate a migration")]
-    Migration {
-        #[arg(help = "The name of the migration.")]
-        name: String,
-    },
-    #[command(about = "Generate an entity")]
-    Entity {
-        #[arg(help = "The name of the entity.")]
-        name: String,
-    },
-    #[command(about = "Generate an entity test helper")]
-    EntityTestHelper {
-        #[arg(help = "The name of the entity the test helper is for.")]
-        name: String,
-    },
     #[command(about = "Generate a middleware")]
     Middleware {
         #[arg(help = "The name of the middleware.")]
@@ -65,6 +52,22 @@ enum Commands {
         #[arg(help = "The name of the controller.")]
         name: String,
     },
+    {% if template_type != "minimal" -%}
+    #[command(about = "Generate a migration")]
+    Migration {
+        #[arg(help = "The name of the migration.")]
+        name: String,
+    },
+    #[command(about = "Generate an entity")]
+    Entity {
+        #[arg(help = "The name of the entity.")]
+        name: String,
+    },
+    #[command(about = "Generate an entity test helper")]
+    EntityTestHelper {
+        #[arg(help = "The name of the entity the test helper is for.")]
+        name: String,
+    },
     #[command(about = "Generate an example CRUD controller")]
     CrudController {
         #[arg(help = "The name of the entity the controller is for.")]
@@ -75,6 +78,7 @@ enum Commands {
         #[arg(help = "The name of the entity the controller is for.")]
         name: String,
     },
+    {% endif -%}
 }
 
 #[allow(missing_docs)]
@@ -85,30 +89,6 @@ pub async fn cli() {
     let mut ui = UI::new(&mut stdout, &mut stderr, !cli.no_color, cli.debug);
 
     match cli.command {
-        Commands::Migration { name } => {
-            ui.info("Generating migration…");
-            match generate_migration(name).await {
-                Ok(file_name) => ui.success(&format!("Generated migration {}.", &file_name)),
-                Err(e) => ui.error("Could not generate migration!", e),
-            }
-        }
-        Commands::Entity { name } => {
-            ui.info("Generating entity…");
-            match generate_entity(name).await {
-                Ok(struct_name) => ui.success(&format!("Generated entity {}.", &struct_name)),
-                Err(e) => ui.error("Could not generate entity!", e),
-            }
-        }
-        Commands::EntityTestHelper { name } => {
-            ui.info("Generating entity test helper…");
-            match generate_entity_test_helper(name).await {
-                Ok(struct_name) => ui.success(&format!(
-                    "Generated test helper for entity {}.",
-                    &struct_name
-                )),
-                Err(e) => ui.error("Could not generate entity test helper!", e),
-            }
-        }
         Commands::Middleware { name } => {
             ui.info("Generating middleware…");
             match generate_middleware(name).await {
@@ -144,6 +124,31 @@ pub async fn cli() {
                 Err(e) => ui.error("Could not generate test for controller!", e),
             }
         }
+        {% if template_type != "minimal" -%}
+        Commands::Migration { name } => {
+            ui.info("Generating migration…");
+            match generate_migration(name).await {
+                Ok(file_name) => ui.success(&format!("Generated migration {}.", &file_name)),
+                Err(e) => ui.error("Could not generate migration!", e),
+            }
+        }
+        Commands::Entity { name } => {
+            ui.info("Generating entity…");
+            match generate_entity(name).await {
+                Ok(struct_name) => ui.success(&format!("Generated entity {}.", &struct_name)),
+                Err(e) => ui.error("Could not generate entity!", e),
+            }
+        }
+        Commands::EntityTestHelper { name } => {
+            ui.info("Generating entity test helper…");
+            match generate_entity_test_helper(name).await {
+                Ok(struct_name) => ui.success(&format!(
+                    "Generated test helper for entity {}.",
+                    &struct_name
+                )),
+                Err(e) => ui.error("Could not generate entity test helper!", e),
+            }
+        }
         Commands::CrudController { name } => {
             ui.info("Generating CRUD controller…");
             match generate_crud_controller(name.clone()).await {
@@ -174,70 +179,8 @@ pub async fn cli() {
                 Err(e) => ui.error("Could not generate test for CRUD controller!", e),
             }
         }
+        {% endif -%}
     }
-}
-
-async fn generate_migration(name: String) -> Result<String, anyhow::Error> {
-    let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
-    let file_name = format!("V{}__{}.sql", timestamp.as_secs(), name);
-    let path = format!("./db/migrations/{}", file_name);
-    create_project_file(&path, "".as_bytes())?;
-
-    Ok(path)
-}
-
-async fn generate_entity(name: String) -> Result<String, anyhow::Error> {
-    let name = to_singular(&name).to_lowercase();
-    let name_plural = to_plural(&name);
-    let struct_name = to_title_case(&name);
-
-    let template = get_liquid_template("entity/file.rs")?;
-    let variables = liquid::object!({
-        "entity_struct_name": struct_name,
-        "entity_singular_name": name,
-        "entity_plural_name": name_plural,
-    });
-    let output = template
-        .render(&variables)
-        .context("Failed to render Liquid template")?;
-
-    create_project_file(
-        &format!("./db/src/entities/{}.rs", name_plural),
-        output.as_bytes(),
-    )?;
-    append_to_project_file(
-        "./db/src/entities/mod.rs",
-        &format!("pub mod {};", name_plural),
-    )?;
-
-    Ok(struct_name)
-}
-
-async fn generate_entity_test_helper(name: String) -> Result<String, anyhow::Error> {
-    let name = to_singular(&name).to_lowercase();
-    let name_plural = to_plural(&name);
-    let struct_name = to_title_case(&name);
-
-    let template = get_liquid_template("entity-test-helper/file.rs")?;
-    let variables = liquid::object!({
-        "entity_struct_name": struct_name,
-        "entity_singular_name": name,
-        "entity_plural_name": name_plural,
-    });
-    let output = template
-        .render(&variables)
-        .context("Failed to render Liquid template")?;
-
-    create_project_file(
-        &format!("./db/src/test_helpers/{}.rs", name_plural),
-        output.as_bytes(),
-    )?;
-    append_to_project_file(
-        "./db/src/test_helpers/mod.rs",
-        &format!("pub mod {};", name_plural),
-    )?;
-
-    Ok(struct_name)
 }
 
 async fn generate_middleware(name: String) -> Result<String, anyhow::Error> {
@@ -305,6 +248,70 @@ async fn generate_controller_test(name: String) -> Result<String, anyhow::Error>
     Ok(file_path)
 }
 
+{% if template_type != "minimal" -%}
+async fn generate_migration(name: String) -> Result<String, anyhow::Error> {
+    let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
+    let file_name = format!("V{}__{}.sql", timestamp.as_secs(), name);
+    let path = format!("./db/migrations/{}", file_name);
+    create_project_file(&path, "".as_bytes())?;
+
+    Ok(path)
+}
+
+async fn generate_entity(name: String) -> Result<String, anyhow::Error> {
+    let name = to_singular(&name).to_lowercase();
+    let name_plural = to_plural(&name);
+    let struct_name = to_title_case(&name);
+
+    let template = get_liquid_template("entity/file.rs")?;
+    let variables = liquid::object!({
+        "entity_struct_name": struct_name,
+        "entity_singular_name": name,
+        "entity_plural_name": name_plural,
+    });
+    let output = template
+        .render(&variables)
+        .context("Failed to render Liquid template")?;
+
+    create_project_file(
+        &format!("./db/src/entities/{}.rs", name_plural),
+        output.as_bytes(),
+    )?;
+    append_to_project_file(
+        "./db/src/entities/mod.rs",
+        &format!("pub mod {};", name_plural),
+    )?;
+
+    Ok(struct_name)
+}
+
+async fn generate_entity_test_helper(name: String) -> Result<String, anyhow::Error> {
+    let name = to_singular(&name).to_lowercase();
+    let name_plural = to_plural(&name);
+    let struct_name = to_title_case(&name);
+
+    let template = get_liquid_template("entity-test-helper/file.rs")?;
+    let variables = liquid::object!({
+        "entity_struct_name": struct_name,
+        "entity_singular_name": name,
+        "entity_plural_name": name_plural,
+    });
+    let output = template
+        .render(&variables)
+        .context("Failed to render Liquid template")?;
+
+    create_project_file(
+        &format!("./db/src/test_helpers/{}.rs", name_plural),
+        output.as_bytes(),
+    )?;
+    append_to_project_file(
+        "./db/src/test_helpers/mod.rs",
+        &format!("pub mod {};", name_plural),
+    )?;
+
+    Ok(struct_name)
+}
+
 async fn generate_crud_controller(name: String) -> Result<String, anyhow::Error> {
     let name = to_snake_case(&name).to_lowercase();
     let name_plural = to_plural(&name);
@@ -365,6 +372,7 @@ async fn generate_crud_controller_test(name: String) -> Result<String, anyhow::E
 
     Ok(file_path)
 }
+{% endif -%}
 
 fn get_liquid_template(path: &str) -> Result<Template, anyhow::Error> {
     let blueprint = BLUEPRINTS_DIR

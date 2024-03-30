@@ -1,3 +1,5 @@
 [alias]
+{% if template_type != "minimal" -%}
 db = ["run", "--package", "{{project-name}}-cli", "--bin", "db"]
+{% endif -%}
 generate = ["run", "--package", "{{project-name}}-cli", "--bin", "generate"]

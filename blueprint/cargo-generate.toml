@@ -9,8 +9,6 @@ template_type = { type = "string", prompt = "What template do you want to use?",
 ignore = [
     "target/",
     "Cargo.lock",
-    ".cargo",
-    "cli",
     "db",
     "docker-compose.yml",
     "web/src/middlewares/auth.rs",
