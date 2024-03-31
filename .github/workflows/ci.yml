@@ -70,16 +70,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache-workspaces: |
+            .
+            my-app-full
       
       - name: generate
-        run: cargo run -- --full my-app
-
-      - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3
-        with:
-          name: my-app-full
-          path: my-app
-          if-no-files-found: error
-          retention-days: 1
+        run: cargo run -- --full my-app-full
 
   test-generated-full:
     name: "Test generated full example app"
@@ -117,15 +114,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions-rust-lang/setup-rust-toolchain@v1
-
-    - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3
       with:
-        name: my-app-full
-        path: my-app
+        cache-workspaces: |
+          .
+          my-app-full
 
     - name: migrate
       run: |
-        cd my-app
+        cd my-app-full
         cargo db reset
         cargo db reset -e test
 
@@ -142,15 +138,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions-rust-lang/setup-rust-toolchain@v1
-    
-    - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3
       with:
-        name: my-app-full
-        path: my-app
+        cache-workspaces: |
+          .
+          my-app-full
     
     - name: fmt-generated
       run: |
-        cd my-app
+        cd my-app-full
         cargo fmt -- --check
 
   clippy-generated-full:
@@ -176,20 +171,19 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions-rust-lang/setup-rust-toolchain@v1
-    
-    - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3
       with:
-        name: my-app-full
-        path: my-app
-
+        cache-workspaces: |
+          .
+          my-app-full
+    
     - name: migrate
       run: |
-        cd my-app
+        cd my-app-full
         cargo db reset
 
     - name: clippy-generated
       run: |
-        cd my-app
+        cd my-app-full
         cargo clippy --all-targets -- -D warnings
 
   run-generated-full:
@@ -215,21 +209,20 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions-rust-lang/setup-rust-toolchain@v1
-    
-    - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3
       with:
-        name: my-app-full
-        path: my-app
-
+        cache-workspaces: |
+          .
+          my-app-full
+    
     - name: migrate
       run: |
-        cd my-app
+        cd my-app-full
         cargo db reset
         cargo db seed
 
     - name: run-generated
       run: |
-        cd my-app
+        cd my-app-full
         cargo run & (timeout 120 sh -c 'until nc -z $0 $1; do sleep 1; done' localhost 3000)
         curl -X POST localhost:3000/tasks -H 'Authorization: 9974812642a36dbee625fa06b2463dbff832e17dcce3836dbb' -H 'Content-Type: application/json' -d '{"description": "do something"}'
         curl -X PUT localhost:3000/tasks -H 'Authorization: 9974812642a36dbee625fa06b2463dbff832e17dcce3836dbb' -H 'Content-Type: application/json' -d '[{"description": "do something else"}, {"description": "…and do another thing"}]'
@@ -242,16 +235,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache-workspaces: |
+            .
+            my-app-default
       
       - name: generate
-        run: cargo run my-app
-  
-      - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3
-        with:
-          name: my-app-default
-          path: my-app
-          if-no-files-found: error
-          retention-days: 1
+        run: cargo run my-app-default
   
   test-generated-default:
     name: "Test generated default example app"
@@ -289,15 +279,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions-rust-lang/setup-rust-toolchain@v1
-  
-    - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3
       with:
-        name: my-app-default
-        path: my-app
+        cache-workspaces: |
+          .
+          my-app-default
   
     - name: test
       run: |
-        cd my-app
+        cd my-app-default
         cargo test
   
   fmt-generated-default:
@@ -308,15 +297,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions-rust-lang/setup-rust-toolchain@v1
-    
-    - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3
       with:
-        name: my-app-default
-        path: my-app
+        cache-workspaces: |
+          .
+          my-app-default
     
     - name: fmt-generated
       run: |
-        cd my-app
+        cd my-app-default
         cargo fmt -- --check
   
   run-generators-with-generated-default:
@@ -327,47 +315,46 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions-rust-lang/setup-rust-toolchain@v1
-    
-    - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3
       with:
-        name: my-app-default
-        path: my-app
-
+        cache-workspaces: |
+          .
+          my-app-default
+    
     - name: generate-migration
       run: |
-        cd my-app
+        cd my-app-default
         cargo generate migration CreatePeopleTable
 
     - name: generate-entity
       run: |
-        cd my-app
+        cd my-app-default
         cargo generate entity Person
 
     - name: generate-entity-test-helper
       run: |
-        cd my-app
+        cd my-app-default
         cargo generate entity-test-helper Person
 
     - name: generate-middleware
       run: |
-        cd my-app
+        cd my-app-default
         cargo generate middleware rate-limit
 
     - name: generate-controller
       run: |
-        cd my-app
+        cd my-app-default
         cargo generate controller message
 
     - name: generate-crud-controller
       run: |
-        cd my-app
+        cd my-app-default
         cargo generate crud-controller people
 
     # check the generators didn't produce mal-formatted code (ignoring order of module declarations
     # since we don't control that and it depends on the exact names we use for the generated items)
     - name: fmt-generated
       run: |
-        cd my-app
+        cd my-app-default
         cargo fmt -- --config reorder_modules=false --check
 
   clippy-generated-default:
@@ -393,15 +380,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions-rust-lang/setup-rust-toolchain@v1
-    
-    - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3
       with:
-        name: my-app-default
-        path: my-app
-  
+        cache-workspaces: |
+          .
+          my-app-default
+    
     - name: clippy-generated
       run: |
-        cd my-app
+        cd my-app-default
         cargo clippy --all-targets -- -D warnings
   
   run-generated-default:
@@ -427,15 +413,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions-rust-lang/setup-rust-toolchain@v1
-    
-    - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3
       with:
-        name: my-app-default
-        path: my-app
-  
+        cache-workspaces: |
+          .
+          my-app-default
+    
     - name: run-generated
       run: |
-        cd my-app
+        cd my-app-default
         cargo run & (timeout 120 sh -c 'until nc -z $0 $1; do sleep 1; done' localhost 3000)
 
   generate-minimal:
@@ -445,16 +430,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache-workspaces: |
+            .
+            my-app-minimal
       
       - name: generate
-        run: cargo run -- --minimal my-app
-  
-      - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3
-        with:
-          name: my-app-minimal
-          path: my-app
-          if-no-files-found: error
-          retention-days: 1
+        run: cargo run -- --minimal my-app-minimal
   
   test-generated-minimal:
     name: "Test generated minimal example app"
@@ -464,15 +446,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions-rust-lang/setup-rust-toolchain@v1
-  
-    - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3
       with:
-        name: my-app-minimal
-        path: my-app
+        cache-workspaces: |
+          .
+          my-app-minimal
   
     - name: test
       run: |
-        cd my-app
+        cd my-app-minimal
         cargo test
   
   fmt-generated-minimal:
@@ -483,15 +464,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions-rust-lang/setup-rust-toolchain@v1
-    
-    - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3
       with:
-        name: my-app-minimal
-        path: my-app
+        cache-workspaces: |
+          .
+          my-app-minimal
     
     - name: fmt-generated
       run: |
-        cd my-app
+        cd my-app-minimal
         cargo fmt -- --check
   
   clippy-generated-minimal:
@@ -502,15 +482,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions-rust-lang/setup-rust-toolchain@v1
-    
-    - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3
       with:
-        name: my-app-minimal
-        path: my-app
-  
+        cache-workspaces: |
+          .
+          my-app-minimal
+    
     - name: clippy-generated
       run: |
-        cd my-app
+        cd my-app-minimal
         cargo clippy --all-targets -- -D warnings
   
   run-generated-minimal:
@@ -521,14 +500,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions-rust-lang/setup-rust-toolchain@v1
-    
-    - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3
       with:
-        name: my-app-minimal
-        path: my-app
-  
+        cache-workspaces: |
+          .
+          my-app-minimal
+    
     - name: run-generated
       run: |
-        cd my-app
+        cd my-app-minimal
         cargo run & (timeout 120 sh -c 'until nc -z $0 $1; do sleep 1; done' localhost 3000)
         curl localhost:3000/greet
