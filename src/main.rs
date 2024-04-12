@@ -1,3 +1,7 @@
+#![deny(missing_docs)]
+
+//! Pacesetter provides blueprints and generators for axum projects. It establishes a standard project structure with a folder layout, standard patterns for composing applications into e.g. database access and web API, running tests and migrations, as well as tracing.
+
 use anyhow::Context;
 use cargo_generate::{GenerateArgs, TemplatePath};
 use clap::{ArgAction, Parser};
@@ -8,11 +12,14 @@ use std::path::PathBuf;
 #[allow(dead_code)]
 mod ui;
 
+#[doc(hidden)]
 static VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), " (", env!("VERGEN_GIT_SHA"), ")");
 
+#[doc(hidden)]
 static BLUEPRINTS_DIR: include_dir::Dir =
     include_dir::include_dir!("$CARGO_MANIFEST_DIR/blueprint");
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Copy)]
 enum Blueprint {
     Minimal,
@@ -30,6 +37,7 @@ impl std::fmt::Display for Blueprint {
     }
 }
 
+#[doc(hidden)]
 #[derive(Parser)]
 #[clap(author, version = VERSION, about, long_about = None)]
 struct Cli {
@@ -49,6 +57,7 @@ struct Cli {
     debug: bool,
 }
 
+#[doc(hidden)]
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
@@ -84,6 +93,7 @@ async fn main() {
     }
 }
 
+#[doc(hidden)]
 async fn generate(
     name: &str,
     output_dir: Option<PathBuf>,
@@ -121,6 +131,7 @@ async fn generate(
     Ok(output_dir)
 }
 
+#[doc(hidden)]
 async fn build_template_path() -> Result<TemplatePath, anyhow::Error> {
     let target_directory = env::temp_dir().join(format!("pacesetter-blueprint-{}", VERSION));
     fs::create_dir_all(&target_directory)

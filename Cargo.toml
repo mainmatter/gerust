@@ -7,9 +7,6 @@ description = "CLI for Meta-framework on top of axum"
 license = "MIT"
 include = ["blueprints", "src", "build.rs"]
 
-[lib]
-doctest = false
-
 [[bin]]
 name = "pace"
 path = "src/main.rs"
