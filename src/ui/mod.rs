@@ -1,7 +1,8 @@
 use std::io::Write;
 
+/// A console UI session
 pub struct UI<'a> {
-    out: &'a mut dyn Write,
+    stdout: &'a mut dyn Write,
     errout: &'a mut dyn Write,
     debug: bool,
     indentation: usize,
@@ -12,8 +13,18 @@ pub struct UI<'a> {
 }
 
 impl<'a> UI<'a> {
+    /// Create a new console UI session with given standard and error outputs.
+    ///
+    /// If `color` is `true`, output will be colored and formatted with emojis depending on the type of output. If `debug` is `true`, additional output will be printed in some cases, e.g. stack traces for errors.
+    ///
+    /// Example:
+    /// ```
+    /// let mut stdout = std::io::stdout();
+    /// let mut stderr = std::io::stderr();
+    /// let mut ui = UI::new(&mut stdout, &mut stderr, true, true);
+    /// ```
     pub fn new(
-        out: &'a mut dyn Write,
+        stdout: &'a mut dyn Write,
         errout: &'a mut dyn Write,
         color: bool,
         debug: bool,
@@ -40,7 +51,7 @@ impl<'a> UI<'a> {
         };
 
         UI {
-            out,
+            stdout,
             errout,
             debug,
             indentation: 0,
@@ -55,21 +66,31 @@ impl<'a> UI<'a> {
         "  ".repeat(self.indentation)
     }
 
+    /// Prints a general message.
     pub fn log(&mut self, msg: &str) {
         let indentation = self.indentation();
         self.out(&format!("{}{}{}", indentation, self.log_prefix, msg));
     }
 
+    /// Prints an info message.
+    ///
+    /// If color output is enabled (see [`UI::new`]), the message will be formatted.
     pub fn info(&mut self, msg: &str) {
         let indentation = self.indentation();
         self.out(&format!("{}{}{}", indentation, self.info_prefix, msg));
     }
 
+    /// Prints a success message.
+    ///
+    /// If color output is enabled (see [`UI::new`]), the message will be formatted.
     pub fn success(&mut self, msg: &str) {
         let indentation = self.indentation();
         self.out(&format!("{}{}{}", indentation, self.success_prefix, msg));
     }
 
+    /// Prints an error message.
+    ///
+    /// If color output is enabled (see [`UI::new`]), the message will be formatted. If debug output is enabled (see [`UI::new`]), the error's stack trace will be printed as well.
     pub fn error(&mut self, msg: &str, e: anyhow::Error) {
         let indentation = self.indentation();
         self.errout(&format!("{}{}{}", indentation, self.error_prefix, msg));
@@ -78,10 +99,47 @@ impl<'a> UI<'a> {
         }
     }
 
+    /// Increases indentation of subsequently printed messages by 2 spaces.
+    ///
+    /// Example:
+    /// ```
+    /// let mut stdout = std::io::stdout();
+    /// let mut stderr = std::io::stderr();
+    /// let mut ui = UI::new(&mut stdout, &mut stderr, true, true);
+    ///
+    /// ui.success("All migrations were applied");
+    /// ui.indent();
+    /// ui.log("Ran 5 migrations");
+    ///
+    /// // prints:
+    /// // > ✅ All migrations were applied
+    /// // >    Ran 5 migrations
+    /// ```
     pub fn indent(&mut self) {
         self.indentation += 1;
     }
 
+    /// Decreases indentation of subsequently printed messages by 2 spaces.
+    ///
+    /// If the indentation level is 0 already, this does nothing.
+    ///
+    /// Example:
+    /// ```
+    /// let mut stdout = std::io::stdout();
+    /// let mut stderr = std::io::stderr();
+    /// let mut ui = UI::new(&mut stdout, &mut stderr, true, true);
+    ///
+    /// ui.success("All migrations were applied");
+    /// ui.indent();
+    /// ui.log("Ran 5 migrations");
+    /// ui.outdent();
+    /// ui.info("Now seeding database…")
+    ///
+    /// // prints:
+    /// // > ✅ All migrations were applied
+    /// // >    Ran 5 migrations
+    /// // > ℹ️ Now seeding database…
+    /// ```
     pub fn outdent(&mut self) {
         if self.indentation > 0 {
             self.indentation -= 1;
@@ -89,7 +147,7 @@ impl<'a> UI<'a> {
     }
 
     fn out(&mut self, msg: &str) {
-        writeln!(&mut self.out, "{}", msg).expect("Cannot write to the output buffer!");
+        writeln!(&mut self.stdout, "{}", msg).expect("Cannot write to the output buffer!");
     }
 
     fn errout(&mut self, msg: &str) {
