@@ -1,8 +1,7 @@
 ---
-source: pacesetter-util/tests/ui_test.rs
+source: src/ui/mod.rs
 expression: output
 ---
    a general message
 ℹ️  an info message
 ✅ a success message ✓
-
