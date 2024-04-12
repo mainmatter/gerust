@@ -1,5 +1,5 @@
 ---
-source: pacesetter-util/tests/ui_test.rs
+source: src/ui/mod.rs
 expression: output
 ---
    a log message
@@ -7,4 +7,3 @@ expression: output
            more indentation
        less indentation
    no indentation
-

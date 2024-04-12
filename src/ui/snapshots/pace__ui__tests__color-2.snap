@@ -1,6 +1,5 @@
 ---
-source: pacesetter-util/tests/ui_test.rs
+source: src/ui/mod.rs
 expression: error_output
 ---
 ❌ an error message :(
-

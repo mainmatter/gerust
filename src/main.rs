@@ -1,10 +1,12 @@
 use anyhow::Context;
 use cargo_generate::{GenerateArgs, TemplatePath};
 use clap::{ArgAction, Parser};
-use pacesetter::ui::UI;
 use std::env;
 use std::fs;
 use std::path::PathBuf;
+
+#[allow(dead_code)]
+mod ui;
 
 static VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), " (", env!("VERGEN_GIT_SHA"), ")");
 
@@ -53,7 +55,7 @@ async fn main() {
 
     let mut stdout = std::io::stdout();
     let mut stderr = std::io::stderr();
-    let mut ui = UI::new(&mut stdout, &mut stderr, !cli.no_color, cli.debug);
+    let mut ui = ui::UI::new(&mut stdout, &mut stderr, !cli.no_color, cli.debug);
 
     let blueprint = if cli.full {
         Blueprint::Full
