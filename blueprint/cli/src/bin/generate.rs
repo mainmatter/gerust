@@ -2,7 +2,9 @@ use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand};
 use cruet::{
     case::{snake::to_snake_case, {%- if template_type != "minimal" -%}title::to_title_case{%- endif -%}},
+{% if template_type != "minimal" -%}
     string::{pluralize::to_plural, singularize::to_singular},
+{% endif -%}
 };
 use guppy::{graph::PackageGraph, MetadataCommand};
 use liquid::Template;

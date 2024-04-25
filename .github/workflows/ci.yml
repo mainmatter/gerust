@@ -132,7 +132,7 @@ jobs:
     - name: test
       run: |
         cd my-app
-        cargo test
+        cargo test --all
 
   fmt-generated-full:
     name: "Validate format of generated full example app"
@@ -151,7 +151,7 @@ jobs:
     - name: fmt-generated
       run: |
         cd my-app
-        cargo fmt -- --check
+        cargo fmt --all -- --check
 
   clippy-generated-full:
     name: "Run Clippy on generated full example app"
@@ -298,7 +298,7 @@ jobs:
     - name: test
       run: |
         cd my-app
-        cargo test
+        cargo test --all
   
   fmt-generated-default:
     name: "Validate format of generated default example app"
@@ -317,7 +317,7 @@ jobs:
     - name: fmt-generated
       run: |
         cd my-app
-        cargo fmt -- --check
+        cargo fmt --all -- --check
   
   run-generators-with-generated-default:
     name: "Run generators on generated default example app"
@@ -368,7 +368,7 @@ jobs:
     - name: fmt-generated
       run: |
         cd my-app
-        cargo fmt -- --config reorder_modules=false --check
+        cargo fmt --all -- --config reorder_modules=false --check
 
   clippy-generated-default:
     name: "Run Clippy on generated default example app"
@@ -473,7 +473,7 @@ jobs:
     - name: test
       run: |
         cd my-app
-        cargo test
+        cargo test --all
   
   fmt-generated-minimal:
     name: "Validate format of generated minimal example app"
@@ -492,7 +492,7 @@ jobs:
     - name: fmt-generated
       run: |
         cd my-app
-        cargo fmt -- --check
+        cargo fmt --all -- --check
   
   clippy-generated-minimal:
     name: "Run Clippy on generated minimal example app"
