@@ -132,7 +132,7 @@ jobs:
     - name: test
       run: |
         cd my-app
-        cargo test
+        cargo test --all
 
   fmt-generated-full:
     name: "Validate format of generated full example app"
@@ -298,7 +298,7 @@ jobs:
     - name: test
       run: |
         cd my-app
-        cargo test
+        cargo test --all
   
   fmt-generated-default:
     name: "Validate format of generated default example app"
@@ -473,7 +473,7 @@ jobs:
     - name: test
       run: |
         cd my-app
-        cargo test
+        cargo test --all
   
   fmt-generated-minimal:
     name: "Validate format of generated minimal example app"
