@@ -10,6 +10,7 @@ use std::fs;
 use std::path::PathBuf;
 
 #[allow(dead_code)]
+#[doc(hidden)]
 mod ui;
 
 #[doc(hidden)]
