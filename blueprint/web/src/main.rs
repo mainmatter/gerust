@@ -1,4 +1,4 @@
-use my_app_web::{init_tracing, run};
+use {{crate_name}}_web::{init_tracing, run};
 
 #[tokio::main]
 async fn main() {
