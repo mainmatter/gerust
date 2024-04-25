@@ -7,10 +7,11 @@ publish = false
 [lib]
 doctest = false
 
+{% if template_type != "minimal" -%}
 [[bin]]
 name = "db"
 path = "src/bin/db.rs"
-
+{% endif -%}
 [[bin]]
 name = "generate"
 path = "src/bin/generate.rs"
