@@ -11,6 +11,10 @@ Pacesetter answers all the questions you shouldn't waste time on when building b
 
 Pacesetter projects are based on axum and use sqlx and PostgreSQL for data storage (if data storage is used at all).
 
+> [!NOTE]
+> This project has been created by [Mainmatter](https://mainmatter.com/rust-consulting/).  
+> Check out our [landing page](https://mainmatter.com/rust-consulting/) if you're looking for Rust consulting or training!
+
 ## Creating a new project
 
 A new project can be create with the `pace` command, e.g.:
