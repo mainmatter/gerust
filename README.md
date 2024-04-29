@@ -49,7 +49,7 @@ The `web` crate contains the main axum application. It will determine the enviro
 ```
 web
 ├── controllers // Controllers implement request handlers
-├── middlewares // Tower middlewares for pre-processing requests before they are passed on the request handlers
+├── middlewares // Tower middlewares for pre-processing requests before they are passed to the request handlers
 ├── lib.rs      // Code for starting up the server
 ├── main.rs     // Main entrypoint of the application
 ├── routes.rs   // Mapping of request handlers to routes
