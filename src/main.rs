@@ -40,21 +40,40 @@ impl std::fmt::Display for Blueprint {
 
 #[doc(hidden)]
 #[derive(Parser)]
-#[clap(author, version = VERSION, about, long_about = None)]
+#[command(author, version, about = "A backend project generator and manager.", long_about = None)]
+#[command(propagate_version = true, arg_required_else_help(true))]
 struct Cli {
-    #[arg(index = 1)]
+    #[arg(
+        index = 1,
+        help = "The name of the project (Cargo workspace) to generate (will be used as a prefix for the individual crates)"
+    )]
     name: String,
-    #[arg(short, long, value_parser)]
+    #[arg(
+        short,
+        long,
+        value_parser,
+        help = "The folder to create the project in; defaults to the project name"
+    )]
     outdir: Option<PathBuf>,
-    #[arg(short, long, action(ArgAction::SetTrue))]
+    #[arg(
+        short,
+        long,
+        action(ArgAction::SetTrue),
+        help = "Generate a full project with example implementations of all project elements"
+    )]
     full: bool,
-    #[arg(short, long, action(ArgAction::SetTrue))]
+    #[arg(
+        short,
+        long,
+        action(ArgAction::SetTrue),
+        help = "Generate a minimal project without database access"
+    )]
     minimal: bool,
 
-    #[arg(long, global = true, help = "Disable colored output.")]
+    #[arg(long, global = true, help = "Disable colored output")]
     no_color: bool,
 
-    #[arg(long, global = true, help = "Enable debug output.")]
+    #[arg(long, global = true, help = "Enable debug output")]
     debug: bool,
 }
 
