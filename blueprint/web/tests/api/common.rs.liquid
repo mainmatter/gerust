@@ -91,6 +91,7 @@ pub trait BodyExt {
     #[allow(unused)]
     async fn into_bytes(self) -> Bytes;
 
+    #[allow(unused)]
     async fn into_json<T>(self) -> T
     where
         T: serde::de::DeserializeOwned;
