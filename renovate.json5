@@ -3,7 +3,7 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["(^|/blueprint/)Cargo\\.toml\\.liquid$"],
+      "fileMatch": ["(^|/)Cargo\\.toml(\\.liquid)?$"],
       "matchStrings": ["^(?<depName>[a-zA-Z_-]+)\s*=\s*({.*version\s*=\s*)?\"(?<currentValue>\d.*?)\""],
       "datasourceTemplate": "crate"
     }
