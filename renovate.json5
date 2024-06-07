@@ -4,7 +4,7 @@
     {
       "customType": "regex",
       "fileMatch": ["blueprint/.*/Cargo\\.toml(\\.liquid)?$"],
-      "matchStrings": ["^(?<depName>[a-zA-Z_-]+)\s*=\s*({.*version\s*=\s*)?\"(?<currentValue>\d.*?)\""],
+      "matchStrings": ["^(?<depName>[a-zA-Z_-]+)\\s*=\\s*({.*version\\s*=\\s*)?\\"(?<currentValue>\\d.*?)\\""],
       "datasourceTemplate": "crate"
     }
   ],
