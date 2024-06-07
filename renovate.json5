@@ -1,0 +1,12 @@
+{
+  "extends": ["github>mainmatter/renovate-config:default.json5"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["^Cargo.toml.liquid$"],
+      "matchStrings": ["^(?<depName>[a-zA-Z_-]+)\s*=\s*({.*version\s*=\s*)?\"(?<currentValue>\d.*?)\""],
+      "datasourceTemplate": "crate"
+    }
+  ],
+  "ignoreDeps": ["version", "edition"]
+}
