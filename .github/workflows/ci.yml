@@ -18,10 +18,7 @@ jobs:
         components: rustfmt
 
     - name: fmt
-      uses: actions-rs/cargo@v1.0.3
-      with:
-        command: fmt
-        args: --all -- --check
+      run: cargo fmt --all --check
 
   clippy:
     name: "Clippy"
@@ -34,10 +31,7 @@ jobs:
         components: clippy
 
     - name: clippy
-      uses: actions-rs/cargo@v1.0.3
-      with:
-        command: clippy
-        args: --all-targets -- -D warnings
+      run: cargo clippy --all-targets -- -D warnings
 
   test:
     name: "Test"
