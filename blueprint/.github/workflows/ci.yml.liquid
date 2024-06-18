@@ -8,39 +8,6 @@ on:
 
 
 jobs:
-  cargo_check:
-    name: "Cargo Check"
-    runs-on: ubuntu-latest
-
-    {% unless template_type == "minimal" -%}
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_DB: {{crate_name}}
-          POSTGRES_USER: {{crate_name}}
-          POSTGRES_PASSWORD: {{crate_name}}
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-    {%- endunless %}
-
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
-    {% unless template_type == "minimal" -%}
-    - name: migrate
-      run: cargo db reset
-    {%- endunless %}
-    - name: cargo check
-      uses: actions-rs/cargo@v1.0.1
-      with:
-        command: check
-
   rustfmt:
     name: "Rust Format"
     runs-on: ubuntu-latest
