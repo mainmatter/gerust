@@ -1,0 +1,23 @@
+# {{project-name}}-config
+
+This crate contains the `Config` struct that holds the application's configuration settings at runtime, as well as functionality for parsing configuration settings from various sources and building the `Config` struct.
+
+The `Config` struct has {%- if template_type == "minimal" -%}a field{%- else -%}fields{% endif -%} for the server{%- unless template_type == "minimal" -%} and database {% endunless -%}configuration by default and can be extended freely with any application-specific settings:
+
+```rs
+pub struct Config {
+    pub server: ServerConfig,
+    {% unless template_type == "minimal" -%}
+    pub database: DatabaseConfig,
+    {%- endunless %}
+    // add your config settings here…
+}
+```
+
+Pacesetter uses [figment](https://crates.io/crates/figment) to populate the `Config` struct from environment variables and TOM files such that:
+
+* the `ServerConfig` that contains interface and port to bind to, is populated from the `APP_SERVER__IP` and `APP_SERVER__PORT` environment variables.
+{% unless template_type == "minimal" -%}
+* the `DatabaseConfig` that contains the connection URL for the database is populated from the `APP_DATABASE__URL` environment variable.
+{%- endunless %}
+* any application-specific configuration values are read from the `app.toml` and environment-specific configuration files such that settings in the environment-specific configuration files override values for the same setting in `app.toml`.
