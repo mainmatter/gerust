@@ -1,9 +1,11 @@
 # {{project-name}}
 
 This README explains how to collaborate on this Pacesetter application.
-
+{% if template_type == "full" %}
+The example application implements a simple tasks management system. [Tasks](./db/src/entities/tasks.rs) are stored in PostgreSQL and can be [created, read, updated, and deleted](./web/src/controllers/tasks.rs) via the web interface. Any writing operations [require authentication via a token](./web/src/middlewares/auth.rs).
+{% else %}
 <add a description of the project here>
-
+{% endif %}
 ## Prerequisites
 
 * Rust (install via [rustup](https://rustup.rs))
