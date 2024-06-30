@@ -1,15 +1,17 @@
 # Pacesetter
 
-Pacesetter answers all the questions you shouldn't waste time on when building backends with Rust:
+Pacesetter provides an architecture and tooling for Rust cloud projects. It takes care of the accidental complexity that comes with writing cloud apps with Rust so you can stay focused on the essence of the system you're building:
 
-* How to split a project into crates
-* What folder structure to use and what kind of file goes where
-* How to handle database migrations
-* How to seed the database for tests and clean up afterwards
-* How to set up tracing and handle errors
+* Separating distinct parts of the system into separate crates
+* Organizing files into a logical folder structure
+* Maintaining and running database migrations
+* Isolating test cases that access the database
+* Tracing and error handling
 * and many more
 
-Pacesetter projects are based on axum and use sqlx and PostgreSQL for data storage (if data storage is used at all).
+For now, Pacesetter is just a project generator that creates the files and structure to get you started. There is no runtime dependency on Pacesetter – all the code is under your control.
+
+Pacesetter projects are based on [axum](https://crates.io/crates/axum) and use [sqlx](https://crates.io/crates/sqlx) and PostgreSQL for data storage (if data storage is used at all).
 
 > [!NOTE]
 > This project has been created by [Mainmatter](https://mainmatter.com/rust-consulting/).  
@@ -17,38 +19,44 @@ Pacesetter projects are based on axum and use sqlx and PostgreSQL for data stora
 
 ## Creating a new project
 
-A new project can be create with the `pace` command, e.g.:
+A new project is created with the `pace` command, e.g.:
 
 ```
 pace my-app
 ```
 
-By default, Pacesetter will generate an empty project with the complete project structure as described above but without any actual entities, controllers, etc. If you're just getting started looking at Pacesetter, opting into creation of a full project, complete with example implementations of all concepts via `--full` might be a better starting point.
+By default, Pacesetter will generate an empty project with the complete project structure as described below but without any actual entities, controllers, etc. If you're just getting started looking at Pacesetter, creating a full project, complete with example implementations of all concepts via `--full` might be a better starting point:
 
-For projects that do not need database access, there is also the `--minimal` option that will generate a project without any of the concepts and structure related to database access.
+```
+pace my-app --full
+```
+
+For projects that do not need database access, there is also the `--minimal` option that will generate a project without any of the concepts and structure related to database access – no `db` crate, no [sqlx](https://crates.io/crates/sqlx) dependency.
 
 ## Project Structure
 
-Pacesetter uses Cargo workspaces to break down projects into separate crates.
+Pacesetter uses [Cargo workspaces](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html) to separate distinct parts of the system into separate crates:
 
 ```
 .
-├── cli    // CLI tools for e.g. running DB migrations or generating files
+├── cli    // CLI tools for e.g. running DB migrations or generating project files
 ├── config // Defines the `Config` struct and handles building the configuration from environment-specific TOML files and environment variables
 ├── db     // Encapsulates database access, migrations, as well as entity definitions and related code (if the project uses a database)
-├── macros // Contains macros that are used for application tests
+├── macros // Contains macros, e.g. for application tests
 └── web    // The web interface as well as tests for it
 ```
 
-Let's have a look at those crates in detail:
+Let's see what these crates are resonsible for and how they work in detail:
 
 ### The `web` crate
 
-The `web` crate contains the main axum application. It will determine the environment the application runs in, load the configuration, initialize the app state, set up tracing and error handling, and bind the server to the configured interface. The crate uses a simple folder structure:
+The `web` crate contains the main [axum](https://crates.io/crates/axum) application, providing the web interface of the system. It contains the controllers with the implementations of the exposed endpoints, as well as any middlewares. The `web` crate also contains the application's main executable, which when starting up, will determine the environment the application runs in, load the configuration, initialize the app state, set up tracing and error handling, and bind the server to the configured interface.
+
+The crate uses a simple folder structure:
 
 ```
 web
-├── controllers // Controllers implement request handlers
+├── controllers // Controllers implement request handlers for the exposed endpoints
 ├── middlewares // Tower middlewares for pre-processing requests before they are passed to the request handlers
 ├── lib.rs      // Code for starting up the server
 ├── main.rs     // Main entrypoint of the application
@@ -59,11 +67,22 @@ web
 
 #### Testing
 
-Testing backends is straight forward: request a particular endpoint with a particular method and potentially query string and/or request body and assert the response is what you expect. However, things become more complicated when the server you're testing uses a database and in the test, you need to seed the database with test data for the test and clean up afterwards so different tests don't interfere with each other. There are several mechanisms for that like transactions, cleanup scripts, etc. Pacesetter uses an approach that allows parallel execution of tests via complete isolation without adding a ton of complexity: every test runs in its own database that's automatically created as a copy of the main database for the `test` environment and destroyed after the test has completed. That is enabled via the `[db_test]` macro:
+Application tests that cover the entire stack of the system including middlewares, controller, as well as database access are maintained in the `web` crate.
+
+Testing backends is typically straight forward: request a particular endpoint with a particular method and potentially query string and/or request body and assert the response is what you expect. However, things become more complicated when the server you're testing uses a database. In your tests, you then need to seed the database with test data to establish a well-defined state for the test. You also need to clean up afterwards or better, use isolated database states for the different tests so they don't interfere with each other. There are several mechanisms for that like transactions, cleanup scripts, etc.
+
+Pacesetter uses an approach for test isolation that allows parallel execution of tests without adding a ton of complexity: every test runs in its own database. These test-specific databases are automatically created as copies of the main test database and destroyed after the test has completed. All that is made easily available via the `[db_test]` macro:
 
 ```rs
+pub struct DbTestContext {
+    /// The axum application that is being tested.
+    pub app: Router,
+    /// A connection pool connected to the test-specific database; the app is set up to use this database automatically
+    pub db_pool: DbPool,
+}
+
 #[db_test]
-async fn test_read_all(context: &DbTestContext) {           // context includes a connection to the database that's specific to this test; the application under test is automatically set up to connect to that database
+async fn test_read_all(context: &DbTestContext) {
     let task_changeset: TaskChangeset = Faker.fake();
     create_task(task_changeset.clone(), &context.db_pool) // create a task in the database
         .await
@@ -87,24 +106,26 @@ async fn test_read_all(context: &DbTestContext) {           // context includes 
 }
 ```
 
+The concept of changesets as well as the database access utilities like `create_task`, are explained below.
+
 ### The `db` crate
 
-The `db` crate only exists for projects that use a database and contains everything that's related to database access. Pacesetter uses sqlx and PostgreSQL without any additional ORM on top. Instead, it defines entities as simple structs along with functions for retrieving and persisting those entities. Validations are implemented on changesets that get translated to entities once they were applied successfully:
+The `db` crate only exists for projects that use a database and contains all functionality related to database access from entity definitions, functions for reading and writing data, as well as migrations. Pacesetter uses [sqlx](https://crates.io/crates/sqlx) and PostgreSQL without any additional ORM on top. Instead, it defines entities as simple structs along with functions for retrieving and persisting those entities. Validations are implemented via changesets that can get applied to or be converted to entities if they are valid:
 
 ```rs
 #[derive(Serialize, Debug, Deserialize)]
-pub struct Task {
+pub struct Task {                                            // a Task entity with UUID id and text description
     pub id: Uuid,
     pub description: String,
 }
 
 #[derive(Deserialize, Validate, Clone)]
-pub struct TaskChangeset {
+pub struct TaskChangeset {                                   // the changeset definition for the Task entity; it requires description to have a minimum length of 1
     #[validate(length(min = 1))]
     pub description: String,
 }
 
-pub async fn load(
+pub async fn load(                                           // Function for loading a Task for an id
     id: Uuid,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<Task, crate::Error> {
@@ -118,13 +139,13 @@ pub async fn load(
     }
 }
 
-pub async fn create(
+pub async fn create(                                         // Function for creating a Task in the database
     task: TaskChangeset,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<Task, crate::Error> {
-    task.validate().map_err(crate::Error::ValidationError)?;
+    task.validate().map_err(crate::Error::ValidationError)?; // Validate the changeset and return Err(…) if it isn't valid
 
-    let record = sqlx::query!(
+    let record = sqlx::query!(                               // Store the data in the database
         "INSERT INTO tasks (description) VALUES ($1) RETURNING id",
         task.description
     )
@@ -132,26 +153,30 @@ pub async fn create(
     .await
     .map_err(|e| crate::Error::DbError(e.into()))?;
 
-    Ok(Task {
+    Ok(Task {                                                // Return a Task entity
         id: record.id,
         description: task.description,
     })
 }
 ```
 
-The crate uses a simple folder structure:
+Database queries are checked for correctness at compile time using sqlx's [compile-time checked queries](https://github.com/launchbadge/sqlx/blob/main/README.md#sqlx-is-not-an-orm).
+
+The crate's folder structure consists of 3 main folders:
 
 ```
 db
-├── migrations // Database migrations as plain SQL files
+├── migrations       // Database migrations as plain SQL files
 ├── src
     ├── entities     // Entity structs, changesets and related functions for retrieving and persisting records (see example above)
     └── test-helpers // Functions for retrieving and persisting records that are only relevant for tests (these are defined behind the `test-helpers` feature)
 ```
 
+Test helpers allow to make specific database access functions available only for application tests but not for actual application code. If e.g. the system does not allow for creating new user accounts but tests need to be able to create users, a `create_user` function could be defined in `db/src/test_helpers/users.rs` in the `db` crate.
+
 ### The `config` crate
 
-The `config` crate contains the struct that holds all configuration values at runtime as well as code for parsing the configuration based on a hierarchy of TOML files and environment variables. The `Config` struct contains fields for the server and database configuration and can be extended freely:
+The `config` crate contains the `Config` struct that holds all configuration values at runtime as well as code for parsing the configuration based on a hierarchy of TOML files and environment variables. The `Config` struct contains fields for the server and database configuration (if the application uses a database) and can be extended freely:
 
 ```rs
 #[derive(Deserialize, Clone, Debug)]
@@ -162,7 +187,9 @@ pub struct Config {
 }
 ```
 
-The values for the server and database configuration are read from the `APP_SERVER__IP`, `APP_SERVER__PORT`, and `APP_DATABASE__URL` environment variables. Any application-specific settings are first read from `app.toml` and then from an environment-specific file, e.g. `production.toml` so that environment-specific settings override those in `app.toml`. The main fils and folders in the crate are:
+The values for the server and database configuration are read from the `APP_SERVER__IP`, `APP_SERVER__PORT`, and `APP_DATABASE__URL` environment variables. Any application-specific settings are read from `app.toml` as well as environment-specific file, e.g. `production.toml` such that settings in the environment-specific files override those in `app.toml`.
+
+The main files and folders in the crate are:
 
 ```
 config
@@ -177,7 +204,7 @@ config
 
 ### The `cli` crate
 
-The `cli` crate contains the `db` (which only exists for projects that use a database) and `generate` binaries for running database operations such as creating or dropping the database or running migrations, and generating project files such as entities, controllers, or middlewares. The workspace is configured so that those binaries can be run with just `cargo db` and `cargo generate`:
+The `cli` crate contains the `db` binary for running database operations such as executing migrations (this binary only exists for projects that use a database) as well as the `generate` binary for generating project files such as entities, controllers, tests, or middlewares. The workspace is configured so that those binaries can be executed with just `cargo db` and `cargo generate`:
 
 ```
 » cargo db
@@ -225,7 +252,13 @@ Options:
   -V, --version   Print version
 ```
 
-### Testing & CI
+You would typically not have to make any changes to the `cli` crate.
+
+### The `macros` crate
+
+The `macros` crate contains the implementation of the `db_test` macro. You would typically not have to make any changes to the `cli` crate.
+
+## Testing & CI
 
 Projects generated by Pacesetter come with a complete CI setup for GitHub Actions that includes:
 
