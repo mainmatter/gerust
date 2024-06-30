@@ -1,0 +1,53 @@
+# {{project-name}}
+
+This README explains how to collaborate on this Pacesetter application.
+
+<add a description of the project here>
+
+## Prerequisites
+
+* Rust (install via [rustup](https://rustup.rs))
+{%- unless template_type == "minimal" %}
+* [Docker](https://www.docker.com)
+{%- endunless %}
+
+## Project Structure
+
+Distinct parts of the project are separated into separate crates:
+
+```
+.
+├── cli    // CLI tools for e.g. running DB migrations or generating project files
+├── config // Defines the `Config` struct and handles building the configuration from environment-specific TOML files and environment variables
+{%- unless template_type == "minimal" %}
+├── db     // Encapsulates database access, migrations, as well as entity definitions and related code (if the project uses a database)
+{%- endunless %}
+├── macros // Contains macros, e.g. for application tests
+└── web    // The web interface as well as tests for it
+```
+
+## Commands
+
+Running the application in development mode:
+
+```
+cargo run
+```
+
+Running the application tests:
+
+```
+cargo test
+```
+{% unless template_type == "minimal" %}
+Running database tasks like executing migrations or seeding the database (see the [CLI create](./cli/README.md) for detailed documentation):
+
+```
+cargo db
+```
+{% endunless %}
+Generating project files like entities, controllers, tests, etc. (see the [CLI create](./cli/README.md) for detailed documentation):
+
+```
+cargo generate
+```
