@@ -29,6 +29,7 @@ pub fn test(_: TokenStream, item: TokenStream) -> TokenStream {
     TokenStream::from(output)
 }
 
+{% unless template_type == "minimal" -%}
 #[proc_macro_attribute]
 pub fn db_test(_: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemFn);
@@ -60,3 +61,4 @@ pub fn db_test(_: TokenStream, item: TokenStream) -> TokenStream {
 
     TokenStream::from(output)
 }
+{%- endunless %}
