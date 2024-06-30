@@ -1,0 +1,72 @@
+# {{project-name}}-web
+
+This crate implements the application's web interface. It contains controllers and middleware and is responsible for booting up the application which includes setting up tracing.
+
+## Application state
+
+The code for defining the application state and creating a fresh state when the application boots, is located in `state.rs`.{%- unless template_type == "minimal" -%} By default, the state contains a pool of database connection:{%- endunless %}
+
+```rs
+#[derive(Clone)]
+pub struct AppState {
+    {% unless template_type == "minimal" -%}
+    pub db_pool: DbPool,
+    {%- endunless %}
+}
+```
+
+The `AppState` struct can be freely extended with custom fields.
+
+## Routing
+
+Routes are defined in `src/routes.rs`, e.g.:
+
+```rs
+pub fn routes(app_state: AppState) -> Router {
+Router::new()
+    .route("/tasks", post(create_task))
+    .route("/tasks", get(get_tasks))
+    .route("/tasks/:id", get(get_task))
+```
+
+## Controllers and Middlewares
+
+Controllers and middlewares are kept in the respectively named directories. Controllers export axum request handlers. Middlewares are standard Tower middlewares.
+
+## Tests
+
+Pacesetter follows a full stack testing approach. The application's endpoint including database access are tested via tests in the `web` crate. Using Pacesetter's test macros, tests receive a fully configured and booted up instance of the application that requests can be made against{%- if template_type == "minimal" -%}:{%- endif %}.{% unless template_type == "minimal" -%} In order to allow requests to access the database without the risk of different tests interfering with each other, each test uses its own dedicated database. A pool of connections is passed to the test via the test context and the application instance is preconfigured to use the same database:{%- endunless %}
+
+{% if template_type != "minimal" %}
+#[db_test]
+async fn test_read_all(context: &DbTestContext) {
+    let task_changeset: TaskChangeset = Faker.fake();
+    create_task(task_changeset.clone(), &context.db_pool)
+        .await
+        .unwrap();
+
+    let response = context
+        .app
+        .request("/tasks")
+        .method(Method::GET)
+        .send()
+        .await;
+
+    assert_that!(response.status(), eq(StatusCode::OK));
+
+    let tasks: TasksList = response.into_body().into_json::<TasksList>().await;
+    assert_that!(tasks, len(eq(1)));
+    assert_that!(
+        tasks.first().unwrap().description,
+        eq(task_changeset.description)
+    );
+}
+{% else %}
+#[test]
+async fn test_hello(context: &TestContext) {
+    let response = context.app.request("/greet").send().await;
+
+    let greeting: Greeting = response.into_body().into_json().await;
+    assert_that!(greeting.hello, eq(String::from("world")));
+}
+{%- endif %}
