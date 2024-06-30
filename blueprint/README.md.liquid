@@ -26,6 +26,18 @@ Distinct parts of the project are separated into separate crates:
 └── web    // The web interface as well as tests for it
 ```
 
+### Environment
+
+The project uses `.env` and `.env.test` files to store configuration settings for the development and test environments respectively. Those files are read automatically by the parts of the application that require configuration settings to be present.
+{% unless template_type == "minimal" %}
+A Docker setup with preconfigured databases for the development and test environments is created out-of-the-box with the project. Boot the containers with
+
+```
+docker compose up
+```
+
+The `.env` and `.env.test` contain matching configuration out-of-the-box.
+{% endunless %}
 ## Commands
 
 Running the application in development mode:
