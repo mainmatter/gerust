@@ -28,7 +28,7 @@ uuid = { version = "1.6", features = ["serde"] }
 fake = "2.9"
 googletest = "0.11"
 serde_json = "1.0"
-tower = { version = "0.4", features = ["util"] }
+tower = { version = "0.5", features = ["util"] }
 hyper = { version = "1.0", features = ["full"] }
 {% unless template_type == "minimal" -%}
 {{project-name}}-db = { path = "../db", features = ["test-helpers"] }
