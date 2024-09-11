@@ -3,15 +3,19 @@ use {{crate_name}}_config::Config;
 use {{crate_name}}_db::{connect_pool, DbPool};
 {%- endunless %}
 
+/// The application's state that is available in [`crate::controllers`] and [`crate::middlewares`].
 #[derive(Clone)]
 pub struct AppState {
     {% unless template_type == "minimal" -%}
+    /// The database pool that's used to get a connection to the application's database (see [`{{crate_name}}_db::DbPool`]).
     pub db_pool: DbPool,
     {%- endunless %}
 }
 
+/// Initializes the application state.
+///
+/// This function creates an [`AppState`] based on the current [`{{crate_name}}_config::Config`].
 {% if template_type != "minimal" %}
-#[doc(hidden)]
 pub async fn app_state(config: Config) -> AppState {
     let db_pool = connect_pool(config.database)
         .await
