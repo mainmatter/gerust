@@ -7,13 +7,24 @@ use tracing::info;
 use tracing_panic::panic_hook;
 use tracing_subscriber::{filter::EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
+/// The application's controllers that implement request handlers.
 pub mod controllers;
+/// Middlewares that incoming requests are passed through before being passed to [`controllers`].
 pub mod middlewares;
-#[doc(hidden)]
+/// Contains the application's route definitions.
 pub mod routes;
+/// Contains the application state definition and functionality to initialize it.
 pub mod state;
 
-#[doc(hidden)]
+/// Runs the application.
+///
+/// thus function does all the work to initiatilize and run the application:
+///
+/// 1. Determine the environment the application is running in (see [`{{crate_name}}_config::get_env`])
+/// 2. Load the configuration (see [`{{crate_name}}_config::load_config`])
+/// 3. Initialize the application state (see [`state::app_state`])
+/// 4. Initialize the application's router (see [`routes::routes`])
+/// 5. Boot the application and start listening for requests on the configured interface and port
 pub async fn run() -> anyhow::Result<()> {
     let env = get_env().context("Cannot get environment!")?;
     let config: Config = load_config(&env).context("Cannot load config!")?;
@@ -71,7 +82,6 @@ where
 /// * registers a [`tracing_panic::panic_hook`]
 ///
 /// The function respects the `RUST_LOG` if set or defaults to filtering spans and events with level [`tracing_subscriber::filter::LevelFilter::INFO`] and higher.
-#[doc(hidden)]
 pub fn init_tracing() {
     let filter = EnvFilter::try_from_default_env()
         .or_else(|_| EnvFilter::try_new("info"))
