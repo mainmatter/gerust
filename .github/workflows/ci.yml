@@ -171,6 +171,8 @@ jobs:
         cargo db reset
 
     - name: clippy-generated
+      env:
+        RUSTFLAGS: "-D missing-docs"
       run: |
         cd my-app
         cargo clippy --all-targets -- -D warnings
@@ -210,8 +212,6 @@ jobs:
         cargo db reset
 
     - name: doc-generated
-      env:
-        RUSTFLAGS: "-D missing-docs"
       run: |
         cd my-app
         cargo doc --workspace --all-features --no-deps
@@ -385,8 +385,6 @@ jobs:
         cargo db reset
 
     - name: doc-generated
-      env:
-        RUSTFLAGS: "-D missing-docs"
       run: |
         cd my-app
         cargo doc --workspace --all-features --no-deps
@@ -479,6 +477,8 @@ jobs:
         path: my-app
   
     - name: clippy-generated
+      env:
+        RUSTFLAGS: "-D missing-docs"
       run: |
         cd my-app
         cargo clippy --all-targets -- -D warnings
@@ -588,8 +588,6 @@ jobs:
         path: my-app
 
     - name: doc-generated
-      env:
-        RUSTFLAGS: "-D missing-docs"
       run: |
         cd my-app
         cargo doc --workspace --no-deps
@@ -616,6 +614,8 @@ jobs:
         path: my-app
   
     - name: clippy-generated
+      env:
+        RUSTFLAGS: "-D missing-docs"
       run: |
         cd my-app
         cargo clippy --all-targets -- -D warnings
