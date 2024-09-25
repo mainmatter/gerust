@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 use {{crate_name}}_web::{init_tracing, run};
 
 #[tokio::main]
