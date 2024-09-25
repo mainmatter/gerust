@@ -2,11 +2,7 @@
 use crate::state::AppState;
 use axum::Router;
 
-pub fn routes(app_state: AppState) -> Router {
-    Router::new().with_state(app_state)
-}
-{%- endif %}
-{% if template_type == "full" -%}
+{% elsif template_type == "full" -%}
 use crate::controllers::tasks::{
     create as create_task, create_batch as create_tasks, delete as delete_task,
     read_all as get_tasks, read_one as get_task, update as update_task,
@@ -18,8 +14,16 @@ use axum::{
     routing::{delete, get, post, put},
     Router,
 };
+{%- elsif template_type == "minimal" %}
+use crate::controllers::greeting::hello;
+use crate::state::AppState;
+use axum::{routing::get, Router};
+{%- endif %}
 
 pub fn routes(app_state: AppState) -> Router {
+{% if template_type == "default" -%}
+    Router::new().with_state(app_state)
+{% elsif template_type == "full" -%}
     Router::new()
         .route("/tasks", post(create_task))
         .route("/tasks", put(create_tasks))
@@ -29,16 +33,9 @@ pub fn routes(app_state: AppState) -> Router {
         .route("/tasks", get(get_tasks))
         .route("/tasks/:id", get(get_task))
         .with_state(app_state)
-}
-{%- endif %}
-{% if template_type == "minimal" -%}
-use crate::controllers::greeting::hello;
-use crate::state::AppState;
-use axum::{routing::get, Router};
-
-pub fn routes(app_state: AppState) -> Router {
+{%- elsif template_type == "minimal" %}
     Router::new()
-            .route("/greet", get(hello))
-            .with_state(app_state)
-}
+        .route("/greet", get(hello))
+        .with_state(app_state)
 {%- endif %}
+}
