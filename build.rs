@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 use std::error::Error;
 
 use vergen::EmitBuilder;

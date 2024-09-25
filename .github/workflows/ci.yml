@@ -33,6 +33,8 @@ jobs:
         components: clippy
 
     - name: clippy
+      env:
+        RUSTFLAGS: "-D missing-docs"
       run: cargo clippy --all-targets -- -D warnings
 
   test:
