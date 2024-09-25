@@ -16,7 +16,7 @@ pub struct AppState {
 ///
 /// This function creates an [`AppState`] based on the current [`{{crate_name}}_config::Config`].
 {% if template_type != "minimal" %}
-pub async fn app_state(config: Config) -> AppState {
+pub async fn init_app_state(config: Config) -> AppState {
     let db_pool = connect_pool(config.database)
         .await
         .expect("Could not connect to database!");
@@ -24,7 +24,7 @@ pub async fn app_state(config: Config) -> AppState {
     AppState { db_pool }
 }
 {% else %}
-pub async fn app_state(_config: Config) -> AppState {
+pub async fn init_app_state(_config: Config) -> AppState {
     AppState {}
 }
 {%- endif %}

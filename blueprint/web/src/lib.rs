@@ -22,14 +22,14 @@ pub mod state;
 ///
 /// 1. Determine the environment the application is running in (see [`{{crate_name}}_config::get_env`])
 /// 2. Load the configuration (see [`{{crate_name}}_config::load_config`])
-/// 3. Initialize the application state (see [`state::app_state`])
+/// 3. Initialize the application state (see [`state::init_app_state`])
 /// 4. Initialize the application's router (see [`routes::routes`])
 /// 5. Boot the application and start listening for requests on the configured interface and port
 pub async fn run() -> anyhow::Result<()> {
     let env = get_env().context("Cannot get environment!")?;
     let config: Config = load_config(&env).context("Cannot load config!")?;
 
-    let app_state = state::app_state(config.clone()).await;
+    let app_state = state::init_app_state(config.clone()).await;
     let app = routes::routes(app_state);
 
     let addr = config.server.addr();
