@@ -1,6 +1,8 @@
 {% if template_type == "full" -%}
+#[doc(hidden)]
 pub mod tasks;
 {%- endif %}
 {% if template_type == "minimal" -%}
+#[doc(hidden)]
 pub mod greeting;
 {%- endif %}
