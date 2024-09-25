@@ -20,6 +20,9 @@ use crate::state::AppState;
 use axum::{routing::get, Router};
 {%- endif %}
 
+/// Initializes the application's routes.
+///
+/// This function maps paths (e.g. "/greet") and HTTP methods (e.g. "GET") to functions in [`crate::controllers`] as well as includes middlewares defined in [`crate::middlewares`] into the routing layer (see [`axum::Router`]).
 pub fn init_routes(app_state: AppState) -> Router {
 {% if template_type == "default" -%}
     Router::new().with_state(app_state)
