@@ -22,7 +22,7 @@ The `AppState` struct can be freely extended with custom fields.
 Routes are defined in `src/routes.rs`, e.g.:
 
 ```rs
-pub fn routes(app_state: AppState) -> Router {
+pub fn init_routes(app_state: AppState) -> Router {
 Router::new()
     .route("/tasks", post(create_task))
     .route("/tasks", get(get_tasks))

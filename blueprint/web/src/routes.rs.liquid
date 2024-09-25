@@ -20,7 +20,7 @@ use crate::state::AppState;
 use axum::{routing::get, Router};
 {%- endif %}
 
-pub fn routes(app_state: AppState) -> Router {
+pub fn init_routes(app_state: AppState) -> Router {
 {% if template_type == "default" -%}
     Router::new().with_state(app_state)
 {% elsif template_type == "full" -%}
