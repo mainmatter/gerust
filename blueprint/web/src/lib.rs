@@ -1,3 +1,5 @@
+//! The {{crate_name}}-web crate contains the application's web interface, mainly in the form of controllers implementing HTTP endpoints. It also includes the application tests that are black-box tests, interfacing with the application like any other HTTP client.
+
 use anyhow::Context;
 use axum::{serve, http::StatusCode};
 use {{crate_name}}_config::{Config, get_env, load_config};
