@@ -13,7 +13,7 @@ pub struct User {
 
 /// Loads a user based on the passed token.
 ///
-/// If no user exists for the token, [`Option::None`] is returned, otherwise [`Option::Some(User)`] is returned.
+/// If no user exists for the token, [`Option::None`] is returned, otherwise `Option::Some(User)` is returned.
 pub async fn load_with_token(
     token: &str,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
