@@ -135,7 +135,10 @@ pub async fn setup_with_db() -> DbTestContext {
         db_pool: test_db_pool.clone(),
     });
 
-    build_db_test_context(app, test_db_pool)
+    DbTestContext {
+        app,
+        db_pool: test_db_pool,
+    }
 }
 
 #[allow(unused)]
@@ -144,21 +147,24 @@ pub async fn teardown_with_db(context: DbTestContext) {
 
     teardown_db(context.db_pool);
 }
-
-pub fn build_db_test_context(router: Router, db_pool: DbPool) -> DbTestContext {
-    DbTestContext {
-        app: router,
-        db_pool,
-    }
-}
 {% else %}
+/// Provides context for application tests.
+///
+/// A `TestContext` is passed as an argument to tests marked with the [`{{crate_name}}_macros::test`] attribute macro. It is used to access the application under test.
+///
+/// Example:
+/// ```
+/// #[test]
+/// async fn test_hello(context: &TestContext) {
+///     let response = context.app.request("/greet").send().await;
+/// 
+///     let greeting: Greeting = response.into_body().into_json().await;
+///     assert_that!(greeting.hello, eq(String::from("world")));
+/// }
+/// ```
 pub struct TestContext {
     /// The application that is being tested.
     pub app: Router,
-}
-
-pub fn build_test_context(router: Router) -> TestContext {
-    TestContext { app: router }
 }
 
 pub async fn setup() -> TestContext {
@@ -167,6 +173,6 @@ pub async fn setup() -> TestContext {
 
     let app = init_routes(AppState {});
 
-    build_test_context(app)
+    TestContext { app }
 }
 {%- endif %}
