@@ -245,6 +245,7 @@ pub async fn teardown(context: DbTestContext) {
     teardown_db(context.db_pool);
 }
 {% else %}
+#[allow(clippy::test_attr_in_doctest)]
 /// Provides context information for application tests.
 ///
 /// A `TestContext` is passed as an argument to tests marked with the [`{{crate_name}}_macros::test`] attribute macro. It is used to access the application under test.
