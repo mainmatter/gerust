@@ -91,11 +91,11 @@ pub fn db_test(_: TokenStream, item: TokenStream) -> TokenStream {
     );
 
     let setup = quote! {
-        let context = {{crate_name}}_web::test_helpers::setup_with_db().await;
+        let context = {{crate_name}}_web::test_helpers::setup().await;
     };
 
     let teardown = quote! {
-        {{crate_name}}_web::test_helpers::teardown_with_db(context).await;
+        {{crate_name}}_web::test_helpers::teardown(context).await;
     };
 
     let output = quote!(
