@@ -106,6 +106,7 @@ pub struct DatabaseConfig {
 /// Depending on the environment, this function will behave differently:
 /// * for [`Environment::Development`], the function will load env vars from a `.env` file at the project root if that is present
 /// * for [`Environment::Test`], the function will load env vars from a `.env.test` file at the project root if that is present
+/// * for [`Environment::Production`], the function will only use the process env vars, and not load a `.env` file
 ///
 /// Configuration settings are loaded from these sources (in that order so that latter soruces override former):
 /// * the `config/app.toml` file
