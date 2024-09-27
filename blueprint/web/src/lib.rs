@@ -20,7 +20,7 @@ pub mod state;
 
 /// Runs the application.
 ///
-/// thus function does all the work to initiatilize and run the application:
+/// This function does all the work to initiatilize and run the application:
 ///
 /// 1. Determine the environment the application is running in (see [`{{crate_name}}_config::get_env`])
 /// 2. Load the configuration (see [`{{crate_name}}_config::load_config`])
