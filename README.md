@@ -1,6 +1,6 @@
-# Pacesetter
+# Gerust
 
-Pacesetter provides an architecture and tooling for Rust cloud projects. It takes care of the accidental complexity that comes with writing cloud apps with Rust so you can stay focused on the essence of the system you're building:
+Gerust provides an architecture and tooling for Rust cloud projects. It takes care of the accidental complexity that comes with writing cloud apps with Rust so you can stay focused on the essence of the system you're building:
 
 * Separating distinct parts of the system into separate crates
 * Organizing files into a logical folder structure
@@ -9,9 +9,9 @@ Pacesetter provides an architecture and tooling for Rust cloud projects. It take
 * Tracing and error handling
 * and many more
 
-For now, Pacesetter is just a project generator that creates the files and structure to get you started. There is no runtime dependency on Pacesetter – all the code is under your control.
+For now, Gerust is just a project generator that creates the files and structure to get you started. There is no runtime dependency on Gerust – all the code is under your control.
 
-Pacesetter projects are based on [axum](https://crates.io/crates/axum) and use [sqlx](https://crates.io/crates/sqlx) and PostgreSQL for data storage (if data storage is used at all).
+Gerust projects are based on [axum](https://crates.io/crates/axum) and use [sqlx](https://crates.io/crates/sqlx) and PostgreSQL for data storage (if data storage is used at all).
 
 > [!NOTE]
 > This project has been created by [Mainmatter](https://mainmatter.com/rust-consulting/).  
@@ -19,23 +19,23 @@ Pacesetter projects are based on [axum](https://crates.io/crates/axum) and use [
 
 ## Creating a new project
 
-A new project is created with the `pace` command, e.g.:
+A new project is created with the `gerust` command, e.g.:
 
 ```
-pace my-app
+gerust my-app
 ```
 
-By default, Pacesetter will generate an empty project with the complete project structure as described below but without any actual entities, controllers, etc. If you're just getting started looking at Pacesetter, creating a full project, complete with example implementations of all concepts via `--full` might be a better starting point:
+By default, Gerust will generate an empty project with the complete project structure as described below but without any actual entities, controllers, etc. If you're just getting started looking at Gerust, creating a full project, complete with example implementations of all concepts via `--full` might be a better starting point:
 
 ```
-pace my-app --full
+gerust my-app --full
 ```
 
 For projects that do not need database access, there is also the `--minimal` option that will generate a project without any of the concepts and structure related to database access – no `db` crate, no [sqlx](https://crates.io/crates/sqlx) dependency.
 
 ## Project Structure
 
-Pacesetter uses [Cargo workspaces](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html) to separate distinct parts of the system into separate crates:
+Gerust uses [Cargo workspaces](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html) to separate distinct parts of the system into separate crates:
 
 ```
 .
@@ -71,7 +71,7 @@ Application tests that cover the entire stack of the system including middleware
 
 Testing backends is typically straight forward: request a particular endpoint with a particular method and potentially query string and/or request body and assert the response is what you expect. However, things become more complicated when the server you're testing uses a database. In your tests, you then need to seed the database with test data to establish a well-defined state for the test. You also need to clean up afterwards or better, use isolated database states for the different tests so they don't interfere with each other. There are several mechanisms for that like transactions, cleanup scripts, etc.
 
-Pacesetter uses an approach for test isolation that allows parallel execution of tests without adding a ton of complexity: every test runs in its own database. These test-specific databases are automatically created as copies of the main test database and destroyed after the test has completed. All that is made easily available via the `[db_test]` macro:
+Gerust uses an approach for test isolation that allows parallel execution of tests without adding a ton of complexity: every test runs in its own database. These test-specific databases are automatically created as copies of the main test database and destroyed after the test has completed. All that is made easily available via the `[db_test]` macro:
 
 ```rs
 pub struct DbTestContext {
@@ -110,7 +110,7 @@ The concept of changesets as well as the database access utilities like `create_
 
 ### The `db` crate
 
-The `db` crate only exists for projects that use a database and contains all functionality related to database access from entity definitions, functions for reading and writing data, as well as migrations. Pacesetter uses [sqlx](https://crates.io/crates/sqlx) and PostgreSQL without any additional ORM on top. Instead, it defines entities as simple structs along with functions for retrieving and persisting those entities. Validations are implemented via changesets that can get applied to or be converted to entities if they are valid:
+The `db` crate only exists for projects that use a database and contains all functionality related to database access from entity definitions, functions for reading and writing data, as well as migrations. Gerust uses [sqlx](https://crates.io/crates/sqlx) and PostgreSQL without any additional ORM on top. Instead, it defines entities as simple structs along with functions for retrieving and persisting those entities. Validations are implemented via changesets that can get applied to or be converted to entities if they are valid:
 
 ```rs
 #[derive(Serialize, Debug, Deserialize)]
@@ -260,7 +260,7 @@ The `macros` crate contains the implementation of the `db_test` macro. You would
 
 ## Testing & CI
 
-Projects generated by Pacesetter come with a complete CI setup for GitHub Actions that includes:
+Projects generated by Gerust come with a complete CI setup for GitHub Actions that includes:
 
 * checking the format of all Rust source files
 * running Clippy on the entire project
@@ -268,4 +268,4 @@ Projects generated by Pacesetter come with a complete CI setup for GitHub Action
 
 ## License
 
-Pacesetter is developed by and © Mainmatter GmbH and contributors. It is released under the [MIT License](./LICENSE.md).
+Gerust is developed by and © Mainmatter GmbH and contributors. It is released under the [MIT License](./LICENSE.md).

@@ -2,7 +2,7 @@
 
 This crate contains all code related to database access: entities, migrations, functions for validating and reading and writing data.
 
-_Pacesetter uses [sqlx](https://crates.io/crates/sqlx) without an additional ORM and is set up for use with PostgreSQL._
+_Gerust uses [sqlx](https://crates.io/crates/sqlx) without an additional ORM and is set up for use with PostgreSQL._
 
 ## Entities
 
@@ -18,7 +18,7 @@ pub struct User {
 
 ## Reading and writing data
 
-Instead of using an ORM, that would introduce additional complexity, Pacesetter uses individual functions for reading and writing data from and to the database, e.g.:
+Instead of using an ORM, that would introduce additional complexity, Gerust uses individual functions for reading and writing data from and to the database, e.g.:
 
 ```rs
 pub async fn load(
@@ -89,7 +89,7 @@ Validations are implemented with [validate](https://crates.io/crates/validator) 
 
 ### Generating test data
 
-Application tests will typically require test data to populate the database with, e.g. a set of entities to assert that the endpoint that returning all entities of that type works correctly. Pacesetter uses [fake](https://crates.io/crates/fake) for so that rules for creating fake data can be declared directly in the changesets:
+Application tests will typically require test data to populate the database with, e.g. a set of entities to assert that the endpoint that returning all entities of that type works correctly. Gerust uses [fake](https://crates.io/crates/fake) for so that rules for creating fake data can be declared directly in the changesets:
 
 ```rs
 #[cfg_attr(feature = "test-helpers", derive(Dummy))]
