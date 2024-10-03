@@ -35,7 +35,7 @@ Controllers and middlewares are kept in the respectively named directories. Cont
 
 ## Tests
 
-Pacesetter follows a full stack testing approach. The application's endpoint including database access are tested via tests in the `web` crate. Using Pacesetter's test macros, tests receive a fully configured and booted up instance of the application that requests can be made against{%- if template_type == "minimal" -%}:{%- endif %}.{% unless template_type == "minimal" -%} In order to allow requests to access the database without the risk of different tests interfering with each other, each test uses its own dedicated database. A pool of connections is passed to the test via the test context and the application instance is preconfigured to use the same database:{%- endunless %}
+Gerust follows a full stack testing approach. The application's endpoint including database access are tested via tests in the `web` crate. Using Gerust's test macros, tests receive a fully configured and booted up instance of the application that requests can be made against{%- if template_type == "minimal" -%}:{%- endif %}.{% unless template_type == "minimal" -%} In order to allow requests to access the database without the risk of different tests interfering with each other, each test uses its own dedicated database. A pool of connections is passed to the test via the test context and the application instance is preconfigured to use the same database:{%- endunless %}
 {% if template_type != "minimal" %}
 #[db_test]
 async fn test_read_all(context: &DbTestContext) {

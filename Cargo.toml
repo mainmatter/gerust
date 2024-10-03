@@ -1,5 +1,5 @@
 [package]
-name = "pacesetter"
+name = "gerust"
 version = "0.0.1"
 edition = "2021"
 authors = ["Marco Otte-Witte <marco.otte-witte@mainmatter.com>"]
@@ -8,7 +8,7 @@ license = "MIT"
 include = ["blueprints", "src", "build.rs"]
 
 [[bin]]
-name = "pace"
+name = "gerust"
 path = "src/main.rs"
 
 [dependencies]

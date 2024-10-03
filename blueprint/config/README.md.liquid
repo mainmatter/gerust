@@ -14,7 +14,7 @@ pub struct Config {
 }
 ```
 
-Pacesetter uses [figment](https://crates.io/crates/figment) to populate the `Config` struct from environment variables and TOML files such that:
+Gerust uses [figment](https://crates.io/crates/figment) to populate the `Config` struct from environment variables and TOML files such that:
 
 * the `ServerConfig` that contains interface and port to bind to, is populated from the `APP_SERVER__IP` and `APP_SERVER__PORT` environment variables.
 {%- unless template_type == "minimal" %}

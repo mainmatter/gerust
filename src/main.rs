@@ -1,4 +1,4 @@
-//! Pacesetter provides blueprints and generators for axum projects. It establishes a standard project structure with a folder layout, standard patterns for composing applications into e.g. database access and web API, running tests and migrations, as well as tracing.
+//! Gerust provides blueprints and generators for axum projects. It establishes a standard project structure with a folder layout, standard patterns for composing applications into e.g. database access and web API, running tests and migrations, as well as tracing.
 
 use anyhow::Context;
 use cargo_generate::{GenerateArgs, TemplatePath};
@@ -151,15 +151,15 @@ async fn generate(
 
 #[doc(hidden)]
 async fn build_template_path() -> Result<TemplatePath, anyhow::Error> {
-    let target_directory = env::temp_dir().join(format!("pacesetter-blueprint-{}", VERSION));
+    let target_directory = env::temp_dir().join(format!("gerust-blueprint-{}", VERSION));
     fs::create_dir_all(&target_directory)
-        .context("Failed to create a temporary directory for Pacesetter CLI's blueprints")?;
+        .context("Failed to create a temporary directory for Gerust CLI's blueprints")?;
     BLUEPRINTS_DIR
         .extract(&target_directory)
-        .context("Failed to extract Pacesetter CLI's blueprints to a temporary directory")?;
+        .context("Failed to extract Gerust CLI's blueprints to a temporary directory")?;
     let bluprint_path = target_directory
         .to_str()
-        .unwrap_or("Failed to get full path to Pacesetter CLI's blueprint");
+        .unwrap_or("Failed to get full path to Gerust CLI's blueprint");
 
     Ok(TemplatePath {
         path: Some(String::from(bluprint_path)),

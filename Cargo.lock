@@ -558,6 +558,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "gerust"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "cargo-generate",
+ "clap",
+ "include_dir",
+ "insta",
+ "tokio",
+ "vergen",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1297,19 +1310,6 @@ name = "option-ext"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
-
-[[package]]
-name = "pacesetter"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "cargo-generate",
- "clap",
- "include_dir",
- "insta",
- "tokio",
- "vergen",
-]
 
 [[package]]
 name = "parking_lot"
