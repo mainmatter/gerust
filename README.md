@@ -1,5 +1,7 @@
 # Gerust
 
+![Gerust logo](./docs/logo.svg)
+
 Gerust provides an architecture and tooling for Rust cloud projects. It takes care of the accidental complexity that comes with writing cloud apps with Rust so you can stay focused on the essence of the system you're building:
 
 * Separating distinct parts of the system into separate crates
