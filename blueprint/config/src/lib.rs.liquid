@@ -247,7 +247,7 @@ mod tests {
 
             assert_that!(
                 config,
-                eq(Config {
+                eq(&Config {
                     server: ServerConfig {
                         ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
                         port: 3000,
@@ -295,7 +295,7 @@ mod tests {
 
             assert_that!(
                 config,
-                eq(Config {
+                eq(&Config {
                     server: ServerConfig {
                         ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
                         port: 3000,
@@ -343,7 +343,7 @@ mod tests {
 
             assert_that!(
                 config,
-                eq(Config {
+                eq(&Config {
                     server: ServerConfig {
                         ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
                         port: 3000,
