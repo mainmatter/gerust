@@ -23,4 +23,4 @@ insta = "1.38"
 
 [build-dependencies]
 vergen = { version = "9.0.0", features = ["build"] }
-vergen-git2 = { version = "1.0.0", features = ["build"] }
+vergen-git2 = { version = "1.0.1", features = ["build"] }
