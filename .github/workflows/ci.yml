@@ -61,6 +61,7 @@ jobs:
 
       - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
         with:
+          include-hidden-files: true
           name: my-app-full
           path: my-app
           if-no-files-found: error
@@ -220,6 +221,7 @@ jobs:
 
     - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
       with:
+        include-hidden-files: true
         name: docs-full
         path: my-app/target/doc
         if-no-files-found: error
@@ -281,6 +283,7 @@ jobs:
   
       - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
         with:
+          include-hidden-files: true
           name: my-app-default
           path: my-app
           if-no-files-found: error
@@ -393,6 +396,7 @@ jobs:
 
     - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
       with:
+        include-hidden-files: true
         name: docs-default
         path: my-app/target/doc
         if-no-files-found: error
@@ -532,6 +536,7 @@ jobs:
   
       - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
         with:
+          include-hidden-files: true
           name: my-app-minimal
           path: my-app
           if-no-files-found: error
@@ -596,6 +601,7 @@ jobs:
 
     - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
       with:
+        include-hidden-files: true
         name: docs-minimal
         path: my-app/target/doc
         if-no-files-found: error
