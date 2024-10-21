@@ -28,8 +28,12 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "registry", "f
 uuid = { version = "1.6", features = ["serde"] }
 {%- endunless %}
 serde_json = { version = "1.0", optional = true }
+thiserror = "1.0"
 tower = { version = "0.5", features = ["util"], optional = true }
 hyper = { version = "1.0", features = ["full"], optional = true }
+{% unless template_type == "minimal" -%}
+validator = "0.18"
+{%- endunless %}
 {{project-name}}-macros = { path = "../macros", optional = true }
 
 [dev-dependencies]
