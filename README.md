@@ -1,6 +1,9 @@
 # Gerust
 
-![Gerust logo](./docs/logo.svg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/logo-dark-mode.svg">
+  <img alt="Gerust logo" src="./docs/logo.svg">
+</picture>
 
 Gerust provides an architecture and tooling for Rust backend projects. It takes care of the accidental complexity that comes with writing backends with Rust so you can stay focused on the essence of the system you're building:
 
