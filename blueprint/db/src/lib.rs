@@ -41,13 +41,16 @@ pub async fn transaction(
 pub enum Error {
     /// General database error, e.g. communicating with the database failed
     #[error("database query failed")]
-    DbError(anyhow::Error),
-    /// No record was found where one was expected, e.g. when loading a record by ID
-    #[error("no record found where one was expected")]
+    DbError(#[from] sqlx::Error),
+    /// No record was found, e.g. when loading a record by ID. This variant is different from
+    /// `Error::DbError(sqlx::Error::RowNotFound)`, in that the latter indicates a bug, and
+    /// `Error::NoRecordFound` does not. It merely originates from [sqlx::Executor::fetch_optional]
+    /// returning `None`.
+    #[error("no record found")]
     NoRecordFound,
     #[error("validation failed")]
     /// An invalid changeset was passed to a writing operation such as creating or updating a record.
-    ValidationError(validator::ValidationErrors),
+    ValidationError(#[from] validator::ValidationErrors),
 }
 
 /// Creates a connection pool to the database specified in the passed [`{{project-name}}-config::DatabaseConfig`]
