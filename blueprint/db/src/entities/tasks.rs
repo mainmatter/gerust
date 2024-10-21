@@ -36,7 +36,7 @@ pub struct TaskChangeset {
 /// Load all [`Task`]s from the database.
 pub async fn load_all(
     executor: impl sqlx::Executor<'_, Database = Postgres>,
-) -> Result<Vec<Task>, anyhow::Error> {
+) -> Result<Vec<Task>, crate::Error> {
     let tasks = sqlx::query_as!(Task, "SELECT id, description FROM tasks")
         .fetch_all(executor)
         .await?;
@@ -53,7 +53,7 @@ pub async fn load(
     sqlx::query_as!(Task, "SELECT id, description FROM tasks WHERE id = $1", id)
         .fetch_optional(executor)
         .await
-        .map_err(|e| crate::Error::DbError(e.into()))?
+        .map_err(crate::Error::DbError)?
         .ok_or(crate::Error::NoRecordFound)
 }
 
@@ -67,7 +67,7 @@ pub async fn delete(
     sqlx::query!("DELETE FROM tasks WHERE id = $1 RETURNING id", id)
         .fetch_optional(executor)
         .await
-        .map_err(|e| crate::Error::DbError(e.into()))?
+        .map_err(crate::Error::DbError)?
         .ok_or(crate::Error::NoRecordFound)?;
     
     Ok(())
@@ -88,7 +88,7 @@ pub async fn create(
     )
     .fetch_one(executor)
     .await
-    .map_err(|e| crate::Error::DbError(e.into()))?;
+    .map_err(crate::Error::DbError)?;
 
     Ok(Task {
         id: record.id,
@@ -113,7 +113,7 @@ pub async fn update(
     )
     .fetch_optional(executor)
     .await
-    .map_err(|e| crate::Error::DbError(e.into()))?
+    .map_err(crate::Error::DbError)?
     .ok_or(crate::Error::NoRecordFound)
     .map(|record| Task {
         id: record.id,
