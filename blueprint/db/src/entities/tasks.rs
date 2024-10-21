@@ -50,14 +50,11 @@ pub async fn load(
     id: Uuid,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<Task, crate::Error> {
-    match sqlx::query_as!(Task, "SELECT id, description FROM tasks WHERE id = $1", id)
+    sqlx::query_as!(Task, "SELECT id, description FROM tasks WHERE id = $1", id)
         .fetch_optional(executor)
         .await
         .map_err(|e| crate::Error::DbError(e.into()))?
-    {
-        Some(task) => Ok(task),
-        None => Err(crate::Error::NoRecordFound),
-    }
+        .ok_or(crate::Error::NoRecordFound)
 }
 
 /// Delete a [`Task`] from the database identified by its ID.
@@ -67,14 +64,13 @@ pub async fn delete(
     id: Uuid,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<(), crate::Error> {
-    match sqlx::query!("DELETE FROM tasks WHERE id = $1 RETURNING id", id)
+    sqlx::query!("DELETE FROM tasks WHERE id = $1 RETURNING id", id)
         .fetch_optional(executor)
         .await
         .map_err(|e| crate::Error::DbError(e.into()))?
-    {
-        Some(_) => Ok(()),
-        None => Err(crate::Error::NoRecordFound),
-    }
+        .ok_or(crate::Error::NoRecordFound)?;
+    
+    Ok(())
 }
 
 /// Create a task in the database with the data in the passed [`TaskChangeset`].
@@ -110,7 +106,7 @@ pub async fn update(
 ) -> Result<Task, crate::Error> {
     task.validate().map_err(crate::Error::ValidationError)?;
 
-    match sqlx::query!(
+    sqlx::query!(
         "UPDATE tasks SET description = $1 WHERE id = $2 RETURNING id, description",
         task.description,
         id
@@ -118,11 +114,9 @@ pub async fn update(
     .fetch_optional(executor)
     .await
     .map_err(|e| crate::Error::DbError(e.into()))?
-    {
-        Some(record) => Ok(Task {
-            id: record.id,
-            description: record.description,
-        }),
-        None => Err(crate::Error::NoRecordFound),
-    }
+    .ok_or(crate::Error::NoRecordFound)
+    .map(|record| Task {
+        id: record.id,
+        description: record.description,
+    })
 }
