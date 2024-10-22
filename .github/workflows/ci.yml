@@ -179,6 +179,54 @@ jobs:
       run: |
         cd my-app
         cargo clippy --all-targets -- -D warnings
+  
+  clippy-generated-full-offline:
+    name: "Run Clippy on generated full example app, using offline query validation"
+    runs-on: ubuntu-latest
+    needs: generate-full
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_DB: my_app
+          POSTGRES_USER: my_app
+          POSTGRES_PASSWORD: my_app
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    
+    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
+      with:
+        name: my-app-full
+        path: my-app
+
+    - name: migrate
+      run: |
+        cd my-app
+        echo "y" | cargo db reset
+    
+    - name: prepare-query-metadata
+      run: |
+        cd my-app
+        echo "y" | cargo db prepare
+
+    - name: clippy-generated
+      env:
+        RUSTFLAGS: "-D missing-docs"
+        DATABASE_URL: ""
+        SQLX_OFFLINE: 1
+      run: |
+        cd my-app
+        cargo clippy --all-targets -- -D warnings
 
   doc-generated-full:
     name: "Build docs for generated full example app"

@@ -130,7 +130,7 @@ async fn cli() {
                 };
                 let mut sqlx_prepare_command = {
                     let mut cmd = tokio::process::Command::new(&cargo);
-                    cmd.args(["sqlx", "prepare"]);
+                    cmd.args(["sqlx", "prepare", "--", "--all-targets", "--all-features"]);
                     // TODO make this path relative to gerust project root (see issue #108)
                     let cmd_cwd = {
                         let mut cwd = std::env::current_dir().unwrap();
