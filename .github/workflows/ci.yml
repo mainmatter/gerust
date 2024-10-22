@@ -212,12 +212,12 @@ jobs:
     - name: migrate
       run: |
         cd my-app
-        echo "y" | cargo db reset
+        cargo db reset
     
     - name: prepare-query-metadata
       run: |
         cd my-app
-        echo "y" | cargo db prepare
+        yes | cargo db prepare
 
     - name: clippy-generated
       env:

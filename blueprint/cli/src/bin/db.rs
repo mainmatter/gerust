@@ -63,11 +63,6 @@ async fn cli() {
     let mut stderr = std::io::stderr();
     let mut ui = UI::new(&mut stdout, &mut stderr, !cli.no_color, !cli.quiet);
 
-    if let Err(e) = ensure_sqlx_cli_installed(&mut ui).await {
-        ui.error("Error ensuring sqlx-cli is installed!", e);
-        return;
-    }
-
     let config: Result<Config, anyhow::Error> = load_config(&cli.env);
     match config {
         Ok(config) => match cli.command {
@@ -125,9 +120,13 @@ async fn cli() {
                 }
             }
             Commands::Prepare => {
-                let Ok(cargo) = get_cargo_path() else {
-                    unreachable!("Existence of CARGO env var is asserted by calling `ensure_sqlx_cli_installed`");
-                };
+                if let Err(e) = ensure_sqlx_cli_installed(&mut ui).await {
+                    ui.error("Error ensuring sqlx-cli is installed!", e);
+                    return;
+                }
+                
+                let cargo = get_cargo_path().expect("Existence of CARGO env var is asserted by calling `ensure_sqlx_cli_installed`");
+
                 let mut sqlx_prepare_command = {
                     let mut cmd = tokio::process::Command::new(&cargo);
                     cmd.args(["sqlx", "prepare", "--", "--all-targets", "--all-features"]);
