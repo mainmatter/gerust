@@ -223,6 +223,7 @@ Commands:
   migrate  Migrate the database
   reset    Reset (drop, create, migrate) the database
   seed     Seed the database
+  prepare  Generate query metadata to support offline compile-time verification
   help     Print this message or the help of the given subcommand(s)
 
 Options:
@@ -300,6 +301,8 @@ Rinse:
 ```
 rm -rf my-app my-new-app
 ```
+
+_Note: the generated CI configuration uses offline query validation during its Clippy job. On first check-in, and each time the SQL queries in the db crate get updated, ensure `cargo db prepare` is run._
 
 ## What's a "Gerust"?
 
