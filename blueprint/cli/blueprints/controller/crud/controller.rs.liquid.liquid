@@ -4,6 +4,7 @@ use {{db_crate_name}}::entities;
 use tracing::info;
 use uuid::Uuid;
 
+#[axum::debug_handler]
 pub async fn create(
     State(app_state): State<AppState>,
     Json({{entity_singular_name}}): Json<() /* e.g.entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset */>,
@@ -16,6 +17,7 @@ pub async fn create(
     */
 }
 
+#[axum::debug_handler]
 pub async fn read_all(
     State(app_state): State<AppState>,
 ) -> Result<() /* e.g. Json<Vec<entities::{{entity_plural_name}}::{{entity_struct_name}}>> */, Error> {
@@ -31,6 +33,7 @@ pub async fn read_all(
     */
 }
 
+#[axum::debug_handler]
 pub async fn read_one(
     State(app_state): State<AppState>,
     Path(id): Path<Uuid>,
@@ -43,6 +46,7 @@ pub async fn read_one(
     */
 }
 
+#[axum::debug_handler]
 pub async fn update(
     State(app_state): State<AppState>,
     Path(id): Path<Uuid>,
@@ -56,6 +60,7 @@ pub async fn update(
     */
 }
 
+#[axum::debug_handler]
 pub async fn delete(
     State(app_state): State<AppState>,
     Path(id): Path<Uuid>,
