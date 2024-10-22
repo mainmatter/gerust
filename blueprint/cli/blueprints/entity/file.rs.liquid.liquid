@@ -24,8 +24,8 @@ pub struct {{entity_struct_name}}Changeset {
 
 pub async fn load_all(
     executor: impl sqlx::Executor<'_, Database = Postgres>,
-) -> Result<Vec<{{entity_struct_name}}>, anyhow::Error> {
-    todo!("Adopt the SQL query as necessary!");
+) -> Result<Vec<{{entity_struct_name}}>, crate::Error> {
+    todo!("Adapt the SQL query as necessary!");
     let {{entity_plural_name}} = sqlx::query_as!({{entity_struct_name}}, "SELECT id, name FROM {{entity_plural_name}}")
         .fetch_all(executor)
         .await?;
@@ -36,7 +36,7 @@ pub async fn load(
     id: Uuid,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<{{entity_struct_name}}, crate::Error> {
-    todo!("Adopt the SQL query as necessary!");
+    todo!("Adapt the SQL query as necessary!");
     match sqlx::query_as!(
         {{entity_struct_name}},
         "SELECT id, description FROM {{entity_plural_name}} WHERE id = $1",
@@ -44,7 +44,7 @@ pub async fn load(
     )
     .fetch_optional(executor)
     .await
-    .map_err(|e| crate::Error::DbError(e.into()))?
+    .map_err(crate::Error::DbError)?
     {
         Some({{entity_singular_name}}) => Ok({{entity_singular_name}}),
         None => Err(crate::Error::NoRecordFound),
@@ -57,14 +57,14 @@ pub async fn create(
 ) -> Result<{{entity_struct_name}}, crate::Error> {
     {{entity_singular_name}}.validate().map_err(crate::Error::ValidationError)?;
 
-    todo!("Adopt the SQL query and bound parameters as necessary!");
+    todo!("Adapt the SQL query and bound parameters as necessary!");
     let record = sqlx::query!(
         "INSERT INTO {{entity_plural_name}} (name) VALUES ($1) RETURNING id",
         {{entity_singular_name}}.name
     )
     .fetch_one(executor)
     .await
-    .map_err(|e| crate::Error::DbError(e.into()))?;
+    .map_err(crate::Error::DbError)?;
 
     Ok({{entity_struct_name}} {
         id: record.id,
@@ -79,7 +79,7 @@ pub async fn update(
 ) -> Result<{{entity_struct_name}}, crate::Error> {
     {{entity_singular_name}}.validate().map_err(crate::Error::ValidationError)?;
 
-    todo!("Adopt the SQL query and bound parameters as necessary!");
+    todo!("Adapt the SQL query and bound parameters as necessary!");
     match sqlx::query!(
         "UPDATE {{entity_plural_name}} SET name = $1 WHERE id = $2 RETURNING id, name",
         {{entity_singular_name}}.name,
@@ -87,7 +87,7 @@ pub async fn update(
     )
     .fetch_optional(executor)
     .await
-    .map_err(|e| crate::Error::DbError(e.into()))?
+    .map_err(crate::Error::DbError)?
     {
         Some(record) => Ok({{entity_struct_name}} {
             id: record.id,
@@ -101,11 +101,11 @@ pub async fn delete(
     id: Uuid,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<(), crate::Error> {
-    todo!("Adopt the SQL query as necessary!");
+    todo!("Adapt the SQL query as necessary!");
     match sqlx::query!("DELETE FROM {{entity_plural_name}} WHERE id = $1 RETURNING id", id)
         .fetch_optional(executor)
         .await
-        .map_err(|e| crate::Error::DbError(e.into()))?
+        .map_err(crate::Error::DbError)?
     {
         Some(_) => Ok(()),
         None => Err(crate::Error::NoRecordFound),
