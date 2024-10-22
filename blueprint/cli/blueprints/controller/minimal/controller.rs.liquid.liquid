@@ -1,8 +1,8 @@
-use crate::{internal_error, state::AppState};
+use crate::{error::Error, state::AppState};
 use axum::{extract::State, http::StatusCode};
 use tracing::info;
 
-pub async fn action(State(app_state): State<AppState>) -> Result<StatusCode, (StatusCode, String)> {
+pub async fn action(State(app_state): State<AppState>) -> Result<StatusCode, Error> {
     todo!("implement!");
 
     info!("responding with {:?}", StatusCode::OK);
