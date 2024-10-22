@@ -1,8 +1,8 @@
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand};
 use {{crate_name}}_cli::util::ui::UI;
-use {{crate_name}}_config::{load_config, parse_env, Config, Environment};
 use {{crate_name}}_config::DatabaseConfig;
+use {{crate_name}}_config::{load_config, parse_env, Config, Environment};
 use sqlx::postgres::{PgConnectOptions, PgConnection};
 use sqlx::{
     migrate::{Migrate, Migrator},
@@ -51,6 +51,8 @@ enum Commands {
     Reset,
     #[command(about = "Seed the database")]
     Seed,
+    #[command(about = "Generate query metadata to support offline compile-time verification")]
+    Prepare,
 }
 
 #[allow(missing_docs)]
@@ -121,6 +123,41 @@ async fn cli() {
                         ui.error("Could not reset database!", e)
                     }
                 }
+            }
+            Commands::Prepare => {
+                let Ok(cargo) = get_cargo_path() else {
+                    unreachable!("Existence of CARGO env var is asserted by calling `ensure_sqlx_cli_installed`");
+                };
+                let mut sqlx_prepare_command = {
+                    let mut cmd = tokio::process::Command::new(&cargo);
+                    cmd.args(["sqlx", "prepare"]);
+                    // TODO make this path relative to gerust project root (see issue #108)
+                    let cmd_cwd = {
+                        let mut cwd = std::env::current_dir().unwrap();
+                        cwd.push("db");
+                        cwd
+                    };
+                    cmd.current_dir(cmd_cwd);
+                    cmd.env("DATABASE_URL", &config.database.url);
+                    cmd
+                };
+
+                let o = match sqlx_prepare_command.output().await {
+                    Ok(o) => o,
+                    Err(e) => {
+                        ui.error(&format!("Could not run {cargo} sqlx prepare!"), e.into());
+                        return;
+                    }
+                };
+                if !o.status.success() {
+                    ui.error(
+                        &format!("Error generating query metadata. Are you sure the database is running?"),
+                        anyhow!(String::from_utf8_lossy(&o.stdout).to_string()),
+                    );
+                    return;
+                }
+
+                ui.success("Query data written to db/.sqlx directory; please check this into version control.");
             }
         },
         Err(e) => ui.error("Could not load config!", e),
@@ -252,6 +289,11 @@ async fn get_root_db_client(config: &DatabaseConfig) -> PgConnection {
     connection
 }
 
+fn get_cargo_path() -> Result<String, anyhow::Error> {
+    std::env::var("CARGO")
+        .map_err(|_| anyhow!("Please invoke me using Cargo, e.g.: `cargo db <ARGS>`"))
+}
+
 /// Ensure that the correct version of sqlx-cli is installed,
 /// and install it if it isn't.
 async fn ensure_sqlx_cli_installed(ui: &mut UI<'_>) -> Result<(), anyhow::Error> {
@@ -281,8 +323,7 @@ async fn ensure_sqlx_cli_installed(ui: &mut UI<'_>) -> Result<(), anyhow::Error>
         Ok(false)
     }
 
-    let cargo = std::env::var("CARGO")
-        .map_err(|_| anyhow!("Please invoke me using Cargo, e.g.: `cargo db <ARGS>`"))?;
+    let cargo = get_cargo_path()?;
 
     if is_sqlx_cli_installed(&cargo).await? {
         // sqlx-cli is already installed and of the correct version, nothing to do
@@ -340,7 +381,9 @@ async fn ensure_sqlx_cli_installed(ui: &mut UI<'_>) -> Result<(), anyhow::Error>
         ));
     }
 
-    ui.success(&format!("Successfully installed sqlx-cli {SQLX_CLI_VERSION}"));
+    ui.success(&format!(
+        "Successfully installed sqlx-cli {SQLX_CLI_VERSION}"
+    ));
 
     match is_sqlx_cli_installed(&cargo).await {
         Ok(true) => Ok(()),
