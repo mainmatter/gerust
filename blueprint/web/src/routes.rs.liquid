@@ -3,10 +3,7 @@ use crate::state::AppState;
 use axum::Router;
 
 {% elsif template_type == "full" -%}
-use crate::controllers::tasks::{
-    create as create_task, create_batch as create_tasks, delete as delete_task,
-    read_all as get_tasks, read_one as get_task, update as update_task,
-};
+use crate::controllers::tasks;
 use crate::middlewares::auth::auth;
 use crate::state::AppState;
 use axum::{
@@ -15,7 +12,7 @@ use axum::{
     Router,
 };
 {%- elsif template_type == "minimal" %}
-use crate::controllers::greeting::hello;
+use crate::controllers::greeting;
 use crate::state::AppState;
 use axum::{routing::get, Router};
 {%- endif %}
@@ -28,17 +25,17 @@ pub fn init_routes(app_state: AppState) -> Router {
     Router::new().with_state(app_state)
 {% elsif template_type == "full" -%}
     Router::new()
-        .route("/tasks", post(create_task))
-        .route("/tasks", put(create_tasks))
-        .route("/tasks/:id", delete(delete_task))
-        .route("/tasks/:id", put(update_task))
+        .route("/tasks", post(tasks::create))
+        .route("/tasks", put(tasks::create_batch))
+        .route("/tasks/:id", delete(tasks::delete))
+        .route("/tasks/:id", put(tasks::update))
         .route_layer(middleware::from_fn_with_state(app_state.clone(), auth))
-        .route("/tasks", get(get_tasks))
-        .route("/tasks/:id", get(get_task))
+        .route("/tasks", get(tasks::read_all))
+        .route("/tasks/:id", get(tasks::read_one))
         .with_state(app_state)
 {%- elsif template_type == "minimal" %}
     Router::new()
-        .route("/greet", get(hello))
+        .route("/greet", get(greeting::hello))
         .with_state(app_state)
 {%- endif %}
 }
