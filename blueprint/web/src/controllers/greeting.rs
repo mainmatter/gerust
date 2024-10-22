@@ -9,6 +9,7 @@ pub struct Greeting {
 }
 
 /// Responds with a [`Greeting`], encoded as JSON.
+#[axum::debug_handler]
 pub async fn hello() -> Json<Greeting> {
     Json(Greeting {
         hello: String::from("world"),
