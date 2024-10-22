@@ -1,4 +1,4 @@
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand};
 use {{crate_name}}_cli::util::ui::UI;
 use {{crate_name}}_config::{load_config, parse_env, Config, Environment};
@@ -8,9 +8,13 @@ use sqlx::{
     migrate::{Migrate, Migrator},
     ConnectOptions, Connection, Executor,
 };
+use tokio::io::{stdin, AsyncBufReadExt};
+
 use std::collections::HashMap;
 use std::fs;
+use std::ops::ControlFlow;
 use std::path::Path;
+use std::process::Stdio;
 use url::Url;
 
 #[tokio::main]
@@ -56,6 +60,11 @@ async fn cli() {
     let mut stdout = std::io::stdout();
     let mut stderr = std::io::stderr();
     let mut ui = UI::new(&mut stdout, &mut stderr, !cli.no_color, !cli.quiet);
+
+    if let Err(e) = ensure_sqlx_cli_installed(&mut ui).await {
+        ui.error("Error ensuring sqlx-cli is installed!", e);
+        return;
+    }
 
     let config: Result<Config, anyhow::Error> = load_config(&cli.env);
     match config {
@@ -241,4 +250,101 @@ async fn get_root_db_client(config: &DatabaseConfig) -> PgConnection {
     let connection: PgConnection = Connection::connect_with(&root_db_config).await.unwrap();
 
     connection
+}
+
+/// Ensure that the correct version of sqlx-cli is installed,
+/// and install it if it isn't.
+async fn ensure_sqlx_cli_installed(ui: &mut UI<'_>) -> Result<(), anyhow::Error> {
+    macro_rules! sqlx_cli_version {
+        ($vers:literal) => {
+            /// The version of sqlx-cli required
+            const SQLX_CLI_VERSION: &str = $vers;
+            /// The expected version output of sqlx-cli
+            const SQLX_CLI_VERSION_STRING: &[u8] = concat!("sqlx-cli-sqlx ", $vers).as_bytes();
+        };
+    }
+    sqlx_cli_version!("0.8.2");
+
+    async fn is_sqlx_cli_installed(cargo: &str) -> Result<bool, anyhow::Error> {
+        let mut cargo_sqlx_command = {
+            let mut cmd = tokio::process::Command::new(cargo);
+            cmd.args(["sqlx", "--version"]);
+            cmd
+        };
+
+        let out = cargo_sqlx_command.output().await?;
+        if out.status.success() && out.stdout.trim_ascii_end() == SQLX_CLI_VERSION_STRING {
+            // sqlx-cli is installed and of the correct version
+            return Ok(true);
+        }
+
+        Ok(false)
+    }
+
+    let cargo = std::env::var("CARGO")
+        .map_err(|_| anyhow!("Please invoke me using Cargo, e.g.: `cargo db <ARGS>`"))?;
+
+    if is_sqlx_cli_installed(&cargo).await? {
+        // sqlx-cli is already installed and of the correct version, nothing to do
+        return Ok(());
+    }
+
+    ui.info(
+        &format!("This command requires sqlx-cli {SQLX_CLI_VERSION}, which is not installed yet. Would you like to install it now? [Y/n]"),
+    );
+    match {
+        let mut buf = String::new();
+        let mut reader = tokio::io::BufReader::new(stdin());
+        // Read user answer
+        loop {
+            reader.read_line(&mut buf).await?;
+            let line = buf.to_ascii_lowercase();
+            let line = line.trim_end();
+            if matches!(line, "" | "y" | "yes") {
+                break ControlFlow::Continue(());
+            } else if matches!(line, "n" | "no") {
+                break ControlFlow::Break(());
+            };
+            ui.info("Please enter y or n");
+            buf.clear();
+        }
+    } {
+        ControlFlow::Continue(_) => {
+            ui.info("Starting installation of sqlx-cli...");
+        }
+        ControlFlow::Break(_) => {
+            return Err(anyhow!("Installation of sqlx-cli canceled."));
+        }
+    }
+
+    let mut cargo_install_command = {
+        let mut cmd = tokio::process::Command::new(&cargo);
+        cmd.args([
+            "install",
+            "sqlx-cli",
+            "--version",
+            SQLX_CLI_VERSION,
+            "--locked",
+        ]);
+        cmd.stdout(Stdio::inherit());
+        cmd.stderr(Stdio::inherit());
+        cmd
+    };
+
+    let mut child = cargo_install_command.spawn()?;
+
+    let status = child.wait().await?;
+    if !status.success() {
+        return Err(anyhow!(
+            "Something went wrong when installing sqlx-cli. Please check output"
+        ));
+    }
+
+    ui.success(&format!("Successfully installed sqlx-cli {SQLX_CLI_VERSION}"));
+
+    match is_sqlx_cli_installed(&cargo).await {
+        Ok(true) => Ok(()),
+        Ok(false) => Err(anyhow!("sqlx-cli was not detected after installation")),
+        Err(e) => Err(e),
+    }
 }
