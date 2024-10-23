@@ -1,6 +1,7 @@
 //! Gerust provides blueprints and generators for axum projects. It establishes a standard project structure with a folder layout, standard patterns for composing applications into e.g. database access and web API, running tests and migrations, as well as tracing.
 
 use anyhow::Context;
+use cargo_generate::Vcs;
 use cargo_generate::{GenerateArgs, TemplatePath};
 use clap::{ArgAction, Parser};
 use std::env;
@@ -68,6 +69,9 @@ struct Cli {
     )]
     minimal: bool,
 
+    #[arg(long, global = true, help = "Disable VCS initialization")]
+    no_vcs: bool,
+
     #[arg(long, global = true, help = "Disable colored output")]
     no_color: bool,
 
@@ -95,7 +99,7 @@ async fn main() {
     ui.info(&format!("Generating {}…", cli.name));
     ui.indent();
 
-    match generate(&cli.name, cli.outdir, blueprint).await {
+    match generate(&cli.name, cli.outdir, !cli.no_vcs, blueprint).await {
         Ok(output_dir) => {
             ui.outdent();
             ui.success(&format!(
@@ -115,6 +119,7 @@ async fn main() {
 async fn generate(
     name: &str,
     output_dir: Option<PathBuf>,
+    init_git_vcs: bool,
     blueprint: Blueprint,
 ) -> Result<PathBuf, anyhow::Error> {
     let output_dir = if let Some(output_dir) = output_dir {
@@ -132,8 +137,9 @@ async fn generate(
         template_path,
         destination: Some(output_dir.clone()),
         name: Some(String::from(name)),
-        force_git_init: true,
         define: defines,
+        force_git_init: init_git_vcs,
+        vcs: init_git_vcs.then_some(Vcs::Git),
         ..Default::default()
     };
 
