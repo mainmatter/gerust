@@ -9,7 +9,7 @@ publish = false
 doctest = false
 
 [features]
-test-helpers = ["dep:serde_json", "dep:tower", "dep:hyper", "dep:{{project-name}}-macros"]
+test-helpers = ["dep:serde_json", "dep:tower", "dep:hyper"]
 
 [dependencies]
 anyhow = "1.0"
@@ -31,10 +31,8 @@ serde_json = { version = "1.0", optional = true }
 thiserror = "1.0"
 tower = { version = "0.5", features = ["util"], optional = true }
 hyper = { version = "1.0", features = ["full"], optional = true }
-{% unless template_type == "minimal" -%}
-validator = "0.18"
-{%- endunless %}
-{{project-name}}-macros = { path = "../macros", optional = true }
+{{project-name}}-macros = { path = "../macros" }
+validator = { version = "0.18.1", features = ["derive"] }
 
 [dev-dependencies]
 fake = "2.9"

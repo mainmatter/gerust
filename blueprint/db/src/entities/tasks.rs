@@ -24,7 +24,7 @@ pub struct Task {
 /// ```
 /// let task_changeset: TaskChangeset = Faker.fake();
 /// ```
-#[derive(Deserialize, Validate, Clone)]
+#[derive(Debug, Deserialize, Validate, Clone)]
 #[cfg_attr(feature = "test-helpers", derive(Serialize, Dummy))]
 pub struct TaskChangeset {
     /// The description must be at least 1 character long.
