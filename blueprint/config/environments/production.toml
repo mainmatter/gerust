@@ -1,1 +1,3 @@
 # add config settings for the production environment here…
+[server]
+match_lifespan = 300
