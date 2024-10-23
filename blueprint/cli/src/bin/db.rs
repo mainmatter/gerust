@@ -31,8 +31,8 @@ struct Cli {
     #[arg(long, global = true, help = "Disable colored output.")]
     no_color: bool,
 
-    #[arg(long, global = true, help = "Enable debug output.")]
-    debug: bool,
+    #[arg(long, global = true, help = "Disable debug output.")]
+    quiet: bool,
 }
 
 #[derive(Subcommand)]
@@ -55,7 +55,7 @@ async fn cli() {
 
     let mut stdout = std::io::stdout();
     let mut stderr = std::io::stderr();
-    let mut ui = UI::new(&mut stdout, &mut stderr, !cli.no_color, cli.debug);
+    let mut ui = UI::new(&mut stdout, &mut stderr, !cli.no_color, !cli.quiet);
 
     let config: Result<Config, anyhow::Error> = load_config(&cli.env);
     match config {
