@@ -134,12 +134,12 @@ where
     };
 
     let config: T = Figment::new()
+        .merge(Serialized::defaults(ServerConfig::default()).key("server"))
         .merge(Toml::file("config/app.toml"))
         .merge(Toml::file(format!(
             "config/environments/{}",
             env_config_file
         )))
-        .merge(Serialized::defaults(ServerConfig::default()).key("server"))
         .merge(Env::prefixed("APP_").split("__"))
         .extract()
         .context("Could not read configuration!")?;
