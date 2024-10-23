@@ -1,8 +1,8 @@
 //! The {{crate_name}}-macros crate contains the `test`{%- unless template_type == "minimal" %} and `db_test`{%- endunless %} macro{%- unless template_type == "minimal" -%} s{% endunless -%}.
 
 use proc_macro::TokenStream;
-use quote::quote;
-use syn::{parse_macro_input, ItemFn};
+use quote::{quote, ToTokens};
+use syn::{parse_macro_input, Fields, Ident, ItemFn, ItemStruct, Type};
 
 #[allow(clippy::test_attr_in_doctest)]
 /// Used to mark an application test.
@@ -111,3 +111,126 @@ pub fn db_test(_: TokenStream, item: TokenStream) -> TokenStream {
     TokenStream::from(output)
 }
 {%- endunless %}
+
+#[proc_macro_attribute]
+pub fn request_payload(_: TokenStream, item: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(item as ItemStruct);
+    let PayloadStructInfo {
+        outer_ty,
+        inner_ty,
+        inner_ty_lit_str,
+    } = PayloadStructInfo::from_input(&input);
+
+    TokenStream::from(quote! {
+        #[derive(::serde::Deserialize)]
+        #[serde(try_from = #inner_ty_lit_str)]
+        #input
+
+        impl TryFrom<#inner_ty> for #outer_ty {
+            type Error = ::validator::ValidationErrors;
+
+            fn try_from(inner: #inner_ty) -> Result<Self, Self::Error> {
+                ::validator::Validate::validate(&inner)?;
+                Ok(Self(inner))
+            }
+        }
+
+        impl From<#outer_ty> for #inner_ty {
+            fn from(#outer_ty(inner): #outer_ty) -> Self {
+                inner
+            }
+        }
+    })
+}
+
+#[proc_macro_attribute]
+pub fn batch_request_payload(_: TokenStream, item: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(item as ItemStruct);
+    let PayloadStructInfo {
+        outer_ty,
+        inner_ty,
+        inner_ty_lit_str,
+    } = PayloadStructInfo::from_input(&input);
+
+    TokenStream::from(quote! {
+        #[derive(::serde::Deserialize)]
+        #[serde(try_from = #inner_ty_lit_str)]
+        #input
+
+        impl TryFrom<#inner_ty> for #outer_ty {
+            type Error = ::validator::ValidationErrors;
+
+            fn try_from(inner: #inner_ty) -> Result<Self, Self::Error> {
+                let cap = inner.len();
+
+                inner
+                    .into_iter()
+                    .try_fold(Vec::with_capacity(cap), |mut v, item| {
+                        ::validator::Validate::validate(&item)?;
+                        v.push(item);
+                        Ok(v)
+                    })
+                    .map(Self)
+            }
+        }
+
+        impl From<#outer_ty> for #inner_ty {
+            fn from(#outer_ty(inner): #outer_ty) -> Self {
+                inner
+            }
+        }
+    })
+}
+
+#[proc_macro_attribute]
+pub fn response_payload(_: TokenStream, item: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(item as ItemStruct);
+    let PayloadStructInfo {
+        outer_ty,
+        inner_ty,
+        inner_ty_lit_str,
+    } = PayloadStructInfo::from_input(&input);
+
+    TokenStream::from(quote! {
+        #[derive(::serde::Serialize)]
+        #[serde(try_from = #inner_ty_lit_str)]
+        #input
+
+        impl From<#inner_ty> for #outer_ty {
+            fn from(inner: #inner_ty) -> Self {
+                Self(inner)
+            }
+        }
+    })
+}
+
+struct PayloadStructInfo<'input> {
+    outer_ty: &'input Ident,
+    inner_ty: &'input Type,
+    inner_ty_lit_str: String,
+}
+
+impl<'input> PayloadStructInfo<'input> {
+    fn from_input(input: &'input ItemStruct) -> Self {
+        fn error() -> ! {
+            panic!("Macro can only be applied to tuple structs with a single field")
+        }
+
+        let outer_ty = &input.ident;
+
+        let Fields::Unnamed(fields) = &input.fields else {
+            error()
+        };
+        let mut fields = fields.unnamed.iter();
+        let Some(field) = fields.next() else { error() };
+        let None = fields.next() else { error() };
+
+        let inner_ty = &field.ty;
+        let inner_ty_lit_str = inner_ty.clone().to_token_stream().to_string();
+        Self {
+            outer_ty,
+            inner_ty,
+            inner_ty_lit_str,
+        }
+    }
+}

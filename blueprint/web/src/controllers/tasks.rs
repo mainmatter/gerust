@@ -1,18 +1,22 @@
-use crate::{state::AppState, internal_error};
+use crate::{internal_error, state::AppState};
 use axum::{extract::Path, extract::State, http::StatusCode, Json};
-use {{crate_name}}_db::{entities::tasks, transaction, Error};
+use {{crate_name}}_db::{
+    entities::tasks::{self},
+    transaction, Error,
+};
+use payloads::*;
 use tracing::info;
 use uuid::Uuid;
 
 /// Creates a task in the database.
 ///
-/// This function creates a task in the database (see [`{{crate_name}}_db::entities::tasks::create`]) based on a [`{{crate_name}}_db::entities::tasks::TaskChangeset`] (sent as JSON). If the task is created successfully, a 201 response is returned with the created [`{{crate_name}}_db::entities::tasks::Task`]'s JSON representation in the response body. If the changeset is invalid, a 422 response is returned.
+/// This function creates a task in the database (see [`getest_db::entities::tasks::create`]) based on a [`getest_db::entities::tasks::TaskChangeset`] (sent as JSON). If the task is created successfully, a 201 response is returned with the created [`getest_db::entities::tasks::Task`]'s JSON representation in the response body. If the changeset is invalid, a 422 response is returned.
 pub async fn create(
     State(app_state): State<AppState>,
-    Json(task): Json<tasks::TaskChangeset>,
-) -> Result<(StatusCode, Json<tasks::Task>), (StatusCode, String)> {
-    match tasks::create(task, &app_state.db_pool).await {
-        Ok(task) => Ok((StatusCode::CREATED, Json(task))),
+    Json(payload): Json<CreateRequestPayload>,
+) -> Result<(StatusCode, Json<CreateResponsePayload>), (StatusCode, String)> {
+    match tasks::create(payload.into(), &app_state.db_pool).await {
+        Ok(task) => Ok((StatusCode::CREATED, Json(task.into()))),
         Err(Error::ValidationError(e)) => {
             info!(err.msg = %e, err.details = ?e, "Validation failed");
             Err((StatusCode::UNPROCESSABLE_ENTITY, e.to_string()))
@@ -23,17 +27,17 @@ pub async fn create(
 
 /// Creates multiple tasks in the database.
 ///
-/// This function creates multiple tasks in the database (see [`{{crate_name}}_db::entities::tasks::create`]) based on [`{{crate_name}}_db::entities::tasks::TaskChangeset`]s (sent as JSON). If all tasks are created successfully, a 201 response is returned with the created [`{{crate_name}}_db::entities::tasks::Task`]s' JSON representation in the response body. If any of the passed changesets is invalid, a 422 response is returned.
+/// This function creates multiple tasks in the database (see [`getest_db::entities::tasks::create`]) based on [`getest_db::entities::tasks::TaskChangeset`]s (sent as JSON). If all tasks are created successfully, a 201 response is returned with the created [`getest_db::entities::tasks::Task`]s' JSON representation in the response body. If any of the passed changesets is invalid, a 422 response is returned.
 ///
 /// This function creates all tasks in a transaction so that either all are created successfully or none is.
 pub async fn create_batch(
     State(app_state): State<AppState>,
-    Json(tasks): Json<Vec<tasks::TaskChangeset>>,
-) -> Result<(StatusCode, Json<Vec<tasks::Task>>), (StatusCode, String)> {
+    Json(payload): Json<CreateBatchRequestPayload>,
+) -> Result<(StatusCode, Json<CreateBatchResponsePayload>), (StatusCode, String)> {
     match transaction(&app_state.db_pool).await {
         Ok(mut tx) => {
             let mut results: Vec<tasks::Task> = vec![];
-            for task in tasks {
+            for task in Vec::<_>::from(payload) {
                 match tasks::create(task, &mut *tx).await {
                     Ok(task) => results.push(task),
                     Err(Error::ValidationError(e)) => {
@@ -45,7 +49,7 @@ pub async fn create_batch(
             }
 
             match tx.commit().await {
-                Ok(_) => Ok((StatusCode::CREATED, Json(results))),
+                Ok(_) => Ok((StatusCode::CREATED, Json(results.into()))),
                 Err(e) => Err((internal_error(e), "".into())),
             }
         }
@@ -55,7 +59,7 @@ pub async fn create_batch(
 
 /// Reads and responds with all the tasks currently present in the database.
 ///
-/// This function reads all [`{{crate_name}}_db::entities::tasks::Task`]s from the database (see [`{{crate_name}}_db::entities::tasks::load_all`]) and responds with their JSON representations.
+/// This function reads all [`getest_db::entities::tasks::Task`]s from the database (see [`getest_db::entities::tasks::load_all`]) and responds with their JSON representations.
 pub async fn read_all(
     State(app_state): State<AppState>,
 ) -> Result<Json<Vec<tasks::Task>>, StatusCode> {
@@ -70,7 +74,7 @@ pub async fn read_all(
 
 /// Reads and responds with a task identified by its ID.
 ///
-/// This function reads one [`{{crate_name}}_db::entities::tasks::Task`] identified by its ID from the database (see [`{{crate_name}}_db::entities::tasks::load`]) and responds with its JSON representations. If no task is found for the ID, a 404 response is returned.
+/// This function reads one [`getest_db::entities::tasks::Task`] identified by its ID from the database (see [`getest_db::entities::tasks::load`]) and responds with its JSON representations. If no task is found for the ID, a 404 response is returned.
 pub async fn read_one(
     State(app_state): State<AppState>,
     Path(id): Path<Uuid>,
@@ -84,14 +88,14 @@ pub async fn read_one(
 
 /// Updates a task in the database.
 ///
-/// This function updates a task identified by its ID in the database (see [`{{crate_name}}_db::entities::tasks::update`]) with the data from the passed [`{{crate_name}}_db::entities::tasks::TaskChangeset`] (sent as JSON). If the task is updated successfully, a 200 response is returned with the created [`{{crate_name}}_db::entities::tasks::Task`]'s JSON representation in the response body. If the changeset is invalid, a 422 response is returned.
+/// This function updates a task identified by its ID in the database (see [`getest_db::entities::tasks::update`]) with the data from the passed [`getest_db::entities::tasks::TaskChangeset`] (sent as JSON). If the task is updated successfully, a 200 response is returned with the created [`getest_db::entities::tasks::Task`]'s JSON representation in the response body. If the changeset is invalid, a 422 response is returned.
 pub async fn update(
     State(app_state): State<AppState>,
     Path(id): Path<Uuid>,
-    Json(task): Json<tasks::TaskChangeset>,
-) -> Result<Json<tasks::Task>, (StatusCode, String)> {
-    match tasks::update(id, task, &app_state.db_pool).await {
-        Ok(task) => Ok(Json(task)),
+    Json(payload): Json<UpdateRequestPayload>,
+) -> Result<Json<UpdateResponsePayload>, (StatusCode, String)> {
+    match tasks::update(id, payload.into(), &app_state.db_pool).await {
+        Ok(task) => Ok(Json(task.into())),
         Err(Error::NoRecordFound) => Err((StatusCode::NOT_FOUND, "".into())),
         Err(Error::ValidationError(e)) => {
             info!(err.msg = %e, err.details = ?e, "Validation failed");
@@ -103,7 +107,7 @@ pub async fn update(
 
 /// Deletes a task identified by its ID from the database.
 ///
-/// This function deletes one [`{{crate_name}}_db::entities::tasks::Task`] identified by the entity's id from the database (see [`{{crate_name}}_db::entities::tasks::delete`]) and responds with a 204 status code and empty response body. If no task is found for the ID, a 404 response is returned.
+/// This function deletes one [`getest_db::entities::tasks::Task`] identified by the entity's id from the database (see [`getest_db::entities::tasks::delete`]) and responds with a 204 status code and empty response body. If no task is found for the ID, a 404 response is returned.
 pub async fn delete(
     State(app_state): State<AppState>,
     Path(id): Path<Uuid>,
@@ -113,4 +117,33 @@ pub async fn delete(
         Err(Error::NoRecordFound) => Err((StatusCode::NOT_FOUND, "".into())),
         Err(e) => Err((internal_error(e), "".into())),
     }
+}
+
+mod payloads {
+    use {{crate_name}}_db::entities::tasks::{Task, TaskChangeset};
+    use {{crate_name}}_macros::{batch_request_payload, request_payload, response_payload};
+
+    #[derive(Debug)]
+    #[request_payload]
+    pub struct CreateRequestPayload(TaskChangeset);
+
+    #[derive(Debug)]
+    #[response_payload]
+    pub struct CreateResponsePayload(Task);
+
+    #[derive(Debug)]
+    #[batch_request_payload]
+    pub struct CreateBatchRequestPayload(Vec<TaskChangeset>);
+
+    #[derive(Debug)]
+    #[response_payload]
+    pub struct CreateBatchResponsePayload(Vec<Task>);
+
+    #[derive(Debug)]
+    #[request_payload]
+    pub struct UpdateRequestPayload(TaskChangeset);
+
+    #[derive(Debug)]
+    #[response_payload]
+    pub struct UpdateResponsePayload(Task);
 }
