@@ -125,7 +125,6 @@ where
         }
         _ => { /* don't use any .env file for production */ }
     }
-    dotenv().ok();
 
     let env_config_file = match env {
         Environment::Development => "development.toml",
