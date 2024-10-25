@@ -152,7 +152,8 @@ async fn create(config: &DatabaseConfig) -> Result<String, anyhow::Error> {
 
 async fn migrate(ui: &mut UI<'_>, config: &DatabaseConfig) -> Result<i32, anyhow::Error> {
     let db_config = get_db_config(config);
-    let migrator = Migrator::new(Path::new("db/migrations"))
+    let migrations_path = format!("{}/../db/migrations", env!("CARGO_MANIFEST_DIR"));
+    let migrator = Migrator::new(Path::new(&migrations_path))
         .await
         .context("Failed to create migrator!")?;
     let mut connection = db_config
