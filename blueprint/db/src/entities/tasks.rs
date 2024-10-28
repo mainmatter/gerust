@@ -8,6 +8,7 @@ use validator::Validate;
 
 /// A task, i.e. TODO item.
 #[derive(Serialize, Debug, Deserialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct Task {
     /// The id of the record.
     pub id: Uuid,
@@ -26,6 +27,7 @@ pub struct Task {
 /// ```
 #[derive(Debug, Deserialize, Validate, Clone)]
 #[cfg_attr(feature = "test-helpers", derive(Serialize, Dummy))]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct TaskChangeset {
     /// The description must be at least 1 character long.
     #[cfg_attr(feature = "test-helpers", dummy(faker = "Sentence(3..8)"))]

@@ -7,7 +7,24 @@ use axum::{
     response::Response,
 };
 use {{crate_name}}_db::entities::users;
-use tracing::Span;
+use tracing::Span;use utoipa::openapi::security::SecurityScheme;
+
+pub struct SecurityAddon;
+
+impl utoipa::Modify for SecurityAddon {
+    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+        if let Some(components) = openapi.components.as_mut() {
+            components.add_security_scheme(
+                "User Token",
+                SecurityScheme::ApiKey(utoipa::openapi::security::ApiKey::Header(
+                    utoipa::openapi::security::ApiKeyValue::new(
+                        http::header::AUTHORIZATION.as_str(),
+                    ),
+                )),
+            )
+        }
+    }
+}
 
 /// Authenticates an incoming request based on an auth token.
 ///

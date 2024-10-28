@@ -4,38 +4,58 @@ use axum::Router;
 
 {% elsif template_type == "full" -%}
 use crate::controllers::tasks;
-use crate::middlewares::auth::auth;
+use crate::middlewares::auth::{auth, SecurityAddon};
 use crate::state::AppState;
-use axum::{
-    middleware,
-    routing::{delete, get, post, put},
-    Router,
-};
+use axum::{middleware, Router};
+use utoipa_axum::routes;
 {%- elsif template_type == "minimal" %}
 use crate::controllers::greeting;
 use crate::state::AppState;
-use axum::{routing::get, Router};
+use axum::Router;
+use utoipa_axum::routes;
 {%- endif %}
+use utoipa::OpenApi;
+use utoipa_axum::router::OpenApiRouter;
+use utoipa_swagger_ui::SwaggerUi;
+
+#[derive(OpenApi)]
+#[openapi(
+{% if template_type == "full" -%}
+    modifiers(&SecurityAddon),
+{%- endif %}
+    tags(
+{% if template_type == "full" -%}
+        (name = tasks::OPENAPI_TAG, description = "Task API endpoints"),
+{%- elsif template_type == "minimal" %}
+        (name = greeting::OPENAPI_TAG, description = "Greeting API endpoints"),
+{%- endif %}
+    )
+)]
+struct ApiDoc;
 
 /// Initializes the application's routes.
 ///
 /// This function maps paths (e.g. "/greet") and HTTP methods (e.g. "GET") to functions in [`crate::controllers`] as well as includes middlewares defined in [`crate::middlewares`] into the routing layer (see [`axum::Router`]).
 pub fn init_routes(app_state: AppState) -> Router {
 {% if template_type == "default" -%}
-    Router::new().with_state(app_state)
+    let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
+        .split_for_parts();
 {% elsif template_type == "full" -%}
-    Router::new()
-        .route("/tasks", post(tasks::create))
-        .route("/tasks", put(tasks::create_batch))
-        .route("/tasks/:id", delete(tasks::delete))
-        .route("/tasks/:id", put(tasks::update))
+    let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
+        .routes(routes!(tasks::create))
+        .routes(routes!(tasks::create_batch))
+        .routes(routes!(tasks::delete))
+        .routes(routes!(tasks::update))
         .route_layer(middleware::from_fn_with_state(app_state.clone(), auth))
-        .route("/tasks", get(tasks::read_all))
-        .route("/tasks/:id", get(tasks::read_one))
-        .with_state(app_state)
+        .routes(routes!(tasks::read_all))
+        .routes(routes!(tasks::read_one))
+        .split_for_parts();
 {%- elsif template_type == "minimal" %}
-    Router::new()
-        .route("/greet", get(greeting::hello))
-        .with_state(app_state)
+    let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
+        .routes(routes!(greeting::hello))
+        .split_for_parts();
 {%- endif %}
+    router
+        .merge(SwaggerUi::new("/swagger-ui").url("/apidoc/openapi.json", api))
+        .with_state(app_state)
 }

@@ -123,6 +123,8 @@ pub fn request_payload(_: TokenStream, item: TokenStream) -> TokenStream {
 
     TokenStream::from(quote! {
         #[derive(::serde::Deserialize)]
+        #[derive(::utoipa::ToSchema)]
+        #[derive(::core::fmt::Debug)]
         #[serde(try_from = #inner_ty_lit_str)]
         #input
 
@@ -154,6 +156,8 @@ pub fn batch_request_payload(_: TokenStream, item: TokenStream) -> TokenStream {
 
     TokenStream::from(quote! {
         #[derive(::serde::Deserialize)]
+        #[derive(::utoipa::ToSchema)]
+        #[derive(::core::fmt::Debug)]
         #[serde(try_from = #inner_ty_lit_str)]
         #input
 
@@ -193,6 +197,8 @@ pub fn response_payload(_: TokenStream, item: TokenStream) -> TokenStream {
 
     TokenStream::from(quote! {
         #[derive(::serde::Serialize)]
+        #[derive(::utoipa::ToSchema)]
+        #[derive(::core::fmt::Debug)]
         #[serde(try_from = #inner_ty_lit_str)]
         #input
 
