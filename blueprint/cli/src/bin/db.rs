@@ -13,7 +13,7 @@ use tokio::io::{stdin, AsyncBufReadExt};
 use std::collections::HashMap;
 use std::fs;
 use std::ops::ControlFlow;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use url::Url;
 
@@ -124,19 +124,23 @@ async fn cli() {
                     ui.error("Error ensuring sqlx-cli is installed!", e);
                     return;
                 }
-                
+
                 let cargo = get_cargo_path().expect("Existence of CARGO env var is asserted by calling `ensure_sqlx_cli_installed`");
 
                 let mut sqlx_prepare_command = {
                     let mut cmd = tokio::process::Command::new(&cargo);
+
                     cmd.args(["sqlx", "prepare", "--", "--all-targets", "--all-features"]);
-                    // TODO make this path relative to gerust project root (see issue #108)
-                    let cmd_cwd = {
-                        let mut cwd = std::env::current_dir().unwrap();
-                        cwd.push("db");
-                        cwd
+
+                    let cmd_cwd = match db_package_root() {
+                        Ok(cwd) => cwd,
+                        Err(e) => {
+                            ui.error("Error finding the root of the db package", e);
+                            return;
+                        }
                     };
                     cmd.current_dir(cmd_cwd);
+
                     cmd.env("DATABASE_URL", &config.database.url);
                     cmd
                 };
@@ -197,7 +201,7 @@ async fn create(config: &DatabaseConfig) -> Result<String, anyhow::Error> {
 
 async fn migrate(ui: &mut UI<'_>, config: &DatabaseConfig) -> Result<i32, anyhow::Error> {
     let db_config = get_db_config(config);
-    let migrations_path = format!("{}/../db/migrations", env!("CARGO_MANIFEST_DIR"));
+    let migrations_path = db_package_root()?.join("migrations");
     let migrator = Migrator::new(Path::new(&migrations_path))
         .await
         .context("Failed to create migrator!")?;
@@ -389,4 +393,15 @@ async fn ensure_sqlx_cli_installed(ui: &mut UI<'_>) -> Result<(), anyhow::Error>
         Ok(false) => Err(anyhow!("sqlx-cli was not detected after installation")),
         Err(e) => Err(e),
     }
+}
+
+/// Find the root of the db package in the gerust workspace.
+fn db_package_root() -> Result<PathBuf, anyhow::Error> {
+    Ok(PathBuf::from(
+        std::env::var("CARGO_MANIFEST_DIR")
+            .map_err(|e| anyhow!(e).context("This command needs to be invoked using cargo"))?,
+    )
+    .join("..")
+    .join("db")
+    .canonicalize()?)
 }
