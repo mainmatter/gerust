@@ -424,11 +424,7 @@ fn append_to_project_file(path: &str, contents: &str) -> Result<(), anyhow::Erro
 }
 
 fn has_db() -> bool {
-    if let Ok(_) = get_member_package_name("db") {
-        return true;
-    } else {
-        return false;
-    }
+    get_member_package_name("db").is_ok()
 }
 
 fn get_member_package_name(path: &str) -> Result<String, anyhow::Error> {
