@@ -15,6 +15,7 @@ Besides finding that balance between strictness on non-essential aspects and fle
 * axum
 * postgres
 * tracing out-of-the-box
+* for working with the codebase, only a working Rust toolchain is needed, e.g. no additional global CLI tool requirements
 
 ## Project Structure
 
