@@ -6,6 +6,7 @@ authors = ["Marco Otte-Witte <marco.otte-witte@mainmatter.com>"]
 description = "CLI for Meta-framework on top of axum"
 license = "MIT"
 include = ["blueprints", "src", "build.rs"]
+exclude = ["docs"]
 
 [[bin]]
 name = "gerust"
