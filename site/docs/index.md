@@ -19,20 +19,22 @@ For now, Gerust is just a project generator that creates the files and structure
 
 ## Getting Started
 
-There's several ways to get started:
+When getting started, the main question to answer is whether your project is going to use a database or not.
 
-- Starting fresh with an empty project, adding your code step-by-step.
+Gerust calls projects that don't use a database, "minimal" apps and they are as simple as it gets: just a simple web server, functionality for reading in configuration if there is any, and CLI tooling for creating new controllers and similar files.
 
-Alternatively, you can start out with one of the example apps which comes with example implementations for all of Gerust's main concepts such as entities, controllers, middlewares, etc. Gerust comes with two different example apps:
+The other option is to create a "full" application that uses a database. Full projects consist of a web server, functionality for reading in configuration, as well as CLI tooling for project management. In addition, they come with a bunch of additional concepts such as entity definitions, changesets, database access, and validations.
 
-- The full example is a task management app with a REST API. It uses all of Gerust's concepts.
-- The minimal example uses no database and is as simple as it gets.
+### Minimal Apps
 
-### Starting Fresh
+* only web, no db
+* tutorial shows how to Gerust's default minimal app works and how to create a new controller and add a middleware
 
-### The Full Example App
+### Full Apps
 
-### The Minimal Example App
+* web and db
+* tutorial shows how to build a simple tasks mgmt app step-by-step
+* generate full example app to see the results
 
 ## What's a "Gerust"?
 
