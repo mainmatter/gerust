@@ -10,6 +10,12 @@ Gerust's goal is to handle aspects of backend projects that are not essential to
 
 Besides finding that balance between strictness on non-essential aspects and flexibility on essential aspects, Gerust aims for maintainability. Separating different concerns clearly, choosing the right dependencies and enabling simple and efficient workflows, all contribute to codebases that developers will be able to work on efficiently for the long-term.
 
+## Main Choices
+
+* axum
+* postgres
+* tracing out-of-the-box
+
 ## Project Structure
 
 ### The `web` crate
