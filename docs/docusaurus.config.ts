@@ -3,8 +3,7 @@ import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
-  title: "My Site",
-  tagline: "Dinosaurs are cool",
+  title: "Gerust Docs",
   favicon: "img/favicon.ico",
 
   url: "https://docs.gerust.rs",
