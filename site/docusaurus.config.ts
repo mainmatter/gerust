@@ -3,7 +3,7 @@ import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
-  title: "Gerust Docs",
+  title: "Gerust",
   favicon: "img/favicon.ico",
 
   url: "https://docs.gerust.rs",
@@ -41,7 +41,7 @@ const config: Config = {
   themeConfig: {
     image: "img/docusaurus-social-card.jpg",
     navbar: {
-      title: "Gerust Docs",
+      title: "Gerust",
       logo: {
         alt: "Gerust Logo",
         src: "img/logo.svg",
