@@ -32,7 +32,7 @@ thiserror = "1.0"
 tower = { version = "0.5", features = ["util"], optional = true }
 hyper = { version = "1.0", features = ["full"], optional = true }
 {% unless template_type == "minimal" -%}
-validator = "0.18"
+validator = "0.19"
 {%- endunless %}
 {{project-name}}-macros = { path = "../macros", optional = true }
 
