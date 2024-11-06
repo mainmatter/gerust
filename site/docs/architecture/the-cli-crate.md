@@ -4,7 +4,7 @@ sidebar_position: 4
 
 # The `cli` crate
 
-The `cli` crate contains binaries for managing different aspects of a Gerust project, mainly generating new files of various types, as well as executing database commands such as running migrations, etc. The `cli` command is part of the Gerust project for 2 reasons: a) to avoid an external dependency of the application on the `gerust` crate and b) to make the project fully functional with only a working Rust toolchain – more on both goals in the [architecture docs](./architecture).
+The `cli` crate contains binaries for managing different aspects of a Gerust project, mainly generating new files of various types, as well as executing database commands such as running migrations, etc. The `cli` command is part of the Gerust project for 2 reasons: a) to avoid an external dependency of the application on the `gerust` crate and b) to make the project fully functional with only a working Rust toolchain – more on both goals in the [architecture docs](../architecture).
 
 A developer working on a Gerust project would typically not have to make changes to anything inside the `cli` crate directly, although in a future version we might add a mechanism for defining custom tasks inside the `cli` crate, similar to e.g. [how Ruby on Rails does it](https://guides.rubyonrails.org/command_line.html#custom-rake-tasks).
 
