@@ -23,14 +23,13 @@ Gerust makes a number of fundamental choices that you, a developer focused on de
 
 ## Project Structure
 
-### The `web` crate
+Depending on the kind of project, there a four or five crates in a Gerust workspace:
 
-#### Testing
-
-### The `db` crate
-
-### The `config` crate
-
-### The `cli` crate
-
-### The `macros` crate
+```
+.
+├── cli    // CLI tools for e.g. running DB migrations or generating project files
+├── config // Defines the `Config` struct and handles building the configuration from environment-specific TOML files and environment variables
+├── db     // Encapsulates database access, migrations, as well as entity definitions and related code (this crate only exists if the project uses a database)
+├── macros // Contains macros, e.g. for application tests
+└── web    // The web interface as well as tests for it
+```
