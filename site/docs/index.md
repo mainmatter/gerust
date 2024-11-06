@@ -27,14 +27,14 @@ The other option is to create a "full" application that uses a database. Full pr
 
 ### Minimal Apps
 
-* only web, no db
-* tutorial shows how to Gerust's default minimal app works and how to create a new controller and add a middleware
+- only web, no db
+- tutorial shows how to Gerust's default minimal app works and how to create a new controller and add a middleware
 
 ### Full Apps
 
-* web and db
-* tutorial shows how to build a simple tasks mgmt app step-by-step
-* generate full example app to see the results
+- web and db
+- tutorial shows how to build a simple tasks mgmt app step-by-step
+- generate full example app to see the results
 
 ## What's a "Gerust"?
 
