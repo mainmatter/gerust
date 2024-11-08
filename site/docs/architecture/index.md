@@ -8,7 +8,7 @@ sidebar_position: 2
 
 Gerust's goal is to handle all aspects of backend projects that are not specific to the concrete use case the project is built for. Dealing with accidental complexity like figuring out where to put what kind of file, how to set up tracing, how to isolate tests from each other, etc. shouldn't be what developers spend their time on. At the same time, Gerust aims to remain flexibly regarding aspects that are very well essential to projects – it makes no assumptions on the exact data format of the API or how entities from the database map to resources that are exposed via the API.
 
-Besides finding that balance between strictness on non-essential and flexibility on essential aspects, Gerust aims for maintainability. Separating different concerns clearly, choosing the right dependencies and enabling simple and efficient workflows, all contribute to codebases that developers will be able to work on efficiently for the long-term.
+Besides finding that balance between strictness on non-essential and flexibility on essential aspects, Gerust aims for maintainability and predictability. Separating different concerns clearly, choosing the right dependencies and enabling simple and efficient workflows, all contribute to codebases that enables quick project onboarding and that developers will be able to work on efficiently for the long-term.
 
 ## Main Choices
 
