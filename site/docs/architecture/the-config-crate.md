@@ -15,7 +15,7 @@ pub struct Config {
 }
 ```
 
-The values for the server and database configuration are read from the `APP_SERVER__IP`, `APP_SERVER__PORT`, and `APP_DATABASE__URL` environment variables. Any application-specific settings are read from `app.toml` as well as environment-specific file, e.g. `production.toml` such that settings in the environment-specific files override those in `app.toml`. Gerust uses the [`figment` crate](https://crates.io/crates/figment) for managing config settings and overlaying settings from different sources.
+The values for the server and database configuration are read from the `APP_SERVER__IP`, `APP_SERVER__PORT`, and `APP_DATABASE__URL` environment variables. Any application-specific settings are read from `app.toml` as well as environment-specific file, e.g. `production.toml` such that settings in the environment-specific files override those in `app.toml`. In development and test environments, of course Gerust supports loading `.env` and `.env.test` dotenv files as well. Gerust uses the [`figment` crate](https://crates.io/crates/figment) for managing config settings and overlaying settings from different sources.
 
 ## Environment
 
