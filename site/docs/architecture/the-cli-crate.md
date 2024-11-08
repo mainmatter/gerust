@@ -39,7 +39,7 @@ Options:
 
 ## The `db` binary
 
-The `db` binary (which only exists for projects that use a database, otherwise it will not be generates) is used for running database operations such as executing migrations, seeding the database, etc. To see all of the available commands, run `cargo db help`:
+The `db` binary (which only exists for projects that use a database, otherwise it will not be generated) is used for running database operations such as executing migrations, seeding the database, etc. To see all of the available commands, run `cargo db help`:
 
 ```
 A CLI tool to manage the project's database.
