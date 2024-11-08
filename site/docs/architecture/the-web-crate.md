@@ -66,7 +66,7 @@ The concept of changesets as well as the database access utilities like `create_
 
 ### Test Helpers
 
-The `web` crate has a feature `test-helpers` that is off by default bun on when running tests. Behind the feature flag is the `test_helpers` module that contains a number of extensions for e.g. `axum::Router` that allow for a simple way of making requests to the app in tests, e.g.:
+The `web` crate has a feature `test-helpers` that is off by default but on when running tests. Behind the feature flag is the `test_helpers` module that contains a number of extensions for e.g. `axum::Router` that allow for a simple way of making requests to the app in tests, e.g.:
 
 ```rust
 let response = context
