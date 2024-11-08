@@ -186,7 +186,7 @@ pub struct TaskChangeset {
 }
 ```
 
-With that, it's straight forward to create new tasks with realistic data in tests without having to specify all values manually:
+With that, it's straightforward to create new tasks with realistic data in tests without having to specify all values manually:
 
 ```rust
 let task_changeset: TaskChangeset = Faker.fake();
