@@ -91,6 +91,18 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
+      magicComments: [
+        // Code Diff Higlights
+        // See: https://github.com/facebook/docusaurus/issues/3318#issuecomment-1909563681
+        {
+          className: "code-block-diff-add-line",
+          line: "diff-add",
+        },
+        {
+          className: "code-block-diff-remove-line",
+          line: "diff-remove",
+        },
+      ],
     },
   } satisfies Preset.ThemeConfig,
 };
