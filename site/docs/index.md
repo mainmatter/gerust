@@ -33,18 +33,15 @@ When getting started with Gerust, you need to decide whether your project is goi
 
 Gerust calls projects that don't use a database, "minimal" projects. Those really are as simple as it gets: just a web server, functionality for reading in configuration if there is any, and CLI tooling for creating new controllers and other project files.
 
-The other option is to create a "full" project that uses a database. Full projects also consist of a web server, functionality for reading in configuration, as well as CLI tooling for project management. In addition, they come with a bunch of additional concepts such as entity definitions, changesets, database access, and validations.
+The other option is to create a standard project that uses a database. Standard projects also consist of a web server, functionality for reading in configuration, as well as CLI tooling for project management. In addition, they come with a bunch of additional concepts such as entity definitions, changesets, database access, and validations.
 
 ### Minimal Projects
 
-- only web, no db
-- tutorial shows how to Gerust's default minimal app works and how to create a new controller and add a middleware
+[Tutorial – Minimal Project](./tutorial-minimal) shows how to create and work with a minimal project step-by-step.
 
 ### Full Projects
 
-- web and db
-- tutorial shows how to build a simple tasks mgmt app step-by-step
-- generate full example app to see the results
+[Tutorial – Standard Project](./tutorial-standard) shows how to create and work with a full project. It creates a full task management system with authentication step-by-step.
 
 ## What's a "Gerust"?
 
