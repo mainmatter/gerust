@@ -12,9 +12,9 @@ Gerust provides an architecture and tooling for Rust backend projects. It takes 
 * Maintaining and running database migrations
 * Isolating test cases that access the database
 * Tracing and error handling
-* and many more
+* and much more
 
-For now, Gerust is just a project generator that creates the files and structure to get you started. There is no runtime dependency on Gerust – all the code is under your control.
+For now, Gerust is just a project generator that creates the files and structure to get you started. There is no runtime dependency on Gerust – all the code that goes into your project remains under your control.
 
 Gerust projects are based on [axum](https://crates.io/crates/axum) and use [sqlx](https://crates.io/crates/sqlx) and PostgreSQL for data storage (if data storage is used at all).
 

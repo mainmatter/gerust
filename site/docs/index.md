@@ -11,26 +11,26 @@ Gerust provides an architecture and tooling for Rust backend projects. It takes 
 - Maintaining and running database migrations
 - Isolating test cases that access the database
 - Tracing and error handling
-- and many more
+- and much more
 
-For now, Gerust is just a project generator that creates the files and structure to get you started. There is no runtime dependency on Gerust – all the code is under your control.
+For now, Gerust is just a project generator that creates the files and structure to get you started. There is no runtime dependency on Gerust – all the code that goes into your project remains under your control.
 
 [Architecture](./architecture) goes into more details about the reference architecture Gerust defines.
 
 ## Getting Started
 
-When getting started, the main question to answer is whether your project is going to use a database or not.
+When getting started with Gerust, you need to decide whether your project is going to use a database or not.
 
-Gerust calls projects that don't use a database, "minimal" apps and they are as simple as it gets: just a simple web server, functionality for reading in configuration if there is any, and CLI tooling for creating new controllers and similar files.
+Gerust calls projects that don't use a database, "minimal" projects. Those really are as simple as it gets: just a web server, functionality for reading in configuration if there is any, and CLI tooling for creating new controllers and other project files.
 
-The other option is to create a "full" application that uses a database. Full projects consist of a web server, functionality for reading in configuration, as well as CLI tooling for project management. In addition, they come with a bunch of additional concepts such as entity definitions, changesets, database access, and validations.
+The other option is to create a "full" project that uses a database. Full projects also consist of a web server, functionality for reading in configuration, as well as CLI tooling for project management. In addition, they come with a bunch of additional concepts such as entity definitions, changesets, database access, and validations.
 
-### Minimal Apps
+### Minimal Projects
 
 - only web, no db
 - tutorial shows how to Gerust's default minimal app works and how to create a new controller and add a middleware
 
-### Full Apps
+### Full Projects
 
 - web and db
 - tutorial shows how to build a simple tasks mgmt app step-by-step
