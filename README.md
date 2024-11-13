@@ -22,6 +22,14 @@ Gerust projects are based on [axum](https://crates.io/crates/axum) and use [sqlx
 > This project has been created by [Mainmatter](https://mainmatter.com/rust-consulting/).  
 > Check out our [landing page](https://mainmatter.com/rust-consulting/) if you're looking for Rust consulting or training!
 
+## Installation
+
+Gerust can be installed with cargo:
+
+```
+cargo install gerust
+```
+
 ## Creating a new project
 
 A new project is created with the `gerust` command, e.g.:

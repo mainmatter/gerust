@@ -17,6 +17,16 @@ For now, Gerust is just a project generator that creates the files and structure
 
 [Architecture](./architecture) goes into more details about the reference architecture Gerust defines.
 
+## Installation
+
+Gerust can be installed with cargo:
+
+```
+cargo install gerust
+```
+
+There are no precompiled binaries available for Gerust at this point since working with Gerust requires a working Rust toolchain anyway.
+
 ## Getting Started
 
 When getting started with Gerust, you need to decide whether your project is going to use a database or not.
