@@ -1,4 +1,8 @@
-# Full apps
+---
+sidebar_position: 4
+---
+
+# Tutorial: Full Project
 
 - explain project briefly
 - add task entity
