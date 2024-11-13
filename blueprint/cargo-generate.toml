@@ -12,6 +12,8 @@ ignore = [
     "db",
     "docker-compose.yml",
     "cli/src/bin/db.rs",
+    "cli/blueprints/entity",
+    "cli/blueprints/entity-test-helper",
     "web/src/middlewares/auth.rs",
     "web/src/controllers/tasks.rs",
     "web/tests/api/tasks_test.rs",
