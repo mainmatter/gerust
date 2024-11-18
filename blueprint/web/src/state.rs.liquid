@@ -4,7 +4,6 @@ use {{crate_name}}_db::{connect_pool, DbPool};
 {%- endunless %}
 
 /// The application's state that is available in [`crate::controllers`] and [`crate::middlewares`].
-#[derive(Clone)]
 pub struct AppState {
     {% unless template_type == "minimal" -%}
     /// The database pool that's used to get a connection to the application's database (see [`{{crate_name}}_db::DbPool`]).
