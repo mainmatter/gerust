@@ -12,7 +12,7 @@ Gerust creates a workspace that is configured so that both binaries can convenie
 
 ## The `generate` binary
 
-The `generate` binary is used to generate new files of certain types in the right places. These files will contain the basic structures and only need to be filled in by the developer. The kinds of files that can be generated include all elements of a Gerust project, e.g. migrations and entities, controllers, tests, and more. To see all of the options, run `cargo generate help`:
+The `generate` binary is used to generate new files of certain types in the right places. These files will contain the basic structures and only need to be filled in by the developer. The kinds of files that can be generated include all elements of a Gerust project, e.g. migrations and entities, controllers, tests, and more. Generally, these commands generate new files and declare the modules at the bottom of the relevant `mod.rs`. You may need to do some manual formatting in case you've added custom code there. To see all of the options, run `cargo generate help`:
 
 ```
 A CLI tool to generate project files.
