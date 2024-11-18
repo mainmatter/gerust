@@ -2,6 +2,7 @@ use {{crate_name}}_config::Config;
 {% unless template_type == "minimal" -%}
 use {{crate_name}}_db::{connect_pool, DbPool};
 {%- endunless %}
+use std::sync::Arc;
 
 /// The application's state that is available in [`crate::controllers`] and [`crate::middlewares`].
 pub struct AppState {
@@ -10,6 +11,11 @@ pub struct AppState {
     pub db_pool: DbPool,
     {%- endunless %}
 }
+
+/// The application's state as it is shared across the application, e.g. in controllers and middlewares.
+///
+/// This is the [`AppState`] struct wrappend in an [`std::sync::Arc`].
+pub type SharedAppState = Arc<AppState>;
 
 /// Initializes the application state.
 ///

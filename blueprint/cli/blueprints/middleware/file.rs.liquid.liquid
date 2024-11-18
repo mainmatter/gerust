@@ -1,4 +1,4 @@
-use crate::state::AppState;
+use crate::state::SharedAppState;
 use axum::body::Body;
 use axum::{
     extract::State,
@@ -6,11 +6,10 @@ use axum::{
     middleware::Next,
     response::Response,
 };
-use std::sync::Arc;
 
 #[tracing::instrument(skip_all, fields(rejection_reason = tracing::field::Empty))]
 pub async fn {{name}}(
-    State(app_state): State<Arc<AppState>>,
+    State(app_state): State<SharedAppState>,
     mut req: Request<Body>,
     next: Next,
 ) -> Result<Response, StatusCode> {
