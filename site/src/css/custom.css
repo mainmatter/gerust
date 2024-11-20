@@ -57,6 +57,13 @@
   padding-right: 8px;
 }
 
+.code-block-diff-add-line > .token.operator ~ .token.operator,
+.code-block-diff-remove-line > .token.operator ~ .token.operator {
+  position: unset;
+  left: unset;
+  padding-right: unset;
+}
+
 /**
  * use magic comments to mark diff blocks
  */
