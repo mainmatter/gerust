@@ -41,7 +41,6 @@ const config: Config = {
   themeConfig: {
     image: "img/docusaurus-social-card.jpg",
     navbar: {
-      title: "Gerust",
       logo: {
         alt: "Gerust Logo",
         src: "img/logo.svg",
