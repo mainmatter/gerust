@@ -85,7 +85,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Mainmatter GmbH and contributors`,
+      copyright: `Copyright © ${new Date().getFullYear()} <a href="https://mainmatter.com/rust/" target="_blank">Mainmatter GmbH</a> and contributors`,
     },
     prism: {
       theme: prismThemes.github,
