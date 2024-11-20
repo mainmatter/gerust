@@ -101,8 +101,7 @@ const config: Config = {
       copyright: `Copyright © ${new Date().getFullYear()} <a href="https://mainmatter.com/rust/" target="_blank">Mainmatter GmbH</a> and contributors`,
     },
     prism: {
-      theme: prismThemes.github,
-      darkTheme: prismThemes.dracula,
+      theme: prismThemes.synthwave84,
       magicComments: [
         // Code Diff Higlights
         // See: https://github.com/facebook/docusaurus/issues/3318#issuecomment-1909563681
