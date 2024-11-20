@@ -34,7 +34,8 @@
  * Based on: https://github.com/facebook/docusaurus/issues/3318#issuecomment-1909563681
  * Colors changed due to dark theme
  */
-.code-block-diff-add-line, .code-block-diff-remove-line {
+.code-block-diff-add-line,
+.code-block-diff-remove-line {
   background-color: rgba(0, 255, 0, 0.2);
   display: block;
   margin: 0 -40px;
@@ -49,7 +50,8 @@
   background-color: rgba(255, 0, 0, 0.15);
 }
 
-.code-block-diff-add-line > .token.operator, .code-block-diff-remove-line > .token.operator {
+.code-block-diff-add-line > .token.operator,
+.code-block-diff-remove-line > .token.operator {
   position: absolute;
   left: 8px;
   padding-right: 8px;
