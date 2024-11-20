@@ -44,6 +44,7 @@ const config: Config = {
       logo: {
         alt: "Gerust Logo",
         src: "img/logo.svg",
+        srcDark: "img/logo-dark-mode.svg",
       },
       items: [
         {
