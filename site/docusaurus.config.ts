@@ -66,8 +66,20 @@ const config: Config = {
           title: "Docs",
           items: [
             {
-              label: "Intro",
+              label: "Intro to Gerust",
               to: "/docs/",
+            },
+            {
+              label: "Gerust's Architecture",
+              to: "/docs/architecture/",
+            },
+            {
+              label: "Tutorial: Minimal Project",
+              to: "/docs/tutorial-minimal/",
+            },
+            {
+              label: "Tutorial: Full Project",
+              to: "/docs/tutorial-minimal/",
             },
           ],
         },
