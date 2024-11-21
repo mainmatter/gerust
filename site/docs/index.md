@@ -41,7 +41,7 @@ The other option is to create a standard project that uses a database. Standard 
 
 ### Full Projects
 
-[Tutorial – Standard Project](./tutorial-standard) shows how to create and work with a full project. It creates a full task management system with authentication step-by-step.
+[Tutorial – Full Project](./tutorial-full) shows how to create and work with a full project. It creates a full task management system with authentication step-by-step.
 
 ## What's a "Gerust"?
 
