@@ -399,6 +399,11 @@ async fn ensure_sqlx_cli_installed(ui: &mut UI<'_>) -> Result<(), anyhow::Error>
             "--version",
             &format!("^{SQLX_CLI_VERSION}"),
             "--locked",
+            // Install unoptimized version,
+            // making the process much faster.
+            // sqlx-cli doesn't really need to be
+            // performant anyway for our purposes
+            "--debug",
         ]);
         cmd.stdout(Stdio::inherit());
         cmd.stderr(Stdio::inherit());
