@@ -1,4 +1,4 @@
-use crate::state::AppState;
+use crate::state::SharedAppState;
 use axum::body::Body;
 use axum::{
     extract::State,
@@ -14,7 +14,7 @@ use tracing::Span;
 /// This looks for a token in the `Authorization` header. If no token is present or no user exists with that token (see [`{{crate_name}}_db::entities::users::load_with_token`]), a 401 response code is returned and the request is not processed further.
 #[tracing::instrument(skip_all, fields(rejection_reason = tracing::field::Empty))]
 pub async fn auth(
-    State(app_state): State<AppState>,
+    State(app_state): State<SharedAppState>,
     mut req: Request<Body>,
     next: Next,
 ) -> Result<Response, StatusCode> {
