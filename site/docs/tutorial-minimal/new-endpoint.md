@@ -15,7 +15,7 @@ curl -H 'Content-Type: application/json' \
 
 ## Implementing the controller function
 
-For now the above curl command result in an error since our app only exposes the `/greet` endpoint and nothing handles `/greet_me`. Let's add that endpoint to `web/src/controllers/greeting.rs`:
+For now the above curl command will result in an error since our app only exposes the `/greet` endpoint and nothing handles `/greet_me`. Let's add that endpoint to `web/src/controllers/greeting.rs`:
 
 ```rust
 …
@@ -54,7 +54,7 @@ We keep the counting of visits from the previous step. Now, instead of `<user-na
 …
 ```
 
-That struct can be consumed in the new `hellp_person` endpoint:
+That struct can be consumed in the new `hello_person` endpoint:
 
 ```rust
 // web/src/controllers/greeting.rs

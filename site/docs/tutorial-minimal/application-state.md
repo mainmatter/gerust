@@ -16,7 +16,7 @@ use my_app_config::Config;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
- /// The application's state that is available in [`crate::controllers`] and [`crate::middlewares`].
+/// The application's state that is available in [`crate::controllers`] and [`crate::middlewares`].
 // diff-remove
 -pub struct AppState {}
 // diff-add
@@ -101,7 +101,7 @@ pub struct Greeting {
 
 ## Testing
 
-Let's now add a test for that as well. There is a test for the greeting controller already that Rust generated out-of-the-box when generating the project. However, when we run that, we see it no longer works:
+Let's now add a test for that as well. There is a test for the greeting controller already that Gerust generated out-of-the-box when generating the project. However, when we run that, we see it no longer works:
 
 ```
 » cargo test

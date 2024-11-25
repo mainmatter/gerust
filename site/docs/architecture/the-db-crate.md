@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # The `db` crate
 
-The `db` crate only exists for projects that use a database and contains all functionality related to database access from entity definitions, functions for reading and writing data, as well as migrations. Gerust uses [sqlx](https://crates.io/crates/sqlx) and PostgreSQL without any additional ORM on top. Instead, it defines entities as simple structs along with functions for retrieving and persisting those entities. While that leads to a bit more code, it avoids a good amount of accidental complexity that ORMs typically come with – more about that decision in the [architecture docs](../architecture/#main-choices).
+The `db` crate is only generated for projects that use a database and contains all functionality related to database access from entity definitions, functions for reading and writing data, as well as migrations. Gerust uses [sqlx](https://crates.io/crates/sqlx) and PostgreSQL without any additional ORM on top. Instead, it defines entities as simple structs along with functions for retrieving and persisting those entities. While that leads to a bit more code, it avoids a good amount of accidental complexity that ORMs typically come with – more about that decision in the [architecture docs](../architecture/#main-choices).
 
 ```rust
 #[derive(Serialize, Debug, Deserialize)]
@@ -34,8 +34,8 @@ Data manipulation in Gerust is done via changsets. Those are separate companion 
 // db/src/entities/tasks.rs
 
 #[derive(Deserialize, Validate, Clone)]
-pub struct TaskChangeset {                                   // the changeset definition for the Task entity; it requires description to have a minimum length of 1
-    #[validate(length(min = 1))]
+pub struct TaskChangeset {                                   // The changeset definition for the Task entity
+    #[validate(length(min = 1))]                             // Length of `description` must be at least 1
     pub description: String,
 }
 
@@ -43,7 +43,7 @@ pub async fn create(                                         // Function for cre
     task: TaskChangeset,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<Task, crate::Error> {
-    task.validate().map_err(crate::Error::ValidationError)?; // Validate the changeset and return Err(…) if it isn't valid
+    task.validate()?; // Validate the changeset and return Err(…) if it isn't valid
 
     let record = sqlx::query!(                               // Store the data in the database
         "INSERT INTO tasks (description) VALUES ($1) RETURNING id",
@@ -108,7 +108,7 @@ pub async fn create(
     task: TaskChangeset,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<Task, crate::Error> {
-    task.validate().map_err(crate::Error::ValidationError)?;
+    task.validate()?;
 
     let record = sqlx::query!(
         "INSERT INTO tasks (description) VALUES ($1) RETURNING id",
@@ -129,7 +129,7 @@ pub async fn update(
     task: TaskChangeset,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<Task, crate::Error> {
-    task.validate().map_err(crate::Error::ValidationError)?;
+    task.validate()?;
 
     match sqlx::query!(
         "UPDATE tasks SET description = $1 WHERE id = $2 RETURNING id, description",
@@ -149,11 +149,11 @@ pub async fn update(
 }
 ```
 
-Any errors are mapped to variants of the `Errors` enum defined in the `db`'s `lib.rs`. That file does also define a helper function for starting a new transaction which can be passed for the `executor` argument of all the data access functions above. If no transaction is needed, a database connection can be passed as well, which is available e.g. via the application state in the [`web` crate](./the-web-crate).
+Any errors are mapped to variants of the `Errors` enum defined in the `db`'s `lib.rs`. That file also defines a helper function for starting a new transaction which can be passed for the `executor` argument of all the data access functions above. If no transaction is needed, a database connection can be passed as well, which is available e.g. via the application state in the [`web` crate](./the-web-crate).
 
 ## Migrations and Seeds
 
-The `db` crate is also where the application's migrations and seed data are stored. Migrations are in the `db/migrations` folder as plain SQL files. For the moment, Gerust does not support down migrations so that each migration file simply contains the SQL to execute when the migration is applied. See data (stable data that does not typically change and could be re-imported any time. e.g. lists of currencies or countries) is defined in `db/seeds.sql`.
+The `db` crate is also where the application's migrations and seed data are stored. Migrations are in the `db/migrations` folder as plain SQL files. For the moment, Gerust does not support down migrations so that each migration file simply contains the SQL to execute when the migration is applied. Seed data (stable data that does not typically change and could be re-imported any time. e.g. lists of currencies or countries) is defined in `db/seeds.sql`.
 
 Generating and executing migrations as well as loading the seed data into the database can be done via the [`cli` crate](./the-cli-crate).
 

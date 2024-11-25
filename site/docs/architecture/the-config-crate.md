@@ -19,4 +19,4 @@ The values for the server and database configuration are read from the `APP_SERV
 
 ## Environment
 
-Besides parsing and making available the application's configuration, the `config` crate also determines the environment the application is running in. Gerust supports 3 environments: development, test, and production – the development environment is the default, and tests are automatically run with the test environment. The environment can also manually be set by passing an argument to the commands made available via the [`cli` crate](./the-cli-crate) or via the `APP_ENVIRONMENT` environment variable
+Besides parsing and making available the application's configuration, the `config` crate also determines the environment the application is running in. Gerust supports 3 environments: development, test, and production – the development environment is the default, and tests are automatically run with the test environment. The environment can also manually be set by passing an argument to the commands made available via the [`cli` crate](./the-cli-crate) or via the `APP_ENVIRONMENT` environment variable.
