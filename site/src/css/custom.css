@@ -21,21 +21,8 @@
   --ifm-background-color: #fff;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 
-  .hero {
-    --ifm-hero-text-color: #000;
-  }
-
-  .footer {
-    --ifm-footer-background-color: #000;
-    --ifm-footer-link-hover-color: #fff;
-    --ifm-link-color: #fff;
-    --ifm-footer-link-color: #fff;
-    --ifm-link-hover-color: #fff;
-  }
-
-  .navbar-sidebar {
-    --ifm-menu-color: #fff;
-  }
+  --ifm-hero-background-color: #fff;
+  --ifm-hero-text-color: #000;
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
@@ -53,19 +40,36 @@
   --ifm-menu-color: #fff;
   --ifm-navbar-background-color: #000;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
 
-  .hero {
-    --ifm-hero-background-color: #000;
-    --ifm-hero-text-color: #fff;
-  }
+[data-theme="light"] .hero {
+  --ifm-hero-background-color: #fff;
+  --ifm-hero-text-color: #000;
+}
 
-  .footer {
-    --ifm-footer-background-color: #6200ee;
-    --ifm-footer-link-hover-color: #fff;
-    --ifm-link-color: #fff;
-    --ifm-footer-link-color: #fff;
-    --ifm-link-hover-color: #fff;
-  }
+[data-theme="dark"] .hero {
+  --ifm-hero-background-color: #000;
+  --ifm-hero-text-color: #fff;
+}
+
+[data-theme="light"] .footer {
+  --ifm-footer-background-color: #000;
+  --ifm-footer-link-hover-color: #fff;
+  --ifm-link-color: #fff;
+  --ifm-footer-link-color: #fff;
+  --ifm-link-hover-color: #fff;
+}
+
+[data-theme="dark"] .footer {
+  --ifm-footer-background-color: #6200ee;
+  --ifm-footer-link-hover-color: #fff;
+  --ifm-link-color: #fff;
+  --ifm-footer-link-color: #fff;
+  --ifm-link-hover-color: #fff;
+}
+
+[data-theme="light"] .navbar-sidebar {
+  --ifm-menu-color: #fff;
 }
 
 /**
@@ -128,10 +132,6 @@ pre code:has(.code-block-diff-remove-line) {
   }
 }
 
-.hero--primary {
-  --ifm-hero-background-color: #fff;
-}
-
 .hero__title {
   display: none;
 }
@@ -141,24 +141,8 @@ pre code:has(.code-block-diff-remove-line) {
   justify-content: center;
 }
 
-[data-theme="light"] {
-  .hero__logo-light {
-    display: block;
-  }
-
-  .hero__logo-dark {
-    display: none;
-  }
-}
-
-[data-theme="dark"] {
-  .hero__logo-light {
-    display: none;
-  }
-
-  .hero__logo-dark {
-    display: block;
-  }
+pre {
+  text-align: left;
 }
 
 @media screen and (min-width: 997px) {
