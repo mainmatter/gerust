@@ -253,7 +253,7 @@ async fn generate_controller_test(name: String) -> Result<String, anyhow::Error>
 {% if template_type != "minimal" -%}
 async fn generate_migration(name: String) -> Result<String, anyhow::Error> {
     let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
-    let file_name = format!("V{}__{}.sql", timestamp.as_secs(), name);
+    let file_name = format!("{}__{}.sql", timestamp.as_secs(), name);
     let path = format!("./db/migrations/{}", file_name);
     create_project_file(&path, "".as_bytes())?;
 
@@ -424,11 +424,7 @@ fn append_to_project_file(path: &str, contents: &str) -> Result<(), anyhow::Erro
 }
 
 fn has_db() -> bool {
-    if let Ok(_) = get_member_package_name("db") {
-        return true;
-    } else {
-        return false;
-    }
+    get_member_package_name("db").is_ok()
 }
 
 fn get_member_package_name(path: &str) -> Result<String, anyhow::Error> {

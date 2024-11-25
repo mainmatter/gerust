@@ -68,7 +68,7 @@ pub async fn create(
     user: UserChangeset,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<User, crate::Error> {
-    user.validate().map_err(crate::Error::ValidationError)?;
+    user.validate()?;
 
     let record = sqlx::query!(
         "INSERT INTO users (name) VALUES ($1) RETURNING id",

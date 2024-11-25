@@ -156,7 +156,7 @@ pub async fn create(                                         // Function for cre
     task: TaskChangeset,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<Task, crate::Error> {
-    task.validate().map_err(crate::Error::ValidationError)?; // Validate the changeset and return Err(…) if it isn't valid
+    task.validate()?; // Validate the changeset and return Err(…) if it isn't valid
 
     let record = sqlx::query!(                               // Store the data in the database
         "INSERT INTO tasks (description) VALUES ($1) RETURNING id",
@@ -231,6 +231,7 @@ Commands:
   migrate  Migrate the database
   reset    Reset (drop, create, migrate) the database
   seed     Seed the database
+  prepare  Generate query metadata to support offline compile-time verification
   help     Print this message or the help of the given subcommand(s)
 
 Options:
@@ -308,6 +309,8 @@ Rinse:
 ```
 rm -rf my-app my-new-app
 ```
+
+_Note: the generated CI configuration uses offline query validation during its Clippy job. On first check-in, and each time the SQL queries in the db crate get updated, ensure `cargo db prepare` is run._
 
 ## What's a "Gerust"?
 

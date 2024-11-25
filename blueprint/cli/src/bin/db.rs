@@ -1,16 +1,20 @@
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand};
 use {{crate_name}}_cli::util::ui::UI;
-use {{crate_name}}_config::{load_config, parse_env, Config, Environment};
 use {{crate_name}}_config::DatabaseConfig;
+use {{crate_name}}_config::{load_config, parse_env, Config, Environment};
+use guppy::{Version, VersionReq};
 use sqlx::postgres::{PgConnectOptions, PgConnection};
 use sqlx::{
     migrate::{Migrate, Migrator},
     ConnectOptions, Connection, Executor,
 };
+use tokio::io::{stdin, AsyncBufReadExt};
+
 use std::collections::HashMap;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::process::Stdio;
 use url::Url;
 
 #[tokio::main]
@@ -47,6 +51,8 @@ enum Commands {
     Reset,
     #[command(about = "Seed the database")]
     Seed,
+    #[command(about = "Generate query metadata to support offline compile-time verification")]
+    Prepare,
 }
 
 #[allow(missing_docs)]
@@ -113,6 +119,49 @@ async fn cli() {
                     }
                 }
             }
+            Commands::Prepare => {
+                if let Err(e) = ensure_sqlx_cli_installed(&mut ui).await {
+                    ui.error("Error ensuring sqlx-cli is installed!", e);
+                    return;
+                }
+
+                let cargo = get_cargo_path().expect("Existence of CARGO env var is asserted by calling `ensure_sqlx_cli_installed`");
+
+                let mut sqlx_prepare_command = {
+                    let mut cmd = tokio::process::Command::new(&cargo);
+
+                    cmd.args(["sqlx", "prepare", "--", "--all-targets", "--all-features"]);
+
+                    let cmd_cwd = match db_package_root() {
+                        Ok(cwd) => cwd,
+                        Err(e) => {
+                            ui.error("Error finding the root of the db package", e);
+                            return;
+                        }
+                    };
+                    cmd.current_dir(cmd_cwd);
+
+                    cmd.env("DATABASE_URL", &config.database.url);
+                    cmd
+                };
+
+                let o = match sqlx_prepare_command.output().await {
+                    Ok(o) => o,
+                    Err(e) => {
+                        ui.error(&format!("Could not run {cargo} sqlx prepare!"), e.into());
+                        return;
+                    }
+                };
+                if !o.status.success() {
+                    ui.error(
+                        "Error generating query metadata. Are you sure the database is running and all migrations are applied?",
+                        anyhow!(String::from_utf8_lossy(&o.stdout).to_string()),
+                    );
+                    return;
+                }
+
+                ui.success("Query data written to db/.sqlx directory; please check this into version control.");
+            }
         },
         Err(e) => ui.error("Could not load config!", e),
     }
@@ -152,7 +201,7 @@ async fn create(config: &DatabaseConfig) -> Result<String, anyhow::Error> {
 
 async fn migrate(ui: &mut UI<'_>, config: &DatabaseConfig) -> Result<i32, anyhow::Error> {
     let db_config = get_db_config(config);
-    let migrations_path = format!("{}/../db/migrations", env!("CARGO_MANIFEST_DIR"));
+    let migrations_path = db_package_root()?.join("migrations");
     let migrator = Migrator::new(Path::new(&migrations_path))
         .await
         .context("Failed to create migrator!")?;
@@ -176,7 +225,7 @@ async fn migrate(ui: &mut UI<'_>, config: &DatabaseConfig) -> Result<i32, anyhow
 
     let mut applied = 0;
     for migration in migrator.iter() {
-        if applied_migrations.get(&migration.version).is_none() {
+        if !applied_migrations.contains_key(&migration.version) {
             connection
                 .apply(migration)
                 .await
@@ -241,4 +290,153 @@ async fn get_root_db_client(config: &DatabaseConfig) -> PgConnection {
     let connection: PgConnection = Connection::connect_with(&root_db_config).await.unwrap();
 
     connection
+}
+
+fn get_cargo_path() -> Result<String, anyhow::Error> {
+    std::env::var("CARGO")
+        .map_err(|_| anyhow!("Please invoke me using Cargo, e.g.: `cargo db <ARGS>`"))
+}
+
+/// Ensure that the correct version of sqlx-cli is installed,
+/// and install it if it isn't.
+async fn ensure_sqlx_cli_installed(ui: &mut UI<'_>) -> Result<(), anyhow::Error> {
+    /// The version of sqlx-cli required
+    const SQLX_CLI_VERSION: &str = "0.8";
+    let sqlx_version_req = VersionReq::parse(SQLX_CLI_VERSION)
+        .expect("SQLX_CLI_VERSION value is not a valid semver version requirement.");
+
+    /// Get the version of the current sqlx-cli installation, if any.
+    async fn installed_sqlx_cli_version(cargo: &str) -> Result<Option<Version>, anyhow::Error> {
+        /// The expected prefix of the version output of sqlx-cli >= 0.8
+        const SQLX_CLI_VERSION_STRING_PREFIX: &str = "sqlx-cli-sqlx";
+        /// The expected prefix of the version output of sqlx-cli < 0.8
+        const SQLX_CLI_VERSION_STRING_PREFIX_OLD: &str = "cargo-sqlx";
+
+        fn error_parsing_version() -> anyhow::Error {
+            anyhow!(
+                "Error parsing sqlx-cli version. Please install the \
+                correct version manually using `cargo install sqlx-cli \
+                --version ^{SQLX_CLI_VERSION} --locked`"
+            )
+        }
+
+        let mut cargo_sqlx_command = {
+            let mut cmd = tokio::process::Command::new(cargo);
+            cmd.args(["sqlx", "--version"]);
+            cmd
+        };
+
+        let out = cargo_sqlx_command.output().await?;
+        if !out.status.success() {
+            // Failed to run the command for some reason,
+            // we conclude that sqlx-cli is not installed.
+            return Ok(None);
+        }
+
+        let Ok(stdout) = String::from_utf8(out.stdout) else {
+            return Err(error_parsing_version());
+        };
+
+        let Some(version) = stdout
+            .strip_prefix(SQLX_CLI_VERSION_STRING_PREFIX)
+            .or_else(|| stdout.strip_prefix(SQLX_CLI_VERSION_STRING_PREFIX_OLD))
+            .map(str::trim)
+        else {
+            return Err(error_parsing_version());
+        };
+
+        let Ok(version) = Version::parse(version) else {
+            return Err(error_parsing_version());
+        };
+
+        Ok(Some(version))
+    }
+
+    let cargo = get_cargo_path()?;
+
+    let current_version = installed_sqlx_cli_version(&cargo).await?;
+    if let Some(version) = &current_version {
+        if sqlx_version_req.matches(&version) {
+            // sqlx-cli is already installed and of the correct version, nothing to do
+            return Ok(());
+        }
+    }
+
+    let curr_vers_msg = current_version
+        .map(|v| format!("The currently installed version is {v}."))
+        .unwrap_or_else(|| "sqlx-cli is currently not installed.".to_string());
+    ui.info(&format!(
+        "This command requires a version of sqlx-cli that is \
+        compatible with version {SQLX_CLI_VERSION}, which is not installed yet. \
+        {curr_vers_msg} \
+        Would you like to install the latest compatible version now? [Y/n]"
+    ));
+
+    // Read user answer
+    {
+        let mut buf = String::new();
+        let mut reader = tokio::io::BufReader::new(stdin());
+        loop {
+            reader.read_line(&mut buf).await?;
+            let line = buf.to_ascii_lowercase();
+            let line = line.trim_end();
+            if matches!(line, "" | "y" | "yes") {
+                ui.info("Starting installation of sqlx-cli...");
+                break;
+            } else if matches!(line, "n" | "no") {
+                return Err(anyhow!("Installation of sqlx-cli canceled."));
+            };
+            ui.info("Please enter y or n");
+            buf.clear();
+        }
+    }
+
+    let mut cargo_install_command = {
+        let mut cmd = tokio::process::Command::new(&cargo);
+        cmd.args([
+            "install",
+            "sqlx-cli",
+            "--version",
+            &format!("^{SQLX_CLI_VERSION}"),
+            "--locked",
+            // Install unoptimized version,
+            // making the process much faster.
+            // sqlx-cli doesn't really need to be
+            // performant anyway for our purposes
+            "--debug",
+        ]);
+        cmd.stdout(Stdio::inherit());
+        cmd.stderr(Stdio::inherit());
+        cmd
+    };
+
+    let mut child = cargo_install_command.spawn()?;
+
+    let status = child.wait().await?;
+    if !status.success() {
+        return Err(anyhow!(
+            "Something went wrong when installing sqlx-cli. Please check output"
+        ));
+    }
+
+    match installed_sqlx_cli_version(&cargo).await {
+        Ok(Some(v)) if sqlx_version_req.matches(&v) => {
+            ui.success(&format!("Successfully installed sqlx-cli {v}"));
+            Ok(())
+        }
+        Ok(Some(v)) => Err(anyhow!("Could not update sqlx cli. Current version: {v}")),
+        Ok(None) => Err(anyhow!("sqlx-cli was not detected after installation")),
+        Err(e) => Err(e),
+    }
+}
+
+/// Find the root of the db package in the gerust workspace.
+fn db_package_root() -> Result<PathBuf, anyhow::Error> {
+    Ok(PathBuf::from(
+        std::env::var("CARGO_MANIFEST_DIR")
+            .map_err(|e| anyhow!(e).context("This command needs to be invoked using cargo"))?,
+    )
+    .join("..")
+    .join("db")
+    .canonicalize()?)
 }

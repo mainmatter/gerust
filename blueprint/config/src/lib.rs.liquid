@@ -108,6 +108,10 @@ pub struct DatabaseConfig {
 /// * for [`Environment::Test`], the function will load env vars from a `.env.test` file at the project root if that is present
 /// * for [`Environment::Production`], the function will only use the process env vars, and not load a `.env` file
 ///
+/// In case the .env or .env.test files live in another directory,
+/// you can set that location using the APP_DOTENV_CONFIG_DIR environment variable.
+/// This is useful when they are mounted at separate locations in a Docker container, for example.
+///
 /// Configuration settings are loaded from these sources (in that order so that latter soruces override former):
 /// * the `config/app.toml` file
 /// * the `config/environments/<development|production|test>.toml` files depending on the environment
@@ -116,16 +120,27 @@ pub fn load_config<'a, T>(env: &Environment) -> Result<T, anyhow::Error>
 where
     T: Deserialize<'a>,
 {
-    match env {
-        Environment::Development => {
+    let dotenv_config_dir = env::var("APP_DOTENV_CONFIG_DIR")
+        .ok()
+        .map(std::path::PathBuf::from);
+
+    match (env, dotenv_config_dir) {
+        (Environment::Development, None) => {
             dotenv().ok();
         }
-        Environment::Test => {
+        (Environment::Test, None) => {
             dotenvy::from_filename(".env.test").ok();
+        }
+        (Environment::Development, Some(mut dotenv_config_dir)) => {
+            dotenv_config_dir.push(".env");
+            dotenvy::from_filename(dotenv_config_dir).ok();
+        }
+        (Environment::Test, Some(mut dotenv_config_dir)) => {
+            dotenv_config_dir.push(".env.test");
+            dotenvy::from_filename(dotenv_config_dir).ok();
         }
         _ => { /* don't use any .env file for production */ }
     }
-    dotenv().ok();
 
     let env_config_file = match env {
         Environment::Development => "development.toml",
@@ -134,12 +149,12 @@ where
     };
 
     let config: T = Figment::new()
+        .merge(Serialized::defaults(ServerConfig::default()).key("server"))
         .merge(Toml::file("config/app.toml"))
         .merge(Toml::file(format!(
             "config/environments/{}",
             env_config_file
         )))
-        .merge(Serialized::defaults(ServerConfig::default()).key("server"))
         .merge(Env::prefixed("APP_").split("__"))
         .extract()
         .context("Could not read configuration!")?;
