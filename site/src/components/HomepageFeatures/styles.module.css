@@ -3,6 +3,16 @@
   align-items: center;
   padding: 2rem 0;
   width: 100%;
+
+  pre {
+    text-align: left;
+  }
+}
+
+.feature {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .featureSvg {

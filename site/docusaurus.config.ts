@@ -98,7 +98,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} <a href="https://mainmatter.com/rust/" target="_blank">Mainmatter GmbH</a> and contributors`,
+      copyright: `Copyright © ${new Date().getFullYear()} <a href="https://mainmatter.com/rust/" target="_blank">Mainmatter GmbH</a> and contributors, release under the <a href="https://github.com/mainmatter/gerust/blob/main/LICENSE.md" target="_blank">MIT license</a>.`,
     },
     prism: {
       theme: prismTheme,
