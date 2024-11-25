@@ -4,6 +4,8 @@ sidebar_position: 3
 
 # Tutorial: Minimal Project
 
+In this tutorial, we will create a minimal application with simple hello-world endpoints, a visits counter, a rate-limiting middleware, and the respective tests.
+
 A minimal project is a project that does not use a database. It's a simple web server along with code for reading in configuration settings and a CLI for creating e.g. controllers and other project files.
 
 Create a new minimal project with
