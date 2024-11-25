@@ -51,7 +51,7 @@ const config: Config = {
           type: "docSidebar",
           sidebarId: "tutorialSidebar",
           position: "left",
-          label: "Tutorial",
+          label: "Docs",
         },
         {
           href: "https://github.com/mainmatter/gerust/",
