@@ -55,7 +55,7 @@ pub async fn create(
     {{entity_singular_name}}: {{entity_struct_name}}Changeset,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<{{entity_struct_name}}, crate::Error> {
-    {{entity_singular_name}}.validate().map_err(crate::Error::ValidationError)?;
+    {{entity_singular_name}}.validate()?;
 
     todo!("Adapt the SQL query and bound parameters as necessary!");
     let record = sqlx::query!(
@@ -77,7 +77,7 @@ pub async fn update(
     {{entity_singular_name}}: {{entity_struct_name}}Changeset,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<{{entity_struct_name}}, crate::Error> {
-    {{entity_singular_name}}.validate().map_err(crate::Error::ValidationError)?;
+    {{entity_singular_name}}.validate()?;
 
     todo!("Adapt the SQL query and bound parameters as necessary!");
     match sqlx::query!(
