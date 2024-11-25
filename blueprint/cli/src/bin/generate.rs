@@ -253,7 +253,7 @@ async fn generate_controller_test(name: String) -> Result<String, anyhow::Error>
 {% if template_type != "minimal" -%}
 async fn generate_migration(name: String) -> Result<String, anyhow::Error> {
     let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
-    let file_name = format!("V{}__{}.sql", timestamp.as_secs(), name);
+    let file_name = format!("{}__{}.sql", timestamp.as_secs(), name);
     let path = format!("./db/migrations/{}", file_name);
     create_project_file(&path, "".as_bytes())?;
 
