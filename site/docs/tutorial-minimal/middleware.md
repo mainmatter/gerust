@@ -51,14 +51,14 @@ We need the [`chrono` crate](https://crates.io/crates/chrono) so we add that to 
 [dependencies]
 anyhow = "1.0"
 axum = { version = "0.7", features = ["macros"] }
-+chrono = "0.4.38"
+chrono = "0.4.38"
 …
 ```
 
 In the next step, we add a [`HashMap`](https://doc.rust-lang.org/std/collections/struct.HashMap.html) to the `AppState` defined in `web/src/state.rs` so we can keep track of each request within a given period per Uri:
 
 ```rust
-// diff-ass
+// diff-add
 +use axum::http::uri::Uri;
 // diff-add
 +use chrono::{DateTime, Utc};
