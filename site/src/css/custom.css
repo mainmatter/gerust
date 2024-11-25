@@ -21,6 +21,10 @@
   --ifm-background-color: #fff;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 
+  .hero {
+    --ifm-hero-text-color: #000;
+  }
+
   .footer {
     --ifm-footer-background-color: #000;
     --ifm-footer-link-hover-color: #fff;
@@ -47,7 +51,13 @@
   --ifm-heading-color: #fff;
   --ifm-color-content: #fff;
   --ifm-menu-color: #fff;
+  --ifm-navbar-background-color: #000;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+
+  .hero {
+    --ifm-hero-background-color: #000;
+    --ifm-hero-text-color: #fff;
+  }
 
   .footer {
     --ifm-footer-background-color: #6200ee;
@@ -57,7 +67,6 @@
     --ifm-link-hover-color: #fff;
   }
 }
-
 
 /**
  * Code Diff Higlights
