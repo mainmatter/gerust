@@ -148,7 +148,7 @@ pub async fn create(                                         // Function for cre
     task: TaskChangeset,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<Task, crate::Error> {
-    task.validate().map_err(crate::Error::ValidationError)?; // Validate the changeset and return Err(…) if it isn't valid
+    task.validate()?; // Validate the changeset and return Err(…) if it isn't valid
 
     let record = sqlx::query!(                               // Store the data in the database
         "INSERT INTO tasks (description) VALUES ($1) RETURNING id",

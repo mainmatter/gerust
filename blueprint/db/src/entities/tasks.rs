@@ -80,7 +80,7 @@ pub async fn create(
     task: TaskChangeset,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<Task, crate::Error> {
-    task.validate().map_err(crate::Error::ValidationError)?;
+    task.validate()?;
 
     let record = sqlx::query!(
         "INSERT INTO tasks (description) VALUES ($1) RETURNING id",
@@ -104,7 +104,7 @@ pub async fn update(
     task: TaskChangeset,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<Task, crate::Error> {
-    task.validate().map_err(crate::Error::ValidationError)?;
+    task.validate()?;
 
     sqlx::query!(
         "UPDATE tasks SET description = $1 WHERE id = $2 RETURNING id, description",
