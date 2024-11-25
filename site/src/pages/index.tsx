@@ -4,8 +4,9 @@ import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
 import HomepageFeatures from "@site/src/components/HomepageFeatures";
 import Heading from "@theme/Heading";
-
 import styles from "./index.module.css";
+import LogoImage from '@site/static/img/logo.svg';
+import LogoImageDark from '@site/static/img/logo-dark-mode.svg';
 
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
@@ -15,11 +16,9 @@ function HomepageHeader() {
         <Heading as="h1" className="hero__title">
           {siteConfig.title}
         </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
-        <div className={styles.buttons}>
-          <Link className="button button--secondary button--lg" to="/docs/">
-            Docusaurus Tutorial - 5min ⏱️
-          </Link>
+        <div className="hero__logo">
+          <LogoImage className="hero__logo-light" />
+          <LogoImageDark className="hero__logo-dark" />
         </div>
       </div>
     </header>
@@ -30,8 +29,8 @@ export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />"
+      title={`Gerust: Rust backend project generator and manager`}
+      description="Gerust is a project generator and manager for Rust backend projects. It provides an architecture and tooling so you can stay focused on what matters."
     >
       <HomepageHeader />
       <main>

@@ -13,12 +13,29 @@
   --ifm-color-primary-light: #02ceba;
   --ifm-color-primary-lighter: #02ceba;
   --ifm-color-primary-lightest: #02ceba;
+  --ifm-navbar-background-color: #6200ee;
+  --ifm-navbar-link-color: #fff;
+  --ifm-navbar-link-hover-color: #fff;
   --ifm-code-font-size: 95%;
+  --ifm-menu-color: #000;
+  --ifm-background-color: #fff;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+
+  .footer {
+    --ifm-footer-background-color: #000;
+    --ifm-footer-link-hover-color: #fff;
+    --ifm-link-color: #fff;
+    --ifm-footer-link-color: #fff;
+    --ifm-link-hover-color: #fff;
+  }
+
+  .navbar-sidebar {
+    --ifm-menu-color: #fff;
+  }
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
-[data-theme="dark"] {
+[data-theme="dark"]:root {
   --ifm-color-primary: #02ceba;
   --ifm-color-primary-dark: #02ceba;
   --ifm-color-primary-darker: #02ceba;
@@ -26,15 +43,21 @@
   --ifm-color-primary-light: #fff;
   --ifm-color-primary-lighter: #fff;
   --ifm-color-primary-lightest: #fff;
+  --ifm-background-color: #000;
+  --ifm-heading-color: #fff;
+  --ifm-color-content: #fff;
+  --ifm-menu-color: #fff;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+
+  .footer {
+    --ifm-footer-background-color: #6200ee;
+    --ifm-footer-link-hover-color: #fff;
+    --ifm-link-color: #fff;
+    --ifm-footer-link-color: #fff;
+    --ifm-link-hover-color: #fff;
+  }
 }
 
-.footer--dark {
-  --ifm-footer-background-color: #000;
-  --ifm-footer-link-hover-color: #fff;
-  --ifm-link-color: #fff;
-  --ifm-link-hover-color: #fff;
-}
 
 /**
  * Code Diff Higlights
@@ -84,4 +107,47 @@ pre code:has(.code-block-diff-remove-line) {
 
 .navbar__brand {
   margin-top: -1rem;
+}
+
+.navbar .clean-btn {
+  color: #fff;
+  background: transparent;
+
+  &:hover {
+    background-color: #fff;
+    color: #000;
+  }
+}
+
+.hero--primary {
+  --ifm-hero-background-color: #fff;
+}
+
+.hero__title {
+  display: none;
+}
+
+.hero__logo {
+  display: flex;
+  justify-content: center;
+}
+
+[data-theme="light"] {
+  .hero__logo-light {
+    display: block;
+  }
+
+  .hero__logo-dark {
+    display: none;
+  }
+}
+
+[data-theme="dark"] {
+  .hero__logo-light {
+    display: none;
+  }
+
+  .hero__logo-dark {
+    display: block;
+  }
 }

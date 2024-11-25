@@ -43,7 +43,7 @@ const config: Config = {
     navbar: {
       logo: {
         alt: "Gerust Logo",
-        src: "img/logo.svg",
+        src: "img/logo-dark-mode.svg",
         srcDark: "img/logo-dark-mode.svg",
       },
       items: [
