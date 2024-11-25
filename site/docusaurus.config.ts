@@ -80,7 +80,7 @@ const config: Config = {
             },
             {
               label: "Tutorial: Full Project",
-              to: "/docs/tutorial-minimal/",
+              to: "/docs/tutorial-full/",
             },
           ],
         },
