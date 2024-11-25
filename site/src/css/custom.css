@@ -81,3 +81,7 @@ pre code:has(.code-block-diff-add-line) {
 pre code:has(.code-block-diff-remove-line) {
   padding-left: 40px !important;
 }
+
+.navbar__brand {
+  margin-top: -1rem;
+}
