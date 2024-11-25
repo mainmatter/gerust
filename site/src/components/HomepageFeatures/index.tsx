@@ -10,11 +10,12 @@ type FeatureItem = {
   description: JSX.Element;
 };
 
-const FeatureList: FeatureItem[] = [
-  {
-    title: "Separation of Concerns",
-    code: {
-      block: `.
+const FeatureList: FeatureItem[][] = [
+  [
+    {
+      title: "Separation of Concerns",
+      code: {
+        block: `.
 ├── Cargo.toml
 ├── cli
 │   └── …
@@ -30,20 +31,20 @@ const FeatureList: FeatureItem[] = [
 
 
 `,
-      language: "",
+        language: "",
+      },
+      description: (
+        <>
+          Using Cargo workspaces, Gerust separates concerns clearly, improving
+          maintainability and compile times.
+        </>
+      ),
     },
-    description: (
-      <>
-        Using Cargo workspaces, Gerust separates concerns clearly, improving
-        maintainability and compile times.
-      </>
-    ),
-  },
-  {
-    title: "Clear Folder Structure",
-    code: {
-      language: "",
-      block: `web
+    {
+      title: "Clear Folder Structure",
+      code: {
+        language: "",
+        block: `web
 ├── src
 │   ├── controllers
 │   │   ├── mod.rs
@@ -58,19 +59,19 @@ const FeatureList: FeatureItem[] = [
 └── tests
     └── api
         └── tasks_test.rs`,
+      },
+      description: (
+        <>
+          A clear folder structure with defined places for different elements
+          supports effective collaboration.
+        </>
+      ),
     },
-    description: (
-      <>
-        A clear folder structure with defined places for different elements
-        supports effective collaboration.
-      </>
-    ),
-  },
-  {
-    title: "Complete Data Layer",
-    code: {
-      language: "rust",
-      block: `#[derive(Serialize, Debug, Deserialize)]
+    {
+      title: "Complete Data Layer",
+      code: {
+        language: "rust",
+        block: `#[derive(Serialize, Debug, Deserialize)]
 pub struct Task {
     pub id: Uuid,
     pub description: String,
@@ -85,19 +86,21 @@ pub struct TaskChangeset {
 
 pub async fn load(id: Uuid, executor: impl sqlx::Executor<'_, Database = Postgres>) -> Result<Task, crate::Error> {
   …`,
+      },
+      description: (
+        <>
+          Gerust comes with a complete data layer based on SQLx with entities,
+          migrations, validations, changesets, and more.
+        </>
+      ),
     },
-    description: (
-      <>
-        Gerust comes with a complete data layer based on SQLx with entities,
-        migrations, validations, changesets, and more.
-      </>
-    ),
-  },
-  {
-    title: "Testing",
-    code: {
-      language: "rust",
-      block: `#[db_test]
+  ],
+  [
+    {
+      title: "Testing",
+      code: {
+        language: "rust",
+        block: `#[db_test]
 async fn test_read_all(context: &DbTestContext) {
     let task_changeset: TaskChangeset = Faker.fake();
     create_task(task_changeset.clone(), &context.db_pool).await.unwrap();
@@ -112,19 +115,19 @@ async fn test_read_all(context: &DbTestContext) {
     let tasks: TasksList = response.into_body().into_json::<TasksList>().await;
     assert_that!(tasks, len(eq(1)));
 }`,
+      },
+      description: (
+        <>
+          Gerust projects are fully testable with abstractions built-in for
+          database-backed tests with complete isolation.
+        </>
+      ),
     },
-    description: (
-      <>
-        Gerust projects are fully testable with abstractions built-in for
-        database-backed tests with complete isolation.
-      </>
-    ),
-  },
-  {
-    title: "Migrations & Seed Data",
-    code: {
-      language: "",
-      block: `» cargo db migrate -e test
+    {
+      title: "Migrations & Seed Data",
+      code: {
+        language: "",
+        block: `» cargo db migrate -e test
 ℹ️  Migrating test database…
      Applied migration 1732531458.
 ✅ 1 migrations applied.
@@ -139,16 +142,16 @@ async fn test_read_all(context: &DbTestContext) {
 
     
     `,
+      },
+      description: (
+        <>Gerust generates and runs migrations and maintains seed data.</>
+      ),
     },
-    description: (
-      <>Gerust generates and runs migrations and maintains seed data.</>
-    ),
-  },
-  {
-    title: "Scaffolding",
-    code: {
-      language: "",
-      block: `» cargo generate help
+    {
+      title: "Scaffolding",
+      code: {
+        language: "",
+        block: `» cargo generate help
 A CLI tool to generate project files.
       
 Usage: generate [OPTIONS] <COMMAND>
@@ -164,14 +167,15 @@ Commands:
 
 
 `,
+      },
+      description: (
+        <>
+          Gerust comes with tooling for generating e.g. controllers,
+          middlewares, and entities – with scaffolding for maximum productivity.
+        </>
+      ),
     },
-    description: (
-      <>
-        Gerust comes with tooling for generating e.g. controllers, middlewares,
-        and entities – with scaffolding for maximum productivity.
-      </>
-    ),
-  },
+  ],
 ];
 
 function Feature({ title, Svg, code, description }: FeatureItem) {
@@ -197,11 +201,13 @@ export default function HomepageFeatures(): JSX.Element {
   return (
     <section className={styles.features}>
       <div className="container">
-        <div className="row">
-          {FeatureList.map((props, idx) => (
-            <Feature key={idx} {...props} />
-          ))}
-        </div>
+        {FeatureList.map((row) => (
+          <div className="row">
+            {row.map((props, idx) => (
+              <Feature key={idx} {...props} />
+            ))}
+          </div>
+        ))}
       </div>
     </section>
   );

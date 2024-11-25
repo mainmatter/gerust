@@ -160,3 +160,9 @@ pre code:has(.code-block-diff-remove-line) {
     display: block;
   }
 }
+
+@media screen and (min-width: 997px) {
+  .row + .row {
+    margin-top: 4rem;
+  }
+}
