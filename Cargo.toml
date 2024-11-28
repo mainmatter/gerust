@@ -9,7 +9,7 @@ keywords = ["backend", "axum"]
 homepage = "https://gerust.rs"
 repository = "https://github.com/mainmatter/gerust"
 license = "MIT"
-include = ["blueprints", "src", "build.rs"]
+include = ["blueprint", "src", "build.rs"]
 exclude = ["site"]
 
 [[bin]]
