@@ -1,15 +1,13 @@
 {%- if has_db -%}
-use crate::test_helpers::{BodyExt, DbTestContext, RouterExt};
+use {{crate_name}}_web::test_helpers::{BodyExt, DbTestContext, RouterExt};
 {% else %}
-use crate::test_helpers::{BodyExt, TestContext, RouterExt};
+use {{crate_name}}_web::test_helpers::{BodyExt, DbTestContext, RouterExt};
 {%- endif -%}
 use axum::{body::Body, http::Method};
 use googletest::prelude::*;
 use hyper::StatusCode;
 use {{macros_crate_name}}::test;
 use std::collections::HashMap;
-
-use crate::common;
 
 #[db_test]
 {%- if has_db %}

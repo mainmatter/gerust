@@ -1,4 +1,4 @@
-use crate::test_helpers::{BodyExt, DbTestContext, RouterExt};
+use {{crate_name}}_web::test_helpers::{BodyExt, DbTestContext, RouterExt};
 use axum::{
     body::Body,
     http::{self, Method},
@@ -11,8 +11,6 @@ use {{macros_crate_name}}::db_test;
 use serde_json::json;
 use std::collections::HashMap;
 use uuid::Uuid;
-
-use crate::common;
 
 #[db_test]
 async fn test_create_invalid(context: &DbTestContext) {
