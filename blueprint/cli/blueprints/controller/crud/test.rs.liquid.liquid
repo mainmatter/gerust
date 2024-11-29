@@ -25,7 +25,7 @@ async fn test_create_invalid(context: &DbTestContext) {
         .app
         .request("/{{entity_plural_name}}")
         .method(Method::POST)
-        .body(payload.to_string())
+        .body(Body::from(payload.to_string()))
         .header(http::header::CONTENT_TYPE, "application/json")
         .send()
         .await;
@@ -46,14 +46,14 @@ async fn test_create_success(context: &DbTestContext) {
         .app
         .request("/{{entity_plural_name}}")
         .method(Method::POST)
-        .body(payload.to_string())
+        .body(Body::from(payload.to_string()))
         .header(http::header::CONTENT_TYPE, "application/json")
         .send()
         .await;
 
     assert_that!(response.status(), eq(StatusCode::CREATED));
 
-    let {{entity_plural_name}} = {{entity_plural_name}} = entities::{{entity_plural_name}}::load_all(&app_state.db_pool);
+    let {{entity_plural_name}} = entities::{{entity_plural_name}}::load_all(&context.db_pool).await.unwrap();
     assert_that!({{entity_plural_name}}, len(eq(1)));
     assert_that!(
         {{entity_plural_name}}.first().unwrap().description,
@@ -97,7 +97,7 @@ async fn test_read_one_nonexistent(context: &DbTestContext) {
     let response = context
         .app
         .request(&format!("/{{entity_plural_name}}/{}", Uuid::new_v4()))
-        .body(payload.to_string())
+        .body(Body::from(payload.to_string()))
         .send()
         .await;
 
@@ -124,7 +124,7 @@ async fn test_read_one_success(context: &DbTestContext) {
 
     assert_that!(response.status(), eq(StatusCode::OK));
 
-    let {{entity_singular_name}}: entities::{{entity_plural_name}}::{{entity_struct_name}} = response.into_body().into_json::<entities::{{entity_plural_name}}::{{entity_struct_name}}>(response).await;
+    let {{entity_singular_name}}: entities::{{entity_plural_name}}::{{entity_struct_name}} = response.into_body().into_json::<entities::{{entity_plural_name}}::{{entity_struct_name}}>().await;
     assert_that!({{entity_singular_name}}.id, eq({{entity_singular_name}}_id));
     assert_that!({{entity_singular_name}}.description, eq({{entity_singular_name}}_changeset.description));
     */
@@ -148,7 +148,7 @@ async fn test_update_invalid(context: &DbTestContext) {
         .app
         .request(&format!("/{{entity_plural_name}}/{}", {{entity_singular_name}}_id))
         .method(Method::PUT)
-        .body(payload.to_string())
+        .body(Body::from(payload.to_string()))
         .header(http::header::CONTENT_TYPE, "application/json")
         .send()
         .await;
@@ -172,7 +172,7 @@ async fn test_update_nonexistent(context: &DbTestContext) {
         .app
         .request(&format!("/{{entity_plural_name}}/{}", Uuid::new_v4()))
         .method(Method::PUT)
-        .body(payload.to_string())
+        .body(Body::from(payload.to_string()))
         .header(http::header::CONTENT_TYPE, "application/json")
         .send()
         .await;
@@ -198,7 +198,7 @@ async fn test_update_success(context: &DbTestContext) {
         .app
         .request(&format!("/{{entity_plural_name}}/{}", {{entity_singular_name}}.id))
         .method(Method::PUT)
-        .body(payload.to_string())
+        .body(Body::from(payload.to_string()))
         .header(http::header::CONTENT_TYPE, "application/json")
         .send()
         .await;
