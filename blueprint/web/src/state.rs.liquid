@@ -20,7 +20,7 @@ pub type SharedAppState = Arc<AppState>;
 /// Initializes the application state.
 ///
 /// This function creates an [`AppState`] based on the current [`{{crate_name}}_config::Config`].
-{% if template_type != "minimal" %}
+{%- if template_type != "minimal" %}
 pub async fn init_app_state(config: Config) -> AppState {
     let db_pool = connect_pool(config.database)
         .await
@@ -28,7 +28,7 @@ pub async fn init_app_state(config: Config) -> AppState {
 
     AppState { db_pool }
 }
-{% else %}
+{%- else %}
 pub async fn init_app_state(_config: Config) -> AppState {
     AppState {}
 }
