@@ -6,7 +6,7 @@ const config: Config = {
   title: "Gerust",
   favicon: "img/favicon.ico",
 
-  url: "https://docs.gerust.rs",
+  url: "https://gerust.rs",
   baseUrl: "/",
 
   organizationName: "mainmatter",
