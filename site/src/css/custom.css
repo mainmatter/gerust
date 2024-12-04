@@ -150,3 +150,15 @@ pre {
     margin-top: 4rem;
   }
 }
+
+.video-container {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.video-container iframe {
+  padding: 0 var(--ifm-spacing-horizontal);
+  aspect-ratio: 16 / 9;
+  height: auto;
+}
