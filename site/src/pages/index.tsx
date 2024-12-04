@@ -23,8 +23,8 @@ function HomepageHeader() {
           }}
         />
         <p className={styles.heroText}>
-          Gerust takes care of the accidental complexity of Rust backend
-          projects so you can stay focused on what matters.
+          Gerust is a generator for Rust backend projects. It takes care of the
+          accidental complexity so you can stay focused on what matters.
         </p>
         <p className={styles.heroText}>
           Gerust projects build on top of{" "}
