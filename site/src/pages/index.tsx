@@ -46,7 +46,7 @@ export default function Home(): JSX.Element {
   return (
     <Layout
       title="Gerust: Rust backend project generator"
-      description="Gerust is a project generator for Rust backend projects. It takes care of the accidental complexity of Rust backend projects so you can stay focused on what matters."
+      description="Gerust is a project generator for Rust backend projects. It takes care of the accidental complexity so you can stay focused on what matters."
     >
       <HomepageHeader />
       <main>
