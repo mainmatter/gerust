@@ -40,6 +40,10 @@ const config: Config = {
 
   themeConfig: {
     image: "img/og-image.png",
+    metadata: [
+      { name: "twitter:creator", content: "@mainmatter" },
+      { name: "fediverse:creator", content: "@mainmatter@fosstodon.org" },
+    ],
     navbar: {
       logo: {
         alt: "Gerust Logo",
