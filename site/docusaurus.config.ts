@@ -38,6 +38,14 @@ const config: Config = {
     ],
   ],
 
+  scripts: [
+    {
+      defer: true,
+      src: "https://plausible.io/js/script.js",
+      "data-domain": "gerust.rs",
+    },
+  ],
+
   themeConfig: {
     image: "img/og-image.png",
     metadata: [
