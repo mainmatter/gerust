@@ -14,6 +14,14 @@ pub struct Config {
 }
 ```
 
+TODO
+- mention that database config is supposed to be changed by environment variables only i.e. `APP_DATABASE__URL`, `APP_DATABASE__NAME`.
+  - Add rationale i.e. avoid accidentally pushing database connection url to the repo.
+- explain, possibly rename `app.toml` to `global.toml` alternatively it should say `server.toml` to match the `ServerConfig` struct name,
+indicating its content changes only that particular struct.
+- Add flow diagram that describes how config is built from different sources: app.toml -> environments/[env].toml -> APP_SERVER__NESTED_FIELD environment variables.
+- Changing app.toml and environment files only changes the top level config and not inside Server. How to add and change Server config using config files?
+
 Gerust uses [figment](https://crates.io/crates/figment) to populate the `Config` struct from environment variables and TOML files such that:
 
 * the `ServerConfig` that contains interface and port to bind to, is populated from the `APP_SERVER__IP` and `APP_SERVER__PORT` environment variables.
@@ -21,3 +29,5 @@ Gerust uses [figment](https://crates.io/crates/figment) to populate the `Config`
 * the `DatabaseConfig` that contains the connection URL for the database is populated from the `APP_DATABASE__URL` environment variable.
 {%- endunless %}
 * any application-specific configuration values are read from the `app.toml` and environment-specific configuration files such that settings in the environment-specific configuration files override values for the same setting in `app.toml`.
+
+
