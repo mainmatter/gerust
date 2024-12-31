@@ -1,12 +1,12 @@
-{%- if has_db -%}
-use {{crate_name}}_web::test_helpers::{BodyExt, DbTestContext, RouterExt};
-{% else %}
-use {{crate_name}}_web::test_helpers::{BodyExt, DbTestContext, RouterExt};
-{%- endif -%}
 use axum::{body::Body, http::Method};
 use googletest::prelude::*;
 use hyper::StatusCode;
 use {{macros_crate_name}}::test;
+{% if has_db -%}
+use {{web_crate_name}}::test_helpers::{BodyExt, DbTestContext, RouterExt};
+{% else %}
+use {{web_crate_name}}::test_helpers::{BodyExt, TestContext, RouterExt};
+{%- endif -%}
 use std::collections::HashMap;
 
 #[db_test]

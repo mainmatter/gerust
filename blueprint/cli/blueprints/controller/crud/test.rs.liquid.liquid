@@ -1,4 +1,3 @@
-use {{crate_name}}_web::test_helpers::{BodyExt, DbTestContext, RouterExt};
 use axum::{
     body::Body,
     http::{self, Method},
@@ -8,6 +7,7 @@ use googletest::prelude::*;
 use hyper::StatusCode;
 use {{db_crate_name}}::{entities, transaction, Error};
 use {{macros_crate_name}}::db_test;
+use {{web_crate_name}}::test_helpers::{BodyExt, DbTestContext, RouterExt};
 use serde_json::json;
 use std::collections::HashMap;
 use uuid::Uuid;
