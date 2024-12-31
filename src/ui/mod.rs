@@ -91,7 +91,7 @@ impl<'a> UI<'a> {
     /// Prints an error message.
     ///
     /// If color output is enabled (see [`UI::new`]), the message will be formatted. If debug output is enabled (see [`UI::new`]), the error's stack trace will be printed as well.
-    pub fn error(&mut self, msg: &str, e: anyhow::Error) {
+    pub fn error(&mut self, msg: &str, e: &anyhow::Error) {
         let indentation = self.indentation();
         self.errout(&format!("{}{}{}", indentation, self.error_prefix, msg));
         if self.debug {
@@ -169,7 +169,7 @@ mod tests {
         ui.log("a general message");
         ui.info("an info message");
         ui.success("a success message ✓");
-        ui.error("an error message :(", anyhow!("oh no…"));
+        ui.error("an error message :(", &anyhow!("oh no…"));
 
         let output = read_buffer(stdout);
         let error_output = read_buffer(stderr);
@@ -192,7 +192,7 @@ mod tests {
         ui.log("a general message");
         ui.info("an info message");
         ui.success("a success message ✓");
-        ui.error("an error message :(", anyhow!("oh no…"));
+        ui.error("an error message :(", &anyhow!("oh no…"));
 
         let output = read_buffer(stdout);
         let error_output = read_buffer(stderr);
