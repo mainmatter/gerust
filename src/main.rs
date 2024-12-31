@@ -110,7 +110,7 @@ async fn main() {
         }
         Err(e) => {
             ui.outdent();
-            ui.error("Could not generate project!", e);
+            ui.error("Could not generate project!", &e);
         }
     }
 }
