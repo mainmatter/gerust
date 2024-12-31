@@ -10,16 +10,18 @@ use sqlx::{
     ConnectOptions, Connection, Executor,
 };
 use tokio::io::{stdin, AsyncBufReadExt};
-
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Stdio;
+use std::process::{ExitCode, Stdio};
 use url::Url;
 
 #[tokio::main]
-async fn main() {
-    cli().await;
+async fn main() -> ExitCode {
+    match cli().await {
+        Ok(_) => ExitCode::SUCCESS,
+        Err(_) => ExitCode::FAILURE,
+    }
 }
 
 #[derive(Parser)]
@@ -56,7 +58,7 @@ enum Commands {
 }
 
 #[allow(missing_docs)]
-async fn cli() {
+async fn cli() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
 
     let mut stdout = std::io::stdout();
@@ -65,105 +67,131 @@ async fn cli() {
 
     let config: Result<Config, anyhow::Error> = load_config(&cli.env);
     match config {
-        Ok(config) => match cli.command {
-            Commands::Drop => {
-                ui.info(&format!("Dropping {} database…", &cli.env));
-                match drop(&config.database).await {
-                    Ok(db_name) => {
-                        ui.success(&format!("Dropped database {} successfully.", &db_name))
-                    }
-                    Err(e) => ui.error("Could not drop database!", e),
-                }
-            }
-            Commands::Create => {
-                ui.info(&format!("Creating {} database…", &cli.env));
-                match create(&config.database).await {
-                    Ok(db_name) => {
-                        ui.success(&format!("Created database {} successfully.", &db_name))
-                    }
-                    Err(e) => ui.error("Could not create database!", e),
-                }
-            }
-            Commands::Migrate => {
-                ui.info(&format!("Migrating {} database…", &cli.env));
-                ui.indent();
-                match migrate(&mut ui, &config.database).await {
-                    Ok(migrations) => {
-                        ui.outdent();
-                        ui.success(&format!("{} migrations applied.", migrations));
-                    }
-                    Err(e) => {
-                        ui.outdent();
-                        ui.error("Could not migrate database!", e);
-                    }
-                }
-            }
-            Commands::Seed => {
-                ui.info(&format!("Seeding {} database…", &cli.env));
-                match seed(&config.database).await {
-                    Ok(_) => ui.success("Seeded database successfully."),
-                    Err(e) => ui.error("Could not seed database!", e),
-                }
-            }
-            Commands::Reset => {
-                ui.info(&format!("Resetting {} database…", &cli.env));
-                ui.indent();
-                match reset(&mut ui, &config.database).await {
-                    Ok(db_name) => {
-                        ui.outdent();
-                        ui.success(&format!("Reset database {} successfully.", db_name));
-                    }
-                    Err(e) => {
-                        ui.outdent();
-                        ui.error("Could not reset database!", e)
-                    }
-                }
-            }
-            Commands::Prepare => {
-                if let Err(e) = ensure_sqlx_cli_installed(&mut ui).await {
-                    ui.error("Error ensuring sqlx-cli is installed!", e);
-                    return;
-                }
-
-                let cargo = get_cargo_path().expect("Existence of CARGO env var is asserted by calling `ensure_sqlx_cli_installed`");
-
-                let mut sqlx_prepare_command = {
-                    let mut cmd = tokio::process::Command::new(&cargo);
-
-                    cmd.args(["sqlx", "prepare", "--", "--all-targets", "--all-features"]);
-
-                    let cmd_cwd = match db_package_root() {
-                        Ok(cwd) => cwd,
+        Ok(config) => {
+            match cli.command {
+                Commands::Drop => {
+                    ui.info(&format!("Dropping {} database…", &cli.env));
+                    match drop(&config.database).await {
+                        Ok(db_name) => {
+                            ui.success(&format!("Dropped database {} successfully.", &db_name));
+                            Ok(())
+                        }
                         Err(e) => {
-                            ui.error("Error finding the root of the db package", e);
-                            return;
+                            ui.error("Could not drop database!", &e);
+                            Err(e)
+                        }
+                    }
+                }
+                Commands::Create => {
+                    ui.info(&format!("Creating {} database…", &cli.env));
+                    match create(&config.database).await {
+                        Ok(db_name) => {
+                            ui.success(&format!("Created database {} successfully.", &db_name));
+                            Ok(())
+                        }
+                        Err(e) => {
+                            ui.error("Could not create database!", &e);
+                            Err(e)
+                        }
+                    }
+                }
+                Commands::Migrate => {
+                    ui.info(&format!("Migrating {} database…", &cli.env));
+                    ui.indent();
+                    match migrate(&mut ui, &config.database).await {
+                        Ok(migrations) => {
+                            ui.outdent();
+                            ui.success(&format!("{} migrations applied.", migrations));
+                            Ok(())
+                        }
+                        Err(e) => {
+                            ui.outdent();
+                            ui.error("Could not migrate database!", &e);
+                            Err(e)
+                        }
+                    }
+                }
+                Commands::Seed => {
+                    ui.info(&format!("Seeding {} database…", &cli.env));
+                    match seed(&config.database).await {
+                        Ok(_) => {
+                            ui.success("Seeded database successfully.");
+                            Ok(())
+                        }
+                        Err(e) => {
+                            ui.error("Could not seed database!", &e);
+                            Err(e)
+                        }
+                    }
+                }
+                Commands::Reset => {
+                    ui.info(&format!("Resetting {} database…", &cli.env));
+                    ui.indent();
+                    match reset(&mut ui, &config.database).await {
+                        Ok(db_name) => {
+                            ui.outdent();
+                            ui.success(&format!("Reset database {} successfully.", db_name));
+                            Ok(())
+                        }
+                        Err(e) => {
+                            ui.outdent();
+                            ui.error("Could not reset database!", &e);
+                            Err(e)
+                        }
+                    }
+                }
+                Commands::Prepare => {
+                    if let Err(e) = ensure_sqlx_cli_installed(&mut ui).await {
+                        ui.error("Error ensuring sqlx-cli is installed!", &e);
+                        return Err(e);
+                    }
+
+                    let cargo = get_cargo_path().expect("Existence of CARGO env var is asserted by calling `ensure_sqlx_cli_installed`");
+
+                    let mut sqlx_prepare_command = {
+                        let mut cmd = tokio::process::Command::new(&cargo);
+
+                        cmd.args(["sqlx", "prepare", "--", "--all-targets", "--all-features"]);
+
+                        let cmd_cwd = match db_package_root() {
+                            Ok(cwd) => cwd,
+                            Err(e) => {
+                                ui.error("Error finding the root of the db package", &e);
+                                return Err(e);
+                            }
+                        };
+                        cmd.current_dir(cmd_cwd);
+
+                        cmd.env("DATABASE_URL", &config.database.url);
+                        cmd
+                    };
+
+                    let o = match sqlx_prepare_command.output().await {
+                        Ok(o) => o,
+                        Err(e) => {
+                            let error = anyhow::Error::from(e);
+                            ui.error(&format!("Could not run {cargo} sqlx prepare!"), &error);
+                            return Err(error);
                         }
                     };
-                    cmd.current_dir(cmd_cwd);
-
-                    cmd.env("DATABASE_URL", &config.database.url);
-                    cmd
-                };
-
-                let o = match sqlx_prepare_command.output().await {
-                    Ok(o) => o,
-                    Err(e) => {
-                        ui.error(&format!("Could not run {cargo} sqlx prepare!"), e.into());
-                        return;
-                    }
-                };
-                if !o.status.success() {
-                    ui.error(
+                    if !o.status.success() {
+                        let error = anyhow!(String::from_utf8_lossy(&o.stdout).to_string());
+                        ui.error(
                         "Error generating query metadata. Are you sure the database is running and all migrations are applied?",
-                        anyhow!(String::from_utf8_lossy(&o.stdout).to_string()),
+                        &error
                     );
-                    return;
-                }
+                        return Err(error);
+                    }
 
-                ui.success("Query data written to db/.sqlx directory; please check this into version control.");
+                    ui.success("Query data written to db/.sqlx directory; please check this into version control.");
+                    Ok(())
+                }
             }
-        },
-        Err(e) => ui.error("Could not load config!", e),
+        }
+        Err(e) => {
+            ui.error("Could not load config!", &e);
+            Err(e)
+        }
     }
 }
 
