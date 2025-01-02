@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand};
 use cruet::{
-    case::{snake::to_snake_case, {%- if template_type != "minimal" -%}title::to_title_case{%- endif -%}},
+    case::{snake::to_snake_case, {%- if template_type != "minimal" -%}to_class_case{%- endif -%}},
 {% if template_type != "minimal" -%}
     string::{pluralize::to_plural, singularize::to_singular},
 {% endif -%}
@@ -263,7 +263,7 @@ async fn generate_migration(name: String) -> Result<String, anyhow::Error> {
 async fn generate_entity(name: String) -> Result<String, anyhow::Error> {
     let name = to_singular(&name).to_lowercase();
     let name_plural = to_plural(&name);
-    let struct_name = to_title_case(&name);
+    let struct_name = to_class_case(&name);
 
     let template = get_liquid_template("entity/file.rs")?;
     let variables = liquid::object!({
@@ -290,7 +290,7 @@ async fn generate_entity(name: String) -> Result<String, anyhow::Error> {
 async fn generate_entity_test_helper(name: String) -> Result<String, anyhow::Error> {
     let name = to_singular(&name).to_lowercase();
     let name_plural = to_plural(&name);
-    let struct_name = to_title_case(&name);
+    let struct_name = to_class_case(&name);
 
     let template = get_liquid_template("entity-test-helper/file.rs")?;
     let variables = liquid::object!({
@@ -318,7 +318,7 @@ async fn generate_crud_controller(name: String) -> Result<String, anyhow::Error>
     let name = to_snake_case(&name).to_lowercase();
     let name_plural = to_plural(&name);
     let name_singular = to_singular(&name);
-    let struct_name = to_title_case(&name_singular);
+    let struct_name = to_class_case(&name_singular);
     let db_crate_name = get_member_package_name("db")?;
     let db_crate_name = to_snake_case(&db_crate_name);
     let macros_crate_name = get_member_package_name("macros")?;
@@ -350,7 +350,7 @@ async fn generate_crud_controller_test(name: String) -> Result<String, anyhow::E
     let name = to_snake_case(&name).to_lowercase();
     let name_plural = to_plural(&name);
     let name_singular = to_singular(&name);
-    let struct_name = to_title_case(&name_singular);
+    let struct_name = to_class_case(&name_singular);
     let db_crate_name = get_member_package_name("db")?;
     let db_crate_name = to_snake_case(&db_crate_name);
     let macros_crate_name = get_member_package_name("macros")?;
