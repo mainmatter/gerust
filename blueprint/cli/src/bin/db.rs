@@ -93,8 +93,9 @@ async fn cli(mut ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
                     ui.indent();
                     let migrations = migrate(&mut ui, &config.database)
                         .await
-                        .context("Could not migrate database!")?;
+                        .context("Could not migrate database!");
                     ui.outdent();
+                    let migrations = migrations?;
                     ui.success(&format!("{} migrations applied.", migrations));
                     Ok(())
                 }
@@ -129,12 +130,7 @@ async fn cli(mut ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
                 
                         cmd.args(["sqlx", "prepare", "--", "--all-targets", "--all-features"]);
                 
-                        let cmd_cwd = match db_package_root() {
-                            Ok(cwd) => cwd,
-                            Err(e) => {
-                                return Err(e.context("Error finding the root of the db package!"));
-                            }
-                        };
+                        let cmd_cwd = db_package_root().context("Error finding the root of the db package!")?;
                         cmd.current_dir(cmd_cwd);
                 
                         cmd.env("DATABASE_URL", &config.database.url);
