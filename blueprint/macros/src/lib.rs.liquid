@@ -22,6 +22,7 @@ use syn::{parse_macro_input, ItemFn};
 #[proc_macro_attribute]
 pub fn test(_: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemFn);
+    let test_attrs = input.attrs;
     let test_name = input.sig.ident.clone();
     let test_arguments = input.sig.inputs;
     let test_block = input.block;
@@ -36,6 +37,7 @@ pub fn test(_: TokenStream, item: TokenStream) -> TokenStream {
 
     let output = quote!(
         #[::tokio::test]
+        #(#test_attrs)*
         async fn #test_name() {
             #setup
             async fn #inner_test_name(#test_arguments) #test_block
@@ -82,6 +84,7 @@ pub fn test(_: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn db_test(_: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemFn);
+    let test_attrs = input.attrs;
     let test_name = input.sig.ident.clone();
     let test_arguments = input.sig.inputs;
     let test_block = input.block;
@@ -100,6 +103,7 @@ pub fn db_test(_: TokenStream, item: TokenStream) -> TokenStream {
 
     let output = quote!(
         #[::tokio::test]
+        #(#test_attrs)*
         async fn #test_name() {
             #setup
             async fn #inner_test_name(#test_arguments) #test_block
