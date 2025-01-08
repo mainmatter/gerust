@@ -21,9 +21,18 @@ static BLUEPRINTS_DIR: include_dir::Dir =
 
 #[tokio::main]
 async fn main() -> ExitCode {
-    match cli().await {
+    let mut stdout = std::io::stdout();
+    let mut stderr = std::io::stderr();
+
+    let args = Cli::parse();
+    let mut ui = UI::new(&mut stdout, &mut stderr, !args.no_color, !args.quiet);
+
+    match cli(&mut ui, args).await {
         Ok(_) => ExitCode::SUCCESS,
-        Err(_) => ExitCode::FAILURE,
+        Err(e) => {
+            ui.error(e.to_string().as_str(), &e);
+            ExitCode::FAILURE
+        }
     }
 }
 
@@ -88,146 +97,92 @@ enum Commands {
 }
 
 #[allow(missing_docs)]
-async fn cli() -> Result<(), anyhow::Error> {
-    let cli = Cli::parse();
-    let mut stdout = std::io::stdout();
-    let mut stderr = std::io::stderr();
-    let mut ui = UI::new(&mut stdout, &mut stderr, !cli.no_color, !cli.quiet);
-
+async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
     match cli.command {
         Commands::Middleware { name } => {
             ui.info("Generating middleware…");
-            match generate_middleware(name).await {
-                Ok(file_name) => {
-                    ui.success(&format!("Generated middleware {}.", &file_name));
-                    Ok(())
-                }
-                Err(e) => {
-                    ui.error("Could not generate middleware!", &e);
-                    Err(e)
-                }
-            }
+            let file_name = generate_middleware(name)
+                .await
+                .context("Could not generate middleware!")?;
+            ui.success(&format!("Generated middleware {}.", &file_name));
+            Ok(())
         }
         Commands::Controller { name } => {
             ui.info("Generating controller…");
-            match generate_controller(name.clone()).await {
-                Ok(file_name) => {
-                    ui.success(&format!("Generated controller {}.", &file_name));
-                    ui.info(
-                        "Do not forget to route the controller's actions in ./web/src/routes.rs!",
-                    );
-                }
-                Err(e) => ui.error("Could not generate controller!", &e),
-            }
+            let file_name = generate_controller(name.clone())
+                .await
+                .context("Could not generate controller!")?;
+            ui.success(&format!("Generated controller {}.", &file_name));
+            ui.info("Do not forget to route the controller's actions in ./web/src/routes.rs!");
             ui.info("Generating test for controller…");
-            match generate_controller_test(name).await {
-                Ok(file_name) => {
-                    ui.success(&format!("Generated test for controller {}.", &file_name));
-                    Ok(())
-                }
-                Err(e) => {
-                    ui.error("Could not generate test for controller!", &e);
-                    Err(e)
-                }
-            }
+            let file_name = generate_controller_test(name)
+                .await
+                .context("Could not generate test for controller!")?;
+            ui.success(&format!("Generated test for controller {}.", &file_name));
+            Ok(())
         }
         Commands::ControllerTest { name } => {
             ui.info("Generating test for controller…");
-            match generate_controller_test(name).await {
-                Ok(file_name) => {
-                    ui.success(&format!("Generated test for controller {}.", &file_name));
-                    Ok(())
-                }
-                Err(e) => {
-                    ui.error("Could not generate test for controller!", &e);
-                    Err(e)
-                }
-            }
+            let file_name = generate_controller_test(name)
+                .await
+                .context("Could not generate test for controller!")?;
+            ui.success(&format!("Generated test for controller {}.", &file_name));
+            Ok(())
         }
         {% if template_type != "minimal" -%}
         Commands::Migration { name } => {
             ui.info("Generating migration…");
-            match generate_migration(name).await {
-                Ok(file_name) => {
-                    ui.success(&format!("Generated migration {}.", &file_name));
-                    Ok(())
-                }
-                Err(e) => {
-                    ui.error("Could not generate migration!", &e);
-                    Err(e)
-                }
-            }
+            let file_name = generate_migration(name)
+                .await
+                .context("Could not generate migration!")?;
+            ui.success(&format!("Generated migration {}.", &file_name));
+            Ok(())
         }
         Commands::Entity { name } => {
             ui.info("Generating entity…");
-            match generate_entity(name).await {
-                Ok(struct_name) => {
-                    ui.success(&format!("Generated entity {}.", &struct_name));
-                    Ok(())
-                }
-                Err(e) => {
-                    ui.error("Could not generate entity!", &e);
-                    Err(e)
-                }
-            }
+            let struct_name = generate_entity(name)
+                .await
+                .context("Could not generate entity!")?;
+            ui.success(&format!("Generated entity {}.", &struct_name));
+            Ok(())
         }
         Commands::EntityTestHelper { name } => {
             ui.info("Generating entity test helper…");
-            match generate_entity_test_helper(name).await {
-                Ok(struct_name) => {
-                    ui.success(&format!(
-                        "Generated test helper for entity {}.",
-                        &struct_name
-                    ));
-                    Ok(())
-                }
-                Err(e) => {
-                    ui.error("Could not generate entity test helper!", &e);
-                    Err(e)
-                }
-            }
+            let struct_name = generate_entity_test_helper(name)
+                .await
+                .context("Could not generate entity test helper!")?;
+            ui.success(&format!(
+                "Generated test helper for entity {}.",
+                &struct_name
+            ));
+            Ok(())
         }
         Commands::CrudController { name } => {
             ui.info("Generating CRUD controller…");
-            match generate_crud_controller(name.clone()).await {
-                Ok(file_name) => {
-                    ui.success(&format!("Generated CRUD controller {}.", &file_name));
-                    ui.info(
-                        "Do not forget to route the controller's actions in ./web/src/routes.rs!",
-                    );
-                }
-                Err(e) => ui.error("Could not generate CRUD controller!", &e),
-            }
-            ui.info("Generating test for CRUD controller…");
-            match generate_crud_controller_test(name).await {
-                Ok(file_name) => {
-                    ui.success(&format!(
-                        "Generated test for CRUD controller {}.",
-                        &file_name
-                    ));
-                    Ok(())
-                }
-                Err(e) => {
-                    ui.error("Could not generate test for CRUD controller!", &e);
-                    Err(e)
-                }
-            }
+            let file_name = generate_crud_controller(name.clone())
+                .await
+                .context("Could not generate CRUD controller!")?;
+            ui.success(&format!("Generated CRUD controller {}.", &file_name));
+            ui.info("Do not forget to route the controller's actions in ./web/src/routes.rs!");
+            let file_name = generate_crud_controller_test(name.clone())
+                .await
+                .context("Could not generate test for CRUD controller!")?;
+            ui.success(&format!(
+                "Generated test for CRUD controller {}.",
+                &file_name
+            ));
+            Ok(())
         }
         Commands::CrudControllerTest { name } => {
             ui.info("Generating test for CRUD controller…");
-            match generate_crud_controller_test(name).await {
-                Ok(file_name) => {
-                    ui.success(&format!(
-                        "Generated test for CRUD controller {}.",
-                        &file_name
-                    ));
-                    Ok(())
-                }
-                Err(e) => {
-                    ui.error("Could not generate test for CRUD controller!", &e);
-                    Err(e)
-                }
-            }
+            let file_name = generate_crud_controller_test(name.clone())
+                .await
+                .context("Could not generate test for CRUD controller!")?;
+            ui.success(&format!(
+                "Generated test for CRUD controller {}.",
+                &file_name
+            ));
+            Ok(())
         }
         {% endif -%}
     }
