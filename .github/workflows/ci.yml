@@ -59,7 +59,7 @@ jobs:
       - name: generate
         run: cargo run -- --full my-app
 
-      - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4
+      - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4
         with:
           include-hidden-files: true
           name: my-app-full
@@ -267,7 +267,7 @@ jobs:
         cd my-app
         cargo doc --workspace --all-features --no-deps
 
-    - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4
+    - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4
       with:
         include-hidden-files: true
         name: docs-full
@@ -329,7 +329,7 @@ jobs:
       - name: generate
         run: cargo run my-app
   
-      - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4
+      - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4
         with:
           include-hidden-files: true
           name: my-app-default
@@ -442,7 +442,7 @@ jobs:
         cd my-app
         cargo doc --workspace --all-features --no-deps
 
-    - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4
+    - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4
       with:
         include-hidden-files: true
         name: docs-default
@@ -582,7 +582,7 @@ jobs:
       - name: generate
         run: cargo run -- --minimal my-app
   
-      - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4
+      - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4
         with:
           include-hidden-files: true
           name: my-app-minimal
@@ -647,7 +647,7 @@ jobs:
         cd my-app
         cargo doc --workspace --no-deps
 
-    - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4
+    - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4
       with:
         include-hidden-files: true
         name: docs-minimal
