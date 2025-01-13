@@ -1,0 +1,23 @@
+name: Gravity
+
+on:
+  push:
+    branches:
+      - main
+  pull_request: {}
+
+jobs:
+  build:
+    name: Run Gravity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: cargo publish --dry-run
+      - run: cargo build -r
+      - run: pnpm dlx @gravityci/cli "./target/release/gerust" "./target/package/gerust-*.crate" # keep track of the sizes of both the .crate file as well as the binary
+        env:
+          GRAVITY_TOKEN: ${{ secrets.GRAVITY_TOKEN }}
