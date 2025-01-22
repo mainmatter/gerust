@@ -97,7 +97,6 @@ async fn test_read_one_nonexistent(context: &DbTestContext) {
     let response = context
         .app
         .request(&format!("/{{entity_plural_name}}/{}", Uuid::new_v4()))
-        .body(Body::from(payload.to_string()))
         .send()
         .await;
 
