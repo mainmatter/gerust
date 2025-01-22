@@ -12,11 +12,9 @@ use serde_json::json;
 use std::collections::HashMap;
 use uuid::Uuid;
 
+#[ignore = "not yet implemented"]
 #[db_test]
 async fn test_create_invalid(context: &DbTestContext) {
-    todo!("send invalid changeset, assert 422 response!");
-
-    /* Example:
     let payload = json!(entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset {
         description: String::from("")
     });
@@ -31,14 +29,11 @@ async fn test_create_invalid(context: &DbTestContext) {
         .await;
 
     assert_that!(response.status(), eq(StatusCode::UNPROCESSABLE_ENTITY));
-    */
 }
 
+#[ignore = "not yet implemented"]
 #[db_test]
 async fn test_create_success(context: &DbTestContext) {
-    todo!("send valid changeset, assert 201 response!");
-
-    /* Example:
     let changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
     let payload = json!(changeset);
 
@@ -59,14 +54,11 @@ async fn test_create_success(context: &DbTestContext) {
         {{entity_plural_name}}.first().unwrap().description,
         eq(&changeset.description)
     );
-    */
 }
 
+#[ignore = "not yet implemented"]
 #[db_test]
 async fn test_read_all(context: &DbTestContext) {
-    todo!("arrange DB, load all entities, assert all are returned!");
-
-    /* Example:
     let changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
     entities::{{entity_plural_name}}::create(changeset.clone(), &context.db_pool)
         .await
@@ -86,14 +78,11 @@ async fn test_read_all(context: &DbTestContext) {
         {{entity_plural_name}}.first().unwrap().description,
         eq(&changeset.description)
     );
-    */
 }
 
+#[ignore = "not yet implemented"]
 #[db_test]
 async fn test_read_one_nonexistent(context: &DbTestContext) {
-    todo!("read non-existent entity, assert 404 response!");
-
-    /* Example:
     let response = context
         .app
         .request(&format!("/{{entity_plural_name}}/{}", Uuid::new_v4()))
@@ -101,14 +90,11 @@ async fn test_read_one_nonexistent(context: &DbTestContext) {
         .await;
 
     assert_that!(response.status(), eq(StatusCode::NOT_FOUND));
-    */
 }
 
+#[ignore = "not yet implemented"]
 #[db_test]
 async fn test_read_one_success(context: &DbTestContext) {
-    todo!("arrange DB, load entity, assert it is returned!");
-
-    /* Example:
     let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
     let {{entity_singular_name}} = entities::{{entity_plural_name}}::create({{entity_singular_name}}_changeset.clone(), &context.db_pool)
         .await
@@ -126,14 +112,11 @@ async fn test_read_one_success(context: &DbTestContext) {
     let {{entity_singular_name}}: entities::{{entity_plural_name}}::{{entity_struct_name}} = response.into_body().into_json::<entities::{{entity_plural_name}}::{{entity_struct_name}}>().await;
     assert_that!({{entity_singular_name}}.id, eq({{entity_singular_name}}_id));
     assert_that!({{entity_singular_name}}.description, eq(&{{entity_singular_name}}_changeset.description));
-    */
 }
 
+#[ignore = "not yet implemented"]
 #[db_test]
 async fn test_update_invalid(context: &DbTestContext) {
-    todo!("arrange DB, send invalid changeset, assert 422 response and nothing changes in DB!");
-
-    /* Example:
     let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}ChangesetChangeset = Faker.fake();
     let {{entity_singular_name}} = entities::{{entity_plural_name}}::create({{entity_singular_name}}_changeset.clone(), &context.db_pool)
         .await
@@ -156,14 +139,11 @@ async fn test_update_invalid(context: &DbTestContext) {
 
     let {{entity_singular_name}}_after = load_{{entity_singular_name}}({{entity_singular_name}}.id, &context.db_pool).await.unwrap();
     assert_that!({{entity_singular_name}}_after.description, eq(&{{entity_singular_name}}.description));
-    */
 }
 
+#[ignore = "not yet implemented"]
 #[db_test]
 async fn test_update_nonexistent(context: &DbTestContext) {
-    todo!("send valid changeset for non-existent ID, assert 404 response!");
-
-    /* Example:
     let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
     let payload = json!({{entity_singular_name}}_changeset);
 
@@ -177,14 +157,11 @@ async fn test_update_nonexistent(context: &DbTestContext) {
         .await;
 
     assert_that!(response.status(), eq(StatusCode::NOT_FOUND));
-    */
 }
 
+#[ignore = "not yet implemented"]
 #[db_test]
 async fn test_update_success(context: &DbTestContext) {
-    todo!("arrange DB, send valid changeset, assert 200 response and changes applied in DB!");
-
-    /* Example:
     let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
     let {{entity_singular_name}} = entities::{{entity_plural_name}}::create({{entity_singular_name}}_changeset.clone(), &context.db_pool)
         .await
@@ -209,14 +186,11 @@ async fn test_update_success(context: &DbTestContext) {
 
     let {{entity_singular_name}} = load_{{entity_singular_name}}({{entity_singular_name}}.id, &context.db_pool).await.unwrap();
     assert_that!({{entity_singular_name}}.description, eq({{entity_singular_name}}_changeset.description));
-    */
 }
 
+#[ignore = "not yet implemented"]
 #[db_test]
 async fn test_delete_nonexistent(context: &DbTestContext) {
-    todo!("delete non-existing ID, assert 404 response!");
-
-    /* Example:
     let response = context
         .app
         .request(&format!("/{{entity_plural_name}}/{}", Uuid::new_v4()))
@@ -225,14 +199,11 @@ async fn test_delete_nonexistent(context: &DbTestContext) {
         .await;
 
     assert_that!(response.status(), eq(StatusCode::NOT_FOUND));
-    */
 }
 
+#[ignore = "not yet implemented"]
 #[db_test]
 async fn test_delete_success(context: &DbTestContext) {
-    todo!("arrange DB, delete, assert 204 response and record deleted in dB!");
-
-    /* Example:
     let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
     let {{entity_singular_name}} = entities::{{entity_plural_name}}::create({{entity_singular_name}}_changeset.clone(), &context.db_pool)
         .await
@@ -249,5 +220,4 @@ async fn test_delete_success(context: &DbTestContext) {
 
     let result = load_{{entity_singular_name}}({{entity_singular_name}}.id, &context.db_pool).await;
     assert_that!(result, err(anything()));
-    */
 }
