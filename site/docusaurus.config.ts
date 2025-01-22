@@ -91,8 +91,8 @@ const config: Config = {
               to: "/docs/tutorial-minimal/",
             },
             {
-              label: "Tutorial: Full Project",
-              to: "/docs/tutorial-full/",
+              label: "Tutorial: Complete Project",
+              to: "/docs/tutorial-standard/",
             },
           ],
         },
