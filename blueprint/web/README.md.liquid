@@ -26,7 +26,7 @@ pub fn init_routes(app_state: AppState) -> Router {
 Router::new()
     .route("/tasks", post(create_task))
     .route("/tasks", get(get_tasks))
-    .route("/tasks/:id", get(get_task))
+    .route("/tasks/{id}", get(get_task))
 ```
 
 ## Controllers and Middlewares

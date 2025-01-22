@@ -13,7 +13,7 @@ test-helpers = ["dep:serde_json", "dep:tower", "dep:hyper", "dep:{{project-name}
 
 [dependencies]
 anyhow = "1.0"
-axum = { version = "0.7", features = ["macros"] }
+axum = { version = "0.8", features = ["macros"] }
 {{project-name}}-config = { path = "../config" }
 {% unless template_type == "minimal" -%}
 {{project-name}}-db = { path = "../db" }
