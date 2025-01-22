@@ -64,15 +64,14 @@ async fn test_read_all(context: &DbTestContext) {
         .await
         .unwrap();
 
-    let response = context
-        .app
-        .request("/{{entity_plural_name}}")
-        .send()
-        .await;
+    let response = context.app.request("/{{entity_plural_name}}").send().await;
 
     assert_that!(response.status(), eq(StatusCode::OK));
 
-    let {{entity_plural_name}}: Vec<entities::{{entity_plural_name}}::{{entity_struct_name}}> = response.into_body().into_json::<Vec<entities::{{entity_plural_name}}::{{entity_struct_name}}>>().await;
+    let {{entity_plural_name}}: Vec<entities::{{entity_plural_name}}::{{entity_struct_name}}> = response
+        .into_body()
+        .into_json::<Vec<entities::{{entity_plural_name}}::{{entity_struct_name}}>>()
+        .await;
     assert_that!({{entity_plural_name}}, len(eq(1)));
     assert_that!(
         {{entity_plural_name}}.first().unwrap().description,
@@ -109,7 +108,10 @@ async fn test_read_one_success(context: &DbTestContext) {
 
     assert_that!(response.status(), eq(StatusCode::OK));
 
-    let {{entity_singular_name}}: entities::{{entity_plural_name}}::{{entity_struct_name}} = response.into_body().into_json::<entities::{{entity_plural_name}}::{{entity_struct_name}}>().await;
+    let {{entity_singular_name}}: entities::{{entity_plural_name}}::{{entity_struct_name}} = response
+        .into_body()
+        .into_json::<entities::{{entity_plural_name}}::{{entity_struct_name}}>()
+        .await;
     assert_that!({{entity_singular_name}}.id, eq({{entity_singular_name}}_id));
     assert_that!({{entity_singular_name}}.description, eq(&{{entity_singular_name}}_changeset.description));
 }
