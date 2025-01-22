@@ -111,7 +111,7 @@ async fn test_read_one_success(context: &DbTestContext) {
 
     /* Example:
     let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
-    let {{entity_singular_name}} = create_task{{entity_singular_name}}({{entity_singular_name}}_changeset.clone(), &context.db_pool)
+    let {{entity_singular_name}} = entities::{{entity_plural_name}}::create({{entity_singular_name}}_changeset.clone(), &context.db_pool)
         .await
         .unwrap();
     let {{entity_singular_name}}_id = {{entity_singular_name}}.id;
@@ -136,7 +136,7 @@ async fn test_update_invalid(context: &DbTestContext) {
 
     /* Example:
     let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}ChangesetChangeset = Faker.fake();
-    let {{entity_singular_name}} = create_task({{entity_singular_name}}_changeset.clone(), &context.db_pool)
+    let {{entity_singular_name}} = entities::{{entity_plural_name}}::create({{entity_singular_name}}_changeset.clone(), &context.db_pool)
         .await
         .unwrap();
 
@@ -187,7 +187,7 @@ async fn test_update_success(context: &DbTestContext) {
 
     /* Example:
     let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
-    let {{entity_singular_name}} = create_{{entity_singular_name}}({{entity_singular_name}}_changeset.clone(), &context.db_pool)
+    let {{entity_singular_name}} = entities::{{entity_plural_name}}::create({{entity_singular_name}}_changeset.clone(), &context.db_pool)
         .await
         .unwrap();
 
@@ -235,7 +235,7 @@ async fn test_delete_success(context: &DbTestContext) {
 
     /* Example:
     let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
-    let {{entity_singular_name}} = create_{{entity_singular_name}}({{entity_singular_name}}_changeset.clone(), &context.db_pool)
+    let {{entity_singular_name}} = entities::{{entity_plural_name}}::create({{entity_singular_name}}_changeset.clone(), &context.db_pool)
         .await
         .unwrap();
 
