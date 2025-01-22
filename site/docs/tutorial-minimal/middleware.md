@@ -11,7 +11,7 @@ Despite the fact that our application doesn't really do anything and we could po
 Let's start with creating a simple rate limiting middleware. We can generate the file with Gerust's [CLI](../architecture/the-cli-crate):
 
 ```
-cargo generate middleware rate-limiter
+» cargo generate middleware rate-limiter
 ```
 
 That will create the basic structure for the new middleware in `web/src/middlewares/rate_limiter.rs`:
@@ -241,4 +241,4 @@ The first two requests complete successfully while the third one fails as the ra
 
 ---
 
-This concludes the tutorial on creating and working with a minimal Gerust project. We've seen the [project structure](../tutorial-minimal), how to work with and extend the [application state](./application-state), as well as working with middlewares. Continue to the tutorial on working with a [full Gerust project](../tutorial-full) to learn more about working with data.
+This concludes the tutorial on creating and working with a minimal Gerust project. We've seen the [project structure](../tutorial-minimal), how to work with and extend the [application state](./application-state), as well as working with middlewares. Continue to the tutorial on working with a [complete Gerust project](../tutorial-standard) to learn more about working with data.
