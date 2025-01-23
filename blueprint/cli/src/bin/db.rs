@@ -346,7 +346,7 @@ async fn ensure_sqlx_cli_installed(ui: &mut UI<'_>) -> Result<(), anyhow::Error>
 
     let current_version = installed_sqlx_cli_version(&cargo).await?;
     if let Some(version) = &current_version {
-        if sqlx_version_req.matches(&version) {
+        if sqlx_version_req.matches(version) {
             // sqlx-cli is already installed and of the correct version, nothing to do
             return Ok(());
         }
