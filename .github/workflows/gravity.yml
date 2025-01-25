@@ -10,6 +10,7 @@ jobs:
   build:
     name: Run Gravity
     runs-on: ubuntu-latest
+    environment: ci
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
