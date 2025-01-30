@@ -67,7 +67,7 @@ enum Commands {
 }
 
 #[allow(missing_docs)]
-async fn cli(mut ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
+async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
     let config: Result<Config, anyhow::Error> = load_config(&cli.env);
     match config {
         Ok(config) => {
@@ -91,7 +91,7 @@ async fn cli(mut ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
                 Commands::Migrate => {
                     ui.info(&format!("Migrating {} database…", &cli.env));
                     ui.indent();
-                    let migrations = migrate(&mut ui, &config.database)
+                    let migrations = migrate(ui, &config.database)
                         .await
                         .context("Could not migrate database!");
                     ui.outdent();
@@ -110,7 +110,7 @@ async fn cli(mut ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
                 Commands::Reset => {
                     ui.info(&format!("Resetting {} database…", &cli.env));
                     ui.indent();
-                    let result = reset(&mut ui, &config.database)
+                    let result = reset(ui, &config.database)
                         .await
                         .context("Could not reset the database!");
                     ui.outdent();
@@ -119,7 +119,7 @@ async fn cli(mut ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
                     Ok(())
                 }
                 Commands::Prepare => {
-                    if let Err(e) = ensure_sqlx_cli_installed(&mut ui).await {
+                    if let Err(e) = ensure_sqlx_cli_installed(ui).await {
                         return Err(e.context("Error ensuring sqlx-cli is installed!"));
                     }
                 
