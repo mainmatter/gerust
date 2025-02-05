@@ -129,7 +129,7 @@ date: Wed, 22 Jan 2025 14:01:54 GMT
 
 ## Testing
 
-When the `notes` controller was created, Gerust automatically created a test for it in `web/tests/api/notes_test.rs`. It comes with test cases for all of the scenarios we'll want to cover for a <abbr>CRUD</abbr> controller. Since we only care about the `read_all` and `read_one` endpoints for now, we can uncomment the auto-generated code for the respective test cases, remove the `todo!`s, and replace the example `description` property with the `text` property that we're using:
+When the `notes` controller was created, Gerust automatically created a test for it in `web/tests/api/notes_test.rs`. It comes with test cases for all of the scenarios we'll want to cover for a <abbr>CRUD</abbr> controller. Since we only care about the `read_all` and `read_one` endpoints for now, we can uncomment the auto-generated code for the respective test cases, replace the example `description` property with the `text` property that we're using, and remove the `#[ignore]`s:
 
 ```rust
 use axum::{
@@ -237,4 +237,22 @@ cargo db migrate -e test
 Once the database is migrated, we can run the tests:
 
 ```
-``
+» cargo test
+   Compiling my-app-web v0.0.1 (/Users/marcoow/Code/gerust/my-app/web)
+
+…
+
+running 10 tests
+test notes_test::test_create_invalid ... ignored, not yet implemented
+test notes_test::test_create_success ... ignored, not yet implemented
+test notes_test::test_delete_nonexistent ... ignored, not yet implemented
+test notes_test::test_delete_success ... ignored, not yet implemented
+test notes_test::test_update_invalid ... ignored, not yet implemented
+test notes_test::test_update_nonexistent ... ignored, not yet implemented
+test notes_test::test_update_success ... ignored, not yet implemented
+test notes_test::test_read_one_nonexistent ... ok
+test notes_test::test_read_all ... ok
+test notes_test::test_read_one_success ... ok
+
+test result: ok. 3 passed; 0 failed; 7 ignored; 0 measured; 0 filtered out; finished in 0.22s
+```
