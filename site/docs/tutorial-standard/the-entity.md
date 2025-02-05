@@ -32,9 +32,13 @@ For the `Note` entity, we'll want a `text` property instead so we can change tha
 ```rust
 #[derive(Serialize, Debug, Deserialize)]
 pub struct Note {
-    // these are examples only
+// diff-remove
+-    // these are examples only
     pub id: Uuid,
-    pub text: String,
+// diff-remove
+-    pub name: String,
+// diff-add
++    pub text: String,
 }
 ```
 
@@ -47,7 +51,7 @@ pub struct NoteChangeset {
     // these are examples only
     #[cfg_attr(feature = "test-helpers", dummy(faker = "Name()"))]
     #[validate(length(min = 1))]
-    pub text: String,
+    pub name: String,
 }
 ```
 
@@ -57,10 +61,17 @@ Changesets are also configured for fake data generation with the [`fake` crate](
 #[derive(Deserialize, Validate, Clone)]
 #[cfg_attr(feature = "test-helpers", derive(Serialize, Dummy))]
 pub struct NoteChangeset {
-    // these are examples only
-    #[cfg_attr(feature = "test-helpers", dummy(faker = "Sentence(3..8)"))]
+// diff-remove
+-    // these are examples only
+// diff-remove
+-    #[cfg_attr(feature = "test-helpers", dummy(faker = "Name()"))]
+// diff-add
++    #[cfg_attr(feature = "test-helpers", dummy(faker = "Sentence(3..8)"))]
     #[validate(length(min = 1))]
-    pub text: String,
+// diff-remove
+-    pub name: String,
+// diff-add
++    pub text: String,
 }
 ```
 

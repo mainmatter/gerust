@@ -87,12 +87,12 @@ In order to expose the controller's `read_all` and `read_one` endpoints, they ne
 
 ```rust
 // diff-add
-+ use crate::controllers::notes;
-  use crate::state::AppState;
++use crate::controllers::notes;
+use crate::state::AppState;
 // diff-remove
-- use axum::Router;
+-use axum::Router;
 // diff-add
-+ use axum::{routing::get, Router};
++use axum::{routing::get, Router};
 
 use std::sync::Arc;
 
