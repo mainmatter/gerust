@@ -16,7 +16,7 @@ use uuid::Uuid;
 #[db_test]
 async fn test_create_invalid(context: &DbTestContext) {
     let payload = json!(entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset {
-        description: String::from("")
+        name: String::from("")
     });
 
     let response = context
@@ -50,10 +50,7 @@ async fn test_create_success(context: &DbTestContext) {
 
     let {{entity_plural_name}} = entities::{{entity_plural_name}}::load_all(&context.db_pool).await.unwrap();
     assert_that!({{entity_plural_name}}, len(eq(1)));
-    assert_that!(
-        {{entity_plural_name}}.first().unwrap().description,
-        eq(&changeset.description)
-    );
+    assert_that!({{entity_plural_name}}.first().unwrap().name, eq(&changeset.name));
 }
 
 #[ignore = "not yet implemented"]
@@ -73,10 +70,7 @@ async fn test_read_all(context: &DbTestContext) {
         .into_json::<Vec<entities::{{entity_plural_name}}::{{entity_struct_name}}>>()
         .await;
     assert_that!({{entity_plural_name}}, len(eq(1)));
-    assert_that!(
-        {{entity_plural_name}}.first().unwrap().description,
-        eq(&changeset.description)
-    );
+    assert_that!({{entity_plural_name}}.first().unwrap().name, eq(&changeset.name));
 }
 
 #[ignore = "not yet implemented"]
@@ -113,7 +107,7 @@ async fn test_read_one_success(context: &DbTestContext) {
         .into_json::<entities::{{entity_plural_name}}::{{entity_struct_name}}>()
         .await;
     assert_that!({{entity_singular_name}}.id, eq({{entity_singular_name}}_id));
-    assert_that!({{entity_singular_name}}.description, eq(&{{entity_singular_name}}_changeset.description));
+    assert_that!({{entity_singular_name}}.name, eq(&{{entity_singular_name}}_changeset.name));
 }
 
 #[ignore = "not yet implemented"]
@@ -125,7 +119,7 @@ async fn test_update_invalid(context: &DbTestContext) {
         .unwrap();
 
     let payload = json!(entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset {
-        description: String::from("")
+        name: String::from("")
     });
 
     let response = context
@@ -140,7 +134,7 @@ async fn test_update_invalid(context: &DbTestContext) {
     assert_that!(response.status(), eq(StatusCode::UNPROCESSABLE_ENTITY));
 
     let {{entity_singular_name}}_after = load_{{entity_singular_name}}({{entity_singular_name}}.id, &context.db_pool).await.unwrap();
-    assert_that!({{entity_singular_name}}_after.description, eq(&{{entity_singular_name}}.description));
+    assert_that!({{entity_singular_name}}_after.name, eq(&{{entity_singular_name}}.name));
 }
 
 #[ignore = "not yet implemented"]
@@ -184,10 +178,10 @@ async fn test_update_success(context: &DbTestContext) {
     assert_that!(response.status(), eq(StatusCode::OK));
 
     let {{entity_singular_name}}: entities::{{entity_plural_name}}::{{entity_struct_name}} = response.into_body().into_json::<Task>().await;
-    assert_that!({{entity_singular_name}}.description, eq({{entity_singular_name}}_changeset.description.clone()));
+    assert_that!({{entity_singular_name}}.name, eq({{entity_singular_name}}_changeset.name.clone()));
 
     let {{entity_singular_name}} = load_{{entity_singular_name}}({{entity_singular_name}}.id, &context.db_pool).await.unwrap();
-    assert_that!({{entity_singular_name}}.description, eq({{entity_singular_name}}_changeset.description));
+    assert_that!({{entity_singular_name}}.name, eq({{entity_singular_name}}_changeset.name));
 }
 
 #[ignore = "not yet implemented"]
