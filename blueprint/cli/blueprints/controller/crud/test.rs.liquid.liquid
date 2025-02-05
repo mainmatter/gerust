@@ -113,7 +113,7 @@ async fn test_read_one_success(context: &DbTestContext) {
 #[ignore = "not yet implemented"]
 #[db_test]
 async fn test_update_invalid(context: &DbTestContext) {
-    let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}ChangesetChangeset = Faker.fake();
+    let {{entity_singular_name}}_changeset: entities::{{entity_plural_name}}::{{entity_struct_name}}Changeset = Faker.fake();
     let {{entity_singular_name}} = entities::{{entity_plural_name}}::create({{entity_singular_name}}_changeset.clone(), &context.db_pool)
         .await
         .unwrap();
@@ -133,7 +133,9 @@ async fn test_update_invalid(context: &DbTestContext) {
 
     assert_that!(response.status(), eq(StatusCode::UNPROCESSABLE_ENTITY));
 
-    let {{entity_singular_name}}_after = load_{{entity_singular_name}}({{entity_singular_name}}.id, &context.db_pool).await.unwrap();
+    let {{entity_singular_name}}_after = entities::{{entity_plural_name}}::load({{entity_singular_name}}.id, &context.db_pool)
+        .await
+        .unwrap();
     assert_that!({{entity_singular_name}}_after.name, eq(&{{entity_singular_name}}.name));
 }
 
@@ -177,11 +179,16 @@ async fn test_update_success(context: &DbTestContext) {
 
     assert_that!(response.status(), eq(StatusCode::OK));
 
-    let {{entity_singular_name}}: entities::{{entity_plural_name}}::{{entity_struct_name}} = response.into_body().into_json::<Task>().await;
-    assert_that!({{entity_singular_name}}.name, eq({{entity_singular_name}}_changeset.name.clone()));
+    let {{entity_singular_name}}: entities::{{entity_plural_name}}::{{entity_struct_name}} = response
+        .into_body()
+        .into_json::<entities::{{entity_plural_name}}::{{entity_struct_name}}>()
+        .await;
+    assert_that!({{entity_singular_name}}.name, eq(&{{entity_singular_name}}_changeset.name.clone()));
 
-    let {{entity_singular_name}} = load_{{entity_singular_name}}({{entity_singular_name}}.id, &context.db_pool).await.unwrap();
-    assert_that!({{entity_singular_name}}.name, eq({{entity_singular_name}}_changeset.name));
+    let {{entity_singular_name}} = entities::{{entity_plural_name}}::load({{entity_singular_name}}.id, &context.db_pool)
+        .await
+        .unwrap();
+    assert_that!({{entity_singular_name}}.name, eq(&{{entity_singular_name}}_changeset.name));
 }
 
 #[ignore = "not yet implemented"]
@@ -214,6 +221,6 @@ async fn test_delete_success(context: &DbTestContext) {
 
     assert_that!(response.status(), eq(StatusCode::NO_CONTENT));
 
-    let result = load_{{entity_singular_name}}({{entity_singular_name}}.id, &context.db_pool).await;
+    let result = entities::{{entity_plural_name}}::load({{entity_singular_name}}.id, &context.db_pool).await;
     assert_that!(result, err(anything()));
 }
