@@ -37,7 +37,7 @@ validator = "0.20"
 {{project-name}}-macros = { path = "../macros", optional = true }
 
 [dev-dependencies]
-fake = "3.0"
+fake = "4.0"
 googletest = "0.13"
 {% unless template_type == "minimal" -%}
 {{project-name}}-db = { path = "../db", features = ["test-helpers"] }
