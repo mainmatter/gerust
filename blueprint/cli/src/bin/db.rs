@@ -242,6 +242,10 @@ async fn seed(config: &DatabaseConfig) -> Result<(), anyhow::Error> {
         .execute(statements.as_str())
         .await
         .context("Failed to execute seeds!")?;
+    transaction
+        .commit()
+        .await
+        .context("Failed to commit transaction!")?;
 
     Ok(())
 }
