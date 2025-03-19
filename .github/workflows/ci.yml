@@ -104,7 +104,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
 
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-full
         path: my-app
@@ -129,7 +129,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
     
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-full
         path: my-app
@@ -163,7 +163,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
     
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-full
         path: my-app
@@ -204,7 +204,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
     
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-full
         path: my-app
@@ -252,7 +252,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
 
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-full
         path: my-app
@@ -299,7 +299,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
     
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-full
         path: my-app
@@ -374,7 +374,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
   
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-default
         path: my-app
@@ -393,7 +393,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
     
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-default
         path: my-app
@@ -427,7 +427,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
 
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-default
         path: my-app
@@ -459,7 +459,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
     
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-default
         path: my-app
@@ -525,7 +525,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
     
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-default
         path: my-app
@@ -561,7 +561,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
     
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-default
         path: my-app
@@ -599,7 +599,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
   
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-minimal
         path: my-app
@@ -618,7 +618,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
     
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-minimal
         path: my-app
@@ -637,7 +637,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
 
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-minimal
         path: my-app
@@ -664,7 +664,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
     
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-minimal
         path: my-app
@@ -685,7 +685,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
     
-    - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+    - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       with:
         name: my-app-minimal
         path: my-app
