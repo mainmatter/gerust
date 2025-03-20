@@ -1,0 +1,4 @@
+# If you're making changes here.
+# Change the Dockerfile to also use a matching version.
+[toolchain]
+channel = "1.85"
