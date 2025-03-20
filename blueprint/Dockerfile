@@ -18,13 +18,15 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
 # Build our project
-RUN cargo build --release --package server --bin server
+# TODO - make Dockerfile a template and pass it the app name
+RUN cargo build --release --bin my-app-web
 
 FROM debian:bookworm-slim AS runtime
 WORKDIR /app
-COPY --from=builder /app/target/release/server bin
+# TODO pass the app name instead once Dockerfile is a template
+COPY --from=builder /app/target/release/my-app-web bin
 # COPY server/config config
-# ENV PX_PROFILE=production
+
 # Enable backtraces to simplify debugging
 # production panics.
 ENV RUST_BACKTRACE=1
