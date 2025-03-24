@@ -15,7 +15,7 @@ test-helpers = ["dep:fake", "dep:rand", "dep:regex"]
 anyhow = "1.0"
 fake = { version = "4.0", features = ["derive"], optional = true }
 {{project-name}}-config = { path = "../config" }
-rand = { version = "0.8", optional = true }
+rand = { version = "0.9", optional = true }
 regex = { version = "1.10", optional = true }
 serde = { version = "1.0", features = ["derive"] }
 sqlx = { version = "0.8", features = [ "runtime-tokio", "tls-rustls", "postgres", "macros", "uuid", "migrate", "chrono" ] }
