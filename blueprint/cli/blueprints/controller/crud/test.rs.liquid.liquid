@@ -124,7 +124,7 @@ async fn test_update_invalid(context: &DbTestContext) {
 
     let response = context
         .app
-        .request(&format!("/{{entity_plural_name}}/{}", {{entity_singular_name}}_id))
+        .request(&format!("/{{entity_plural_name}}/{}", {{entity_singular_name}}.id))
         .method(Method::PUT)
         .body(Body::from(payload.to_string()))
         .header(http::header::CONTENT_TYPE, "application/json")
