@@ -42,7 +42,7 @@ pub struct Note {
 }
 ```
 
-Data manipulation in Gerust is done via changsets. Those are separate companion structs to each entity which only contain the fields that are editable in the respective entity (e.g. not the `id` field since that's auto-assigned by the database). The concept of changesets is inspired from [Elixir's Ecto library](https://hexdocs.pm/ecto/Ecto.Changeset.html). Validations are implemented on the changesets via the [`validator` crate](https://crates.io/crates/validator). The `NoteChangeset` was generated along with the `Note` entity when that was created:
+Data manipulation in Gerust is done via changesets. Those are separate companion structs to each entity which only contain the fields that are editable in the respective entity (e.g. not the `id` field since that's auto-assigned by the database). The concept of changesets is inspired from [Elixir's Ecto library](https://hexdocs.pm/ecto/Ecto.Changeset.html). Validations are implemented on the changesets via the [`validator` crate](https://crates.io/crates/validator). The `NoteChangeset` was generated along with the `Note` entity when that was created:
 
 ```rust
 #[derive(Deserialize, Validate, Clone)]
