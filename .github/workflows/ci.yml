@@ -472,7 +472,7 @@ jobs:
     - name: generate-entity
       run: |
         cd my-app
-        cargo generate entity Person
+        cargo generate entity Person first_name:String last_name:String age:i16
 
     - name: generate-entity-test-helper
       run: |
