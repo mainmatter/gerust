@@ -11,34 +11,18 @@ The `Note` entity constitutes the core of the application and is used to store n
 We begin with generating the entity:
 
 ```
-» cargo generate entity note
+» cargo generate entity note text:string
 ```
 
-The creates the `Note` entity in `db/src/entities/notes.rs` along with functions for reading, creating, updating, and deleting notes.
+The creates the `Note` entity with a property `text` of type `String` in `db/src/entities/notes.rs` along with functions for reading, creating, updating, and deleting notes.
 
-Gerust entities are plain Rust structs. New entities come with an `id` out of the box (Gerust uses UUIDs via the [`uuid` crate](https://crates.io/crates/uuid)) and an example `name` property:
+Gerust entities are plain Rust structs. New entities come with an `id` out of the box (Gerust uses UUIDs via the [`uuid` crate](https://crates.io/crates/uuid)):
 
 ```rust
 #[derive(Serialize, Debug, Deserialize)]
 pub struct Note {
-    // these are examples only
     pub id: Uuid,
-    pub name: String,
-}
-```
-
-For the `Note` entity, we'll want a `text` property instead so we can change that accordingly (as well as all other occurences of `name` in the file – we'll go into more detail about those below):
-
-```rust
-#[derive(Serialize, Debug, Deserialize)]
-pub struct Note {
-// diff-remove
--    // these are examples only
-    pub id: Uuid,
-// diff-remove
--    pub name: String,
-// diff-add
-+    pub text: String,
+    pub text: String,
 }
 ```
 
@@ -48,38 +32,30 @@ Data manipulation in Gerust is done via changesets. Those are separate companion
 #[derive(Deserialize, Validate, Clone)]
 #[cfg_attr(feature = "test-helpers", derive(Serialize, Dummy))]
 pub struct NoteChangeset {
-    // these are examples only
-    #[cfg_attr(feature = "test-helpers", dummy(faker = "Name()"))]
-    #[validate(length(min = 1))]
-    pub name: String,
+    #[cfg_attr(feature = "test-helpers", dummy(faker = "…"))]
+    #[validate(…)]
+    pub text: String,
 }
 ```
 
-Changesets are also configured for fake data generation with the [`fake` crate](https://crates.io/crates/fake) for easier fake data generation in tests (more on tests later). In this case, we can change the fake data configuration to generate a sentence with 3 to 8 words:
+Changesets are also configured for fake data generation with the [`fake` crate](https://crates.io/crates/fake) for easier fake data generation in tests (more on tests later). In this case, we can change the fake data configuration to generate a sentence with 3 to 8 words.
+
+We'll also want to validate the minimum length of `text` to be at least 1 character:
 
 ```rust
-#[cfg(feature = "test-helpers")]
-// diff-remove
--use fake::{faker::name::en::*, Dummy};
-// diff-add
-+use fake::{faker::lorem::en::*, Dummy};
-
 …
 
 #[derive(Deserialize, Validate, Clone)]
 #[cfg_attr(feature = "test-helpers", derive(Serialize, Dummy))]
 pub struct NoteChangeset {
 // diff-remove
--    // these are examples only
-// diff-remove
--    #[cfg_attr(feature = "test-helpers", dummy(faker = "Name()"))]
+-    #[cfg_attr(feature = "test-helpers", dummy(faker = "…"))]
 // diff-add
 +    #[cfg_attr(feature = "test-helpers", dummy(faker = "Sentence(3..8)"))]
-    #[validate(length(min = 1))]
 // diff-remove
--    pub name: String,
+-    #[validate(…)]
 // diff-add
-+    pub text: String,
++    #[validate(length(min = 1))]
 }
 ```
 
@@ -122,18 +98,13 @@ The database url can be configured in `.env` (and `.env.test` for the test envir
 
 ### The DB Interface
 
-Gerust keeps the interface for loading, creating, updating, and deleting entities completely separate from the entity structs themselves. When the `Note` entity was generated in the previous step, all related functions that interface with the database were generated automatically along with it: `load_all`, `load`, `create`, `update`, `delete`. All of those functions work with plain `Note` and `NoteChangeset` structs and execute SQL via the [`sqlx` crate](https://crates.io/crates/sqlx)'s [`query!`](https://docs.rs/sqlx/0.8.3/sqlx/macro.query.html) and [`query_as!`](https://docs.rs/sqlx/0.8.3/sqlx/macro.query_as.html).
-
-In order to make the generated code work, we now need to remove the `todo!`s and adapt the column and property names:
+Gerust keeps the interface for loading, creating, updating, and deleting entities completely separate from the entity structs themselves. When the `Note` entity was generated in the previous step, all related functions that interface with the database were generated automatically along with it: `load_all`, `load`, `create`, `update`, `delete`. All of those functions work with plain `Note` and `NoteChangeset` structs and execute SQL via the [`sqlx` crate](https://crates.io/crates/sqlx)'s [`query!`](https://docs.rs/sqlx/0.8.3/sqlx/macro.query.html) and [`query_as!`](https://docs.rs/sqlx/0.8.3/sqlx/macro.query_as.html):
 
 ```rust
 pub async fn load_all(
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<Vec<Note>, crate::Error> {
-// diff-remove
--    let notes = sqlx::query_as!(Note, "SELECT id, name FROM notes")
-// diff-add
--    let notes = sqlx::query_as!(Note, "SELECT id, text FROM notes")
+    let notes = sqlx::query_as!(Note, "SELECT id, text FROM notes")
         .fetch_all(executor)
         .await?;
     Ok(notes)
@@ -143,14 +114,9 @@ pub async fn load(
     id: Uuid,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<Note, crate::Error> {
-// diff-remove
--    todo!("Adapt the SQL query as necessary!");
     match sqlx::query_as!(
         Note,
-// diff-remove
--        "SELECT id, name FROM notes WHERE id = $1",
-// diff-add
-+        "SELECT id, text FROM notes WHERE id = $1",
+        "SELECT id, text FROM notes WHERE id = $1",
         id
     )
     .fetch_optional(executor)
@@ -168,17 +134,9 @@ pub async fn create(
 ) -> Result<Note, crate::Error> {
     note.validate()?;
 
-// diff-remove
--    todo!("Adapt the SQL query and bound parameters as necessary!");
     let record = sqlx::query!(
-// diff-remove
--       "INSERT INTO notes (name) VALUES ($1) RETURNING id",
-// diff-remove
--       note.name
-// diff-add
-+       "INSERT INTO notes (text) VALUES ($1) RETURNING id",
-// diff-add
-+       note.text
+        "INSERT INTO notes (text) VALUES ($1) RETURNING id",
+        note.text,
     )
     .fetch_one(executor)
     .await
@@ -186,10 +144,7 @@ pub async fn create(
 
     Ok(Note {
         id: record.id,
-// diff-remove
--       name: note.name,
-// diff-add
-+       text: note.text,
+        text: note.text,
     })
 }
 
@@ -200,17 +155,9 @@ pub async fn update(
 ) -> Result<Note, crate::Error> {
     note.validate()?;
 
-// diff-remove
--    todo!("Adapt the SQL query and bound parameters as necessary!");
     match sqlx::query!(
-// diff-remove
--       "UPDATE notes SET name = $1 WHERE id = $2 RETURNING id, name",
-// diff-remove
--       note.name,
-// diff-add
-+       "UPDATE notes SET text = $1 WHERE id = $2 RETURNING id, text",
-// diff-add
-+       note.text,
+        "UPDATE notes SET text = $1 WHERE id = $2 RETURNING id",
+        note.text,
         id
     )
     .fetch_optional(executor)
@@ -219,10 +166,7 @@ pub async fn update(
     {
         Some(record) => Ok(Note {
             id: record.id,
-// diff-remove
--           name: record.name,
-// diff-add
-+           text: record.text,
+            text: note.text,
         }),
         None => Err(crate::Error::NoRecordFound),
     }
@@ -232,8 +176,6 @@ pub async fn delete(
     id: Uuid,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<(), crate::Error> {
-// diff-remove
--    todo!("Adapt the SQL query as necessary!");
     match sqlx::query!("DELETE FROM notes WHERE id = $1 RETURNING id", id)
         .fetch_optional(executor)
         .await
@@ -245,7 +187,7 @@ pub async fn delete(
 }
 ```
 
-Once that's done, we can run the application again:
+The entity and the functions for reading and writing it are ready to use and we can run the application again to confirm everything works as expected:
 
 ```
 » cargo run
