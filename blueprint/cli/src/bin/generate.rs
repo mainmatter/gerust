@@ -77,6 +77,10 @@ enum Commands {
     Entity {
         #[arg(help = "The name of the entity.")]
         name: String,
+        #[arg(
+            help = "The fields of the entity, each given as '<name>:<Rust type>'. Supported types are bool, i8, i16, i32, i64, f32, f64, String"
+        )]
+        fields: Vec<String>,
     },
     #[command(about = "Generate an entity test helper")]
     EntityTestHelper {
@@ -138,9 +142,9 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
             ui.success(&format!("Generated migration {}.", &file_name));
             Ok(())
         }
-        Commands::Entity { name } => {
+        Commands::Entity { name, fields } => {
             ui.info("Generating entity…");
-            let struct_name = generate_entity(name)
+            let struct_name = generate_entity(name, fields)
                 .await
                 .context("Could not generate entity!")?;
             ui.success(&format!("Generated entity {}.", &struct_name));
@@ -266,7 +270,8 @@ async fn generate_migration(name: String) -> Result<String, anyhow::Error> {
     Ok(path)
 }
 
-async fn generate_entity(name: String) -> Result<String, anyhow::Error> {
+async fn generate_entity(name: String, fields: Vec<String>) -> Result<String, anyhow::Error> {
+    let fields = validate_fields(&fields)?;
     let name = to_singular(&name).to_lowercase();
     let name_plural = to_plural(&name);
     let struct_name = to_class_case(&name);
@@ -276,6 +281,7 @@ async fn generate_entity(name: String) -> Result<String, anyhow::Error> {
         "entity_struct_name": struct_name,
         "entity_singular_name": name,
         "entity_plural_name": name_plural,
+        "fields": fields,
     });
     let output = template
         .render(&variables)
@@ -447,4 +453,34 @@ fn get_member_package_name(path: &str) -> Result<String, anyhow::Error> {
         }
     }
     Err(anyhow!("Could not find workspace member at path: {}", path))
+}
+
+fn validate_fields(fields: &Vec<String>) -> Result<Vec<HashMap<String, String>>, anyhow::Error> {
+    let re =
+        Regex::new(r"^([a-zA-Z][a-zA-Z0-9_]+)\:(bool|Bool|i8|i16|i32|i64|f32|f64|String|string)$")
+            .unwrap();
+    let mut mapped_fields = Vec::<HashMap<String, String>>::new();
+    for field in fields {
+        let Some(captures) = re.captures(field.trim()) else {
+            return Err(anyhow!("Invalid field definition: {}!", field));
+        };
+        if captures.len() != 3 {
+            return Err(anyhow!("Invalid field definition: {}!", field));
+        }
+
+        let field_name = String::from(captures.get(1).unwrap().as_str());
+        let field_type = captures
+            .get(2)
+            .unwrap()
+            .as_str()
+            .replace("Bool", "bool")
+            .replace("string", "String");
+
+        let mut field = HashMap::new();
+        field.insert("name".to_string(), field_name);
+        field.insert("type".to_string(), field_type);
+        mapped_fields.push(field);
+    }
+
+    Ok(mapped_fields)
 }
