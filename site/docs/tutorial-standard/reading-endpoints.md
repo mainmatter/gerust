@@ -129,7 +129,7 @@ date: Wed, 22 Jan 2025 14:01:54 GMT
 
 ## Testing
 
-When the `notes` controller was created, Gerust automatically created a test for it in `web/tests/api/notes_test.rs`. It comes with test cases for all of the scenarios we'll want to cover for a <abbr>CRUD</abbr> controller. Since we only care about the `read_all` and `read_one` endpoints for now, we can uncomment the auto-generated code for the respective test cases, replace the example `description` property with the `text` property that we're using, and remove the `#[ignore]`s:
+When the `notes` controller was created, Gerust automatically created a test for it in `web/tests/api/notes_test.rs`. It comes with test cases for all of the scenarios we'll want to cover for a <abbr>CRUD</abbr> controller. Since we only care about the `read_all` and `read_one` endpoints for now, we can uncomment the auto-generated code for the respective test cases, replace the example `name` property with the `text` property that we're using, and remove the `#[ignore]`s:
 
 ```rust
 use axum::{
