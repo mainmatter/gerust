@@ -17,7 +17,7 @@ The middleware introduced in this chapter is not actually a proper way to implem
 First, we need to introduce the concept of a user as such. We can do that by generating a `User` entity the same way we created the `Note` entity [in the first step](./the-entity):
 
 ```
-» cargo generate entity user
+» cargo generate entity user name:string
 ```
 
 In this case, we don't keep most of the generated standard blueprint code since we want to treat users very differently than notes: Users cannot be created as part of the app's normal execution flow so we don't need a `UserChangeset` or the `create`, `update`, or `delete` functions. Also, users can only be loaded by their secret token (which is going to be included in incoming requests to identify the users) but not by their ID and we also don't need to be able to load all users at once. Plus, the token should not be leaked obviously and does never actually need to be read during the program's execution. Thus, the `User` entity and its related functionality can be shortened to this:
@@ -51,7 +51,7 @@ Note that the `User` entity needs to implement the `Clone` trait so that we can 
 
 :::
 
-The `User` entity has an `id` and `name` only – the `token` is not exposed as a property at all so there's no risk of leaking it by e.g. responding with a `User` entity that's serialized to JSON. The only way to load a user from the database is via the user's secret token and the `load_with_token` function.
+The `User` entity has an `id` and `name` only – we did not include the token in the field list when generating ent entity because we don't want it to be exposed as a property at all so there's no risk of leaking it by e.g. responding with a `User` entity that's serialized to JSON. The only way to load a user from the database is via the user's secret token and the `load_with_token` function.
 
 Let's generate the corresponding migration next:
 
