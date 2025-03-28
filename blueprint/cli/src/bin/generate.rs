@@ -9,6 +9,10 @@ use cruet::{
 use guppy::{graph::PackageGraph, MetadataCommand};
 use liquid::Template;
 use {{crate_name}}_cli::util::ui::UI;
+{% if template_type != "minimal" -%}
+use regex::Regex;
+use std::collections::HashMap;
+{% endif -%}
 use std::fs::{self, File, OpenOptions};
 use std::io::prelude::*;
 use std::process::ExitCode;
@@ -455,6 +459,7 @@ fn get_member_package_name(path: &str) -> Result<String, anyhow::Error> {
     Err(anyhow!("Could not find workspace member at path: {}", path))
 }
 
+{% if template_type != "minimal" -%}
 fn validate_fields(fields: &Vec<String>) -> Result<Vec<HashMap<String, String>>, anyhow::Error> {
     let re =
         Regex::new(r"^([a-zA-Z][a-zA-Z0-9_]+)\:(bool|Bool|i8|i16|i32|i64|f32|f64|String|string)$")
@@ -484,3 +489,4 @@ fn validate_fields(fields: &Vec<String>) -> Result<Vec<HashMap<String, String>>,
 
     Ok(mapped_fields)
 }
+{% endif -%}

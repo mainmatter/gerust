@@ -62,7 +62,6 @@ pub async fn create(
         {%- for field in fields %}
         {{entity_singular_name}}.{{ field.name }},
         {%- endfor %}
-
     )
     .fetch_one(executor)
     .await
