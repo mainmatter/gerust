@@ -10,7 +10,7 @@ jobs:
   build:
     name: Run Gravity
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'mainmatter' }}
+    if: github.repository == 'mainmatter/gerust'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
