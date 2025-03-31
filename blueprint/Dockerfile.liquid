@@ -24,18 +24,7 @@ RUN cargo build --release --bin {{project-name}}-web
 
 FROM debian:bookworm-slim AS runtime
 
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid 10001 \
-    "{{project-name}}"
-
-USER {{project-name}}:{{project-name}}
-
-COPY --from=builder --chown={{project-name}}:{{project-name}} /app/target/release/{{project-name}}-web bin
+COPY --from=builder /app/target/release/{{project-name}}-web bin
 
 # Enable backtraces to simplify debugging
 # production panics.
