@@ -24,7 +24,7 @@ RUN cargo build --release --bin {{project-name}}-web
 
 FROM debian:bookworm-slim AS runtime
 
-COPY --from=builder /app/target/release/{{project-name}}-web bin
+COPY --from=builder /app/target/release/{{project-name}}-web {{project-name}}-web
 
 # Enable backtraces to simplify debugging
 # production panics.
@@ -36,5 +36,5 @@ ENV RUST_LIB_BACKTRACE=0
 ENV APP_ENVIRONMENT=production
 ENV APP_SERVER__PORT=3000
 ENV APP_SERVER__IP="0.0.0.0"
-ENTRYPOINT ["./bin"]
+ENTRYPOINT ["./{{project-name}}-web"]
 EXPOSE 3000
