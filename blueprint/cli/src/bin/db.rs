@@ -215,6 +215,11 @@ async fn migrate(ui: &mut UI<'_>, config: &DatabaseConfig) -> Result<i32, anyhow
 
     let mut applied = 0;
     for migration in migrator.iter() {
+        if migration.migration_type.is_down_migration() {
+            // Avoid accidentally running a "down" migration.
+            continue;
+        }
+
         if !applied_migrations.contains_key(&migration.version) {
             connection
                 .apply(migration)
