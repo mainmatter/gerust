@@ -80,6 +80,8 @@ enum Commands {
     Migration {
         #[arg(help = "The name of the migration.")]
         name: String,
+        #[arg(long, help = "Generates a simple migration file without a suffix. Doesn't generate a `down` migration.")]
+        simple: bool,
     },
     #[command(about = "Generate an entity")]
     Entity {
@@ -138,11 +140,16 @@ fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
             Ok(())
         }
         {% if template_type != "minimal" -%}
-        Commands::Migration { name } => {
+        Commands::Migration { name, simple } => {
             ui.info("Generating migration…");
-            let file_name = generate_migration(&name, cli.r#override)
+            let (up_file_name, down_file_name) = generate_migration(&name, cli.r#override)
+                .await
                 .context("Could not generate migration!")?;
-            ui.success(&format!("Generated migration {}.", &file_name));
+            ui.success(&format!("Generated migration {}.", &up_file_name));
+
+            if let Some(down_file_name) = down_file_name {
+                ui.success(&format!("Generated migration {}.", &down_file_name));
+            }
             Ok(())
         }
         Commands::Entity { name, fields } => {
@@ -261,13 +268,31 @@ fn generate_controller_test(name: &str, r#override: bool) -> Result<String, anyh
 }
 
 {% if template_type != "minimal" -%}
-fn generate_migration(name: &str, r#override: bool) -> Result<String, anyhow::Error> {
+async fn generate_migration(name: &str, r#override: bool) -> Result<(String, Option<String>), anyhow::Error> {
     let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
     let file_name = format!("{}__{}.sql", timestamp.as_secs(), name);
     let path = format!("./db/migrations/{file_name}");
     create_project_file(&path, "".as_bytes(), r#override)?;
 
-    Ok(path)
+    let up_migration = if simple {
+        format!("{}__{}.sql", timestamp.as_secs(), name)
+    } else {
+        format!("{}__{}.up.sql", timestamp.as_secs(), name)
+    };
+
+    let down_path = if simple {
+      None
+    } else {
+      let down_migration = format!("{}__{}.down.sql", timestamp.as_secs(), name);
+      let down_path = format!("./db/migrations/{down_migration}");
+      create_project_file(&down_path, "".as_bytes(), r#override)?;
+      Some(down_path)
+    };
+
+    let up_path = format!("./db/migrations/{up_migration}");
+    create_project_file(&up_path, "".as_bytes(), r#override)?;
+
+    Ok((up_path, down_path))
 }
 
 fn generate_entity(name: &str, fields: &[String], r#override: bool) -> Result<String, anyhow::Error> {
