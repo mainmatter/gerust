@@ -18,6 +18,7 @@ use std::io::prelude::*;
 use std::process::ExitCode;
 {% if template_type != "minimal" -%}
 use std::time::SystemTime;
+use std::path::PathBuf;
 {% endif -%}
 
 static BLUEPRINTS_DIR: include_dir::Dir =
@@ -140,10 +141,11 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
         {% if template_type != "minimal" -%}
         Commands::Migration { name } => {
             ui.info("Generating migration…");
-            let file_name = generate_migration(name)
+            let (up_file_name, down_file_name) = generate_migration(name)
                 .await
                 .context("Could not generate migration!")?;
-            ui.success(&format!("Generated migration {}.", &file_name));
+            ui.success(&format!("Generated migration {}.", up_file_name.display()));
+            ui.success(&format!("Generated migration {}.", down_file_name.display()));
             Ok(())
         }
         Commands::Entity { name, fields } => {
@@ -265,13 +267,17 @@ async fn generate_controller_test(name: String) -> Result<String, anyhow::Error>
 }
 
 {% if template_type != "minimal" -%}
-async fn generate_migration(name: String) -> Result<String, anyhow::Error> {
+async fn generate_migration(name: String) -> Result<(PathBuf, PathBuf), anyhow::Error> {
     let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
-    let file_name = format!("{}__{}.sql", timestamp.as_secs(), name);
-    let path = format!("./db/migrations/{}", file_name);
-    create_project_file(&path, "".as_bytes())?;
+    let dir_path = PathBuf::from(&format!("./db/migrations/{}__{name}", timestamp.as_secs()));
+    let up_migration = dir_path.join("up.sql");
+    let down_migration = dir_path.join("down.sql");
+   
+    fs::create_dir_all(dir_path.as_path())?;
+    create_project_file(up_migration.to_str().expect("Invalid file path for migration!"), "".as_bytes())?;
+    create_project_file(down_migration.to_str().expect("Invalid file path for migration!"), "".as_bytes())?;
 
-    Ok(path)
+    Ok((up_migration, down_migration))
 }
 
 async fn generate_entity(name: String, fields: Vec<String>) -> Result<String, anyhow::Error> {
