@@ -124,7 +124,7 @@ async fn test_create_batch_invalid(context: &DbTestContext) {
     assert_that!(response.status(), eq(StatusCode::UNPROCESSABLE_ENTITY));
 
     let tasks = load_tasks(&context.db_pool).await.unwrap();
-    assert_that!(tasks, empty());
+    assert_that!(tasks, is_empty());
 }
 
 #[db_test]
