@@ -152,8 +152,7 @@ where
         .merge(Serialized::defaults(ServerConfig::default()).key("server"))
         .merge(Toml::file("config/app.toml"))
         .merge(Toml::file(format!(
-            "config/environments/{}",
-            env_config_file
+            "config/environments/{env_config_file}",
         )))
         .merge(Env::prefixed("APP_").split("__"))
         .extract()
