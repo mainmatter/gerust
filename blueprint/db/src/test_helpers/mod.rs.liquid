@@ -39,7 +39,7 @@ pub async fn teardown_db(db_pool: DbPool) {
 
     let test_db_name = db_config.get_database().unwrap();
 
-    let query = format!("DROP DATABASE IF EXISTS {}", test_db_name);
+    let query = format!("DROP DATABASE IF EXISTS {test_db_name}");
     connection.execute(query.as_str()).await.unwrap();
 }
 
@@ -52,12 +52,12 @@ async fn prepare_db(config: &DatabaseConfig) -> DatabaseConfig {
 
     let test_db_name = build_test_db_name(db_name);
 
-    let query = format!("CREATE DATABASE {} TEMPLATE {}", test_db_name, db_name);
+    let query = format!("CREATE DATABASE {test_db_name} TEMPLATE {db_name}");
     connection.execute(query.as_str()).await.unwrap();
 
     let regex = Regex::new(r"(.+)\/(.+$)").unwrap();
     let test_db_url = regex.replace(&config.url, |caps: &Captures| {
-        format!("{}/{}", &caps[1], test_db_name)
+        format!("{}/{test_db_name}", &caps[1])
     });
 
     DatabaseConfig {
@@ -71,7 +71,7 @@ fn build_test_db_name(base_name: &str) -> String {
         .take(30)
         .map(char::from)
         .collect();
-    format!("{}_{}", base_name, test_db_suffix).to_lowercase()
+    format!("{base_name}_{test_db_suffix}").to_lowercase()
 }
 
 fn parse_db_config(url: &str) -> PgConnectOptions {
