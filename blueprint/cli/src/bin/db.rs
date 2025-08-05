@@ -6,7 +6,7 @@ use {{crate_name}}_config::{load_config, parse_env, Config, Environment};
 use guppy::{Version, VersionReq};
 use sqlx::postgres::{PgConnectOptions, PgConnection};
 use sqlx::{
-    migrate::{Migrate, Migrator},
+    migrate::{Migrate, Migrator, Migration, MigrationType},
     ConnectOptions, Connection, Executor,
 };
 use tokio::io::{stdin, AsyncBufReadExt};
@@ -189,12 +189,65 @@ async fn create(config: &DatabaseConfig) -> Result<String, anyhow::Error> {
     Ok(String::from(db_name))
 }
 
+pub struct SqlxMigrator(Migrator);
+
+impl SqlxMigrator {
+    fn up_migrator(migrations_path: &Path) -> Migrator {
+        use std::fs::File;
+        use std::io::prelude::*;
+        let mut migration_dirs = std::fs::read_dir(migrations_path).unwrap().map(|res| res.map(|e| e.path())).collect::<Result<Vec<_>, std::io::Error>>().unwrap();
+        let mut migrations: Vec<Migration> = Vec::new(); 
+
+        for dir in migration_dirs {
+
+            if !dir.is_dir() {
+                // prevent reading files like .gitkeep
+                continue;
+            }
+
+            let migration_path = dir.join("up.sql");
+        let path_components = dir.components();
+        let version: i64 = if let Some(component) = path_components.last() {
+            if let Some(filename) = component.as_os_str().to_str() {
+                println!("{:?}", filename);
+
+                let a = filename.split("__").next().unwrap();
+
+                println!("{:?}", a);
+                a.parse().unwrap()
+            } else {
+                panic!("Couldn't convert path component to string.");
+            }
+        } else {
+            panic!("Couldn't get a migration version from file name.");
+        };
+
+
+            let mut file = File::open(migration_path).unwrap();
+            let mut contents = String::new();
+            file.read_to_string(&mut contents).unwrap();
+            let with_extension = migrations_path.with_extension(".up.sql").clone();
+
+            migrations.push(Migration::new(
+                version,
+                with_extension.to_string_lossy().into_owned().into(),
+                MigrationType::ReversibleUp,
+                contents.into(),
+                false,
+            ));
+        }
+
+        Migrator {
+            migrations: migrations.into(),
+            ..Migrator::DEFAULT
+        }
+    } 
+}
+
 async fn migrate(ui: &mut UI<'_>, config: &DatabaseConfig) -> Result<i32, anyhow::Error> {
     let db_config = get_db_config(config);
     let migrations_path = db_package_root()?.join("migrations");
-    let migrator = Migrator::new(Path::new(&migrations_path))
-        .await
-        .context("Failed to create migrator!")?;
+    let migrator = SqlxMigrator::up_migrator(&migrations_path);
     let mut connection = db_config
         .connect()
         .await
@@ -215,6 +268,11 @@ async fn migrate(ui: &mut UI<'_>, config: &DatabaseConfig) -> Result<i32, anyhow
 
     let mut applied = 0;
     for migration in migrator.iter() {
+        if migration.migration_type.is_down_migration() {
+            // Avoid accidentally running a "down" migration.
+            continue;
+        }
+
         if !applied_migrations.contains_key(&migration.version) {
             connection
                 .apply(migration)
