@@ -261,7 +261,8 @@ Commands:
 
 Options:
       --no-color  Disable colored output.
-      --debug     Enable debug output.
+      --quiet     Disable debug output.
+      --override  Override existing files.
   -h, --help      Print help
   -V, --version   Print version
 ```

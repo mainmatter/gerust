@@ -15,6 +15,7 @@ use std::collections::HashMap;
 {% endif -%}
 use std::fs::{self, File, OpenOptions};
 use std::io::prelude::*;
+use std::path::Path;
 use std::process::ExitCode;
 {% if template_type != "minimal" -%}
 use std::time::SystemTime;
@@ -211,7 +212,7 @@ async fn generate_middleware(name: String, r#override: bool) -> Result<String, a
         .context("Failed to render Liquid template")?;
 
     let file_path = format!("./web/src/middlewares/{}.rs", name);
-    create_project_file(&file_path, output.as_bytes())?;
+    create_project_file(&file_path, output.as_bytes(), r#override)?;
     append_to_project_file(
         "./web/src/middlewares/mod.rs",
         &format!("pub mod {};", name),
@@ -358,11 +359,10 @@ async fn generate_crud_controller(name: String, r#override: bool) -> Result<Stri
         .context("Failed to render Liquid template")?;
 
     let file_path = format!("./web/src/controllers/{}.rs", name);
-    create_project_file(&file_path, output.as_bytes())?;
+    create_project_file(&file_path, output.as_bytes(), r#override)?;
     append_to_project_file(
         "./web/src/controllers/mod.rs",
         &format!("pub mod {};", name),
-        r#override,
     )?;
 
     Ok(file_path)
