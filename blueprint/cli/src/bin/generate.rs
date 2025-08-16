@@ -412,11 +412,15 @@ fn get_liquid_template(path: &str) -> Result<Template, anyhow::Error> {
 }
 
 fn create_project_file(path: &str, contents: &[u8]) -> Result<(), anyhow::Error> {
-    let mut file = File::create(path).context(format!(r#"Could not create file "{}""#, path))?;
-    file.write_all(contents)
-        .context(format!(r#"Could not write file "{}""#, path))?;
-
-    Ok(())
+    if Path::new(path).exists() {
+        Err(anyhow!("File {} already exists!", path))
+    } else {
+        let mut file = File::create(path).context(format!(r#"Could not create file "{}""#, path))?;
+        file.write_all(contents)
+            .context(format!(r#"Could not write file "{}""#, path))?;
+        
+        Ok(())
+    }
 }
 
 fn append_to_project_file(path: &str, contents: &str) -> Result<(), anyhow::Error> {
