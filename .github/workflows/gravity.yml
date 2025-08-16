@@ -1,24 +1,49 @@
 name: Gravity
 
 on:
-  push:
-    branches:
-      - main
-  pull_request: {}
+  workflow_run:
+    workflows: ["Build"]
+    types:
+      - completed
 
 jobs:
-  build:
+  gravity:
     name: Run Gravity
     runs-on: ubuntu-latest
-    if: github.repository == 'mainmatter/gerust'
+    if: >
+      github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
           version: 10
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - run: cargo publish --dry-run
-      - run: cargo build -r
-      - run: pnpm dlx @gravityci/cli "./target/release/gerust" "./target/package/gerust-*.crate" # keep track of the sizes of both the .crate file as well as the binary
+      - uses: actions/download-artifact@v5
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+          name: artifacts
+          path: artifacts
+      - name: 'Get PR context'
+        if: >
+          github.event.workflow_run.event == 'pull_request'
+        id: pr-context
         env:
+          GH_TOKEN: ${{ github.token }}
+          PR_TARGET_REPO: ${{ github.repository }}
+          PR_BRANCH: |-
+            ${{
+              (github.event.workflow_run.head_repository.owner.login != github.event.workflow_run.repository.owner.login)
+                && format('{0}:{1}', github.event.workflow_run.head_repository.owner.login, github.event.workflow_run.head_branch)
+                || github.event.workflow_run.head_branch
+            }}
+        run: |
+          gh pr view --repo "${PR_TARGET_REPO}" "${PR_BRANCH}" \
+            --json 'number,headRefOid' \
+            --jq '"number=\(.number)\nhead-sha=\(.headRefOid)"' \
+            >> $GITHUB_OUTPUT
+      - run: pnpm dlx @gravityci/cli "artifacts" # keep track of the sizes of both the .crate file as well as the binary
+        env:
+          GRAVITY_SHA: ${{ github.event.workflow_run.head_sha }}
+          GRAVITY_PR_ID: ${{ github.event.workflow_run.event == 'pull_request' && steps.pr-context.outputs.number || '' }}
           GRAVITY_TOKEN: ${{ secrets.GRAVITY_TOKEN }}
