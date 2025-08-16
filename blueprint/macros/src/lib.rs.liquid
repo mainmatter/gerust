@@ -27,7 +27,7 @@ pub fn test(_: TokenStream, item: TokenStream) -> TokenStream {
     let test_arguments = input.sig.inputs;
     let test_block = input.block;
     let inner_test_name = syn::Ident::new(
-        format!("inner_{}", test_name).as_str(),
+        format!("inner_{test_name}").as_str(),
         input.sig.ident.span(),
     );
 
@@ -89,7 +89,7 @@ pub fn db_test(_: TokenStream, item: TokenStream) -> TokenStream {
     let test_arguments = input.sig.inputs;
     let test_block = input.block;
     let inner_test_name = syn::Ident::new(
-        format!("inner_{}", test_name).as_str(),
+        format!("inner_{test_name}").as_str(),
         input.sig.ident.span(),
     );
 

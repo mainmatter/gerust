@@ -1,24 +1,67 @@
 name: Gravity
 
 on:
-  push:
-    branches:
-      - main
-  pull_request: {}
+  workflow_run:
+    workflows: ["Build"]
+    types:
+      - completed
 
 jobs:
-  build:
+  gravity:
     name: Run Gravity
     runs-on: ubuntu-latest
-    if: github.repository == 'mainmatter/gerust'
+    if: >
+      github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
           version: 10
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - run: cargo publish --dry-run
-      - run: cargo build -r
-      - run: pnpm dlx @gravityci/cli "./target/release/gerust" "./target/package/gerust-*.crate" # keep track of the sizes of both the .crate file as well as the binary
+      - name: 'Download artifact'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: context.payload.workflow_run.id,
+            });
+            
+            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "artifacts"
+            })[0];
+            
+            let download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/artifacts.zip`, Buffer.from(download.data));
+      - name: 'Unzip artifact'
+        run: unzip artifacts.zip -d artifacts
+      - name: 'Get PR context'
+        if: >
+          github.event.workflow_run.event == 'pull_request'
+        id: pr-context
         env:
+          GH_TOKEN: ${{ github.token }}
+          PR_TARGET_REPO: ${{ github.repository }}
+          PR_BRANCH: |-
+            ${{
+              (github.event.workflow_run.head_repository.owner.login != github.event.workflow_run.repository.owner.login)
+                && format('{0}:{1}', github.event.workflow_run.head_repository.owner.login, github.event.workflow_run.head_branch)
+                || github.event.workflow_run.head_branch
+            }}
+        run: |
+          gh pr view --repo "${PR_TARGET_REPO}" "${PR_BRANCH}" \
+            --json 'number,headRefOid' \
+            --jq '"number=\(.number)\nhead-sha=\(.headRefOid)"' \
+            >> $GITHUB_OUTPUT
+      - run: pnpm dlx @gravityci/cli "artifacts" # keep track of the sizes of both the .crate file as well as the binary
+        env:
+          GRAVITY_SHA: ${{ github.event.workflow_run.head_sha }}
+          GRAVITY_PR_ID: ${{ github.event.workflow_run.event == 'pull_request' && steps.pr-context.outputs.number || '' }}
           GRAVITY_TOKEN: ${{ secrets.GRAVITY_TOKEN }}
