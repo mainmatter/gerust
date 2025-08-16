@@ -213,9 +213,10 @@ async fn generate_middleware(name: String, r#override: bool) -> Result<String, a
 
     let file_path = format!("./web/src/middlewares/{}.rs", name);
     create_project_file(&file_path, output.as_bytes(), r#override)?;
-    append_to_project_file(
+    append_module_definition_to_project_file(
         "./web/src/middlewares/mod.rs",
-        &format!("pub mod {};", name),
+        &name,
+        true,
     )?;
 
     Ok(file_path)
@@ -234,9 +235,10 @@ async fn generate_controller(name: String, r#override: bool) -> Result<String, a
 
     let file_path = format!("./web/src/controllers/{}.rs", name);
     create_project_file(&file_path, output.as_bytes(), r#override)?;
-    append_to_project_file(
+    append_module_definition_to_project_file(
         "./web/src/controllers/mod.rs",
-        &format!("pub mod {};", name),
+        &name,
+        true,
     )?;
 
     Ok(file_path)
@@ -263,7 +265,7 @@ async fn generate_controller_test(name: String, r#override: bool) -> Result<Stri
 
     let file_path = format!("./web/tests/api/{name}_test.rs");
     create_project_file(&file_path, output.as_bytes(), r#override)?;
-    append_to_project_file("./web/tests/api/main.rs", &format!("mod {name}_test;"))?;
+    append_module_definition_to_project_file("./web/tests/api/main.rs", &format!("{name}_test"), false)?;
 
     Ok(file_path)
 }
@@ -300,9 +302,10 @@ async fn generate_entity(name: String, fields: Vec<String>, r#override: bool) ->
         output.as_bytes(),
         r#override,
     )?;
-    append_to_project_file(
+    append_module_definition_to_project_file(
         "./db/src/entities/mod.rs",
-        &format!("pub mod {};", name_plural),
+        &name_plural,
+        true
     )?;
 
     Ok(struct_name)
@@ -328,9 +331,10 @@ async fn generate_entity_test_helper(name: String, r#override: bool) -> Result<S
         output.as_bytes(),
         r#override,
     )?;
-    append_to_project_file(
+    append_module_definition_to_project_file(
         "./db/src/test_helpers/mod.rs",
-        &format!("pub mod {};", name_plural),
+        &name_plural,
+        true,
     )?;
 
     Ok(struct_name)
@@ -360,9 +364,10 @@ async fn generate_crud_controller(name: String, r#override: bool) -> Result<Stri
 
     let file_path = format!("./web/src/controllers/{}.rs", name);
     create_project_file(&file_path, output.as_bytes(), r#override)?;
-    append_to_project_file(
+    append_module_definition_to_project_file(
         "./web/src/controllers/mod.rs",
-        &format!("pub mod {};", name),
+        &name,
+        true
     )?;
 
     Ok(file_path)
@@ -395,7 +400,7 @@ async fn generate_crud_controller_test(name: String, r#override: bool) -> Result
 
     let file_path = format!("./web/tests/api/{name}_test.rs");
     create_project_file(&file_path, output.as_bytes(), r#override)?;
-    append_to_project_file("./web/tests/api/main.rs", &format!("mod {name}_test;"))?;
+    append_module_definition_to_project_file("./web/tests/api/main.rs", &format!("{name}_test"), false)?;
 
     Ok(file_path)
 }
@@ -429,7 +434,11 @@ fn create_project_file(path: &str, contents: &[u8], r#override: bool) -> Result<
     }
 }
 
-fn append_to_project_file(path: &str, contents: &str) -> Result<(), anyhow::Error> {
+fn append_module_definition_to_project_file(path: &str, module_name: &str, is_public: bool) -> Result<(), anyhow::Error> {
+    let module_def = match is_public {
+        true => format!("pub mod {module_name};"),
+        false => format!("mod {module_name};")
+    };
     let file_contents =
         fs::read_to_string(path).context(format!(r#"Could not read file "{}"!"#, path))?;
     let file_contents = file_contents.trim();
@@ -447,7 +456,7 @@ fn append_to_project_file(path: &str, contents: &str) -> Result<(), anyhow::Erro
         .open(path)
         .context(format!(r#"Could not open file "{}"!"#, path))?;
 
-    writeln!(file, "{}", contents).context(format!(r#"Failed to append to file "{}"!"#, path))?;
+    writeln!(file, "{}", module_def).context(format!(r#"Failed to append to file "{}"!"#, path))?;
 
     Ok(())
 }
