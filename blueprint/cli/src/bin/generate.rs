@@ -443,6 +443,10 @@ fn append_module_definition_to_project_file(path: &str, module_name: &str, is_pu
         fs::read_to_string(path).context(format!(r#"Could not read file "{}"!"#, path))?;
     let file_contents = file_contents.trim();
 
+    if file_contents.contains(&module_def) {
+        return Ok(());
+    }
+
     let mut options = OpenOptions::new();
     options.write(true);
 
