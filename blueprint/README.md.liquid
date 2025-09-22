@@ -75,3 +75,20 @@ Build the project's documentation with:
 ```
 cargo doc --workspace --all-features
 ```
+
+## Building the project's starter Docker image
+
+The generated project includes a production-ready Dockerfile
+
+In order to build it, follow these steps:
+
+```
+docker compose up
+cargo db migrate
+cargo db prepare
+docker build . --tag {{project-name}}
+```
+
+The db steps are needed to generate query metadata that sqlx will use during compilation.
+
+Note that the first build can take a few minutes, but subsequent ones should be fast thanks to docker layer caching.
