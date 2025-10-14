@@ -8,7 +8,7 @@ _Gerust uses [sqlx](https://crates.io/crates/sqlx) without an additional ORM and
 
 Entities are defined as plain structs, e.g.:
 
-```rs
+```rust
 #[derive(Serialize, Debug, Clone)]
 pub struct User {
     pub id: Uuid,
@@ -20,7 +20,7 @@ pub struct User {
 
 Instead of using an ORM, that would introduce additional complexity, Gerust uses individual functions for reading and writing data from and to the database, e.g.:
 
-```rs
+```rust
 pub async fn load(
     id: Uuid,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
@@ -40,7 +40,7 @@ Database queries are checked for correctness at compile time using sqlx's [compi
 
 All database operations can be performed standalone as atomic operations or grouped into a transaction – the `executor` argument can either be a connection pool or a transaction, e.g.:
 
-```rs
+```rust
 let user_changeset: UserChangeset = Faker.fake();
 match transaction(&app_state.db_pool).await {
     Ok(mut tx) => {
@@ -57,7 +57,7 @@ match transaction(&app_state.db_pool).await {
 
 Data validation on write operations is implemented via a changeset architecture. Instead of validating the entities themselves, the changesets are validated before they can be applied to an entity (in the case of an update operation) or converted into an entity (in the case of an insert operation), e.g.:
 
-```rs
+```rust
 #[derive(Deserialize, Validate, Clone)]
 pub struct UserChangeset {
     #[validate(length(min = 1))]
@@ -91,7 +91,7 @@ Validations are implemented with [validate](https://crates.io/crates/validator) 
 
 Application tests will typically require test data to populate the database with, e.g. a set of entities to assert that the endpoint that returning all entities of that type works correctly. Gerust uses [fake](https://crates.io/crates/fake) for so that rules for creating fake data can be declared directly in the changesets:
 
-```rs
+```rust
 #[cfg_attr(feature = "test-helpers", derive(Dummy))]
 pub struct UserChangeset {
     #[cfg_attr(feature = "test-helpers", dummy(faker = "Name"))]
@@ -101,7 +101,7 @@ pub struct UserChangeset {
 
 That allows for straight-forward creation of entities in tests, e.g.:
 
-```rs
+```rust
 let user_changeset: UserChangeset = Faker.fake();
 create_user(user_changeset, &context.db_pool)
     .await

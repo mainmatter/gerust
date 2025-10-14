@@ -86,7 +86,7 @@ Testing backends is typically straight forward: request a particular endpoint wi
 
 Gerust uses an approach for test isolation that allows parallel execution of tests without adding a ton of complexity: every test runs in its own database. These test-specific databases are automatically created as copies of the main test database and destroyed after the test has completed. All that is made easily available via the `[db_test]` macro:
 
-```rs
+```rust
 pub struct DbTestContext {
     /// The axum application that is being tested.
     pub app: Router,
@@ -125,7 +125,7 @@ The concept of changesets as well as the database access utilities like `create_
 
 The `db` crate only exists for projects that use a database and contains all functionality related to database access from entity definitions, functions for reading and writing data, as well as migrations. Gerust uses [sqlx](https://crates.io/crates/sqlx) and PostgreSQL without any additional ORM on top. Instead, it defines entities as simple structs along with functions for retrieving and persisting those entities. Validations are implemented via changesets that can get applied to or be converted to entities if they are valid:
 
-```rs
+```rust
 #[derive(Serialize, Debug, Deserialize)]
 pub struct Task {                                            // a Task entity with UUID id and text description
     pub id: Uuid,
@@ -191,7 +191,7 @@ Test helpers allow to make specific database access functions available only for
 
 The `config` crate contains the `Config` struct that holds all configuration values at runtime as well as code for parsing the configuration based on a hierarchy of TOML files and environment variables. The `Config` struct contains fields for the server and database configuration (if the application uses a database) and can be extended freely:
 
-```rs
+```rust
 #[derive(Deserialize, Clone, Debug)]
 pub struct Config {
     pub server: ServerConfig,
