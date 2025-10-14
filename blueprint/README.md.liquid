@@ -2,15 +2,16 @@
 
 This README explains how to collaborate on this Gerust application.
 {% if template_type == "full" %}
-The example application implements a simple tasks management system. [Tasks](./db/src/entities/tasks.rs) are stored in PostgreSQL and can be [created, read, updated, and deleted](./web/src/controllers/tasks.rs) via the web interface. Any writing operations [require authentication via a token](./web/src/middlewares/auth.rs).
+The example application implements a simple tasks management system. [Tasks][db/entities/tasks] are stored in PostgreSQL and can be [created, read, updated, and deleted][web/controllers/tasks] via the web interface. Any writing operations [require authentication via a token][web/middlewares/auth].
 {% else %}
 <add a description of the project here>
 {% endif %}
+
 ## Prerequisites
 
-* Rust (install via [rustup](https://rustup.rs))
+* Rust (install via [`rustup`])
 {%- unless template_type == "minimal" %}
-* [Docker](https://www.docker.com)
+* [Docker]
 {%- endunless %}
 
 ## Project Structure
@@ -30,15 +31,15 @@ Distinct parts of the project are separated into separate crates:
 
 ### Environment
 
-The project uses `.env` and `.env.test` files to store configuration settings for the development and test environments respectively. Those files are read automatically by the parts of the application that require configuration settings to be present.
+The project uses _[.env](./.env)_ and _[.env.test](./.env.test)_ files to store configuration settings for the development and test environments respectively. Those files are read automatically by the parts of the application that require configuration settings to be present.
 {% unless template_type == "minimal" %}
-A Docker setup with preconfigured databases for the development and test environments is created out-of-the-box with the project. Boot the containers with
+A Docker setup with preconfigured databases for the development and test environments is created out-of-the-box with the project. Boot the containers with:
 
 ```sh
 docker compose up
 ```
 
-The `.env` and `.env.test` contain matching configuration out-of-the-box.
+The _.env_ and _.env.test_ contain matching configuration out-of-the-box.
 {% endunless %}
 ## Commands
 
@@ -54,13 +55,13 @@ Running the application tests:
 cargo test
 ```
 {% unless template_type == "minimal" %}
-Running database tasks like executing migrations or seeding the database (see the [CLI create](./cli/README.md) for detailed documentation):
+Running database tasks like executing migrations or seeding the database (see the [CLI crate](./cli/) for detailed documentation):
 
 ```sh
 cargo db
 ```
 {% endunless %}
-Generating project files like entities, controllers, tests, etc. (see the [CLI create](./cli/README.md) for detailed documentation):
+Generating project files like entities, controllers, tests, etc. (see the [CLI crate](./cli/) for detailed documentation):
 
 ```sh
 cargo generate
@@ -75,3 +76,9 @@ Build the project's documentation with:
 ```sh
 cargo doc --workspace --all-features
 ```
+
+[`rustup`]: https://rustup.rs
+[docker]: https://www.docker.com
+[web/middlewares/auth]: ./web/src/middlewares/auth.rs
+[db/entities/tasks]: ./db/src/entities/tasks.rs
+[web/controllers/tasks]: ./web/src/controllers/tasks.rs
