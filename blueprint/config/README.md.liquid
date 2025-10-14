@@ -4,7 +4,7 @@ This crate contains the `Config` struct that holds the application's configurati
 
 The `Config` struct has{%- if template_type == "minimal" %} a field{%- else %} fields{%- endif %} for the server{%- unless template_type == "minimal" %} and database{%- endunless %} configuration by default and can be extended freely with any application-specific settings:
 
-```rs
+```rust
 pub struct Config {
     pub server: ServerConfig,
     {% unless template_type == "minimal" -%}

@@ -6,7 +6,7 @@ This crate implements the application's web interface. It contains controllers a
 
 The code for defining the application state and creating a fresh state when the application boots, is located in `state.rs`.{%- unless template_type == "minimal" -%} By default, the state contains a pool of database connection:{%- endunless %}
 
-```rs
+```rust
 #[derive(Clone)]
 pub struct AppState {
     {% unless template_type == "minimal" -%}
@@ -21,7 +21,7 @@ The `AppState` struct can be freely extended with custom fields.
 
 Routes are defined in `src/routes.rs`, e.g.:
 
-```rs
+```rust
 pub fn init_routes(app_state: AppState) -> Router {
 Router::new()
     .route("/tasks", post(create_task))
