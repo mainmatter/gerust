@@ -65,7 +65,7 @@ Let's see what these crates are resonsible for and how they work in detail:
 
 ### The `web` crate
 
-The [`web` crate] contains the main [axum] application, providing the web interface of the system. It contains the controllers with the implementations of the exposed endpoints, as well as any middlewares. The `web` crate also contains the application's main executable, which when starting up, will determine the environment the application runs in, load the configuration, initialize the app state, set up tracing and error handling, and bind the server to the configured interface.
+The [`web` crate] contains the main `axum` application, providing the web interface of the system. It contains the controllers with the implementations of the exposed endpoints, as well as any middlewares. The `web` crate also contains the application's main executable, which when starting up, will determine the environment the application runs in, load the configuration, initialize the app state, set up tracing and error handling, and bind the server to the configured interface.
 
 The crate uses a simple folder structure:
 
