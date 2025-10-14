@@ -4,7 +4,7 @@ This crate implements the application's web interface. It contains controllers a
 
 ## Application state
 
-The code for defining the application state and creating a fresh state when the application boots, is located in `state.rs`.{%- unless template_type == "minimal" -%} By default, the state contains a pool of database connection:{%- endunless %}
+The code for defining the application state and creating a fresh state when the application boots, is located in _[src/state.rs](./src/state.rs)_.{%- unless template_type == "minimal" -%} By default, the state contains a pool of database connection:{%- endunless %}
 
 ```rust
 #[derive(Clone)]
@@ -19,14 +19,15 @@ The `AppState` struct can be freely extended with custom fields.
 
 ## Routing
 
-Routes are defined in `src/routes.rs`, e.g.:
+Routes are defined in _[src/routes.rs](./src/routes.rs)_, e.g.:
 
 ```rust
 pub fn init_routes(app_state: AppState) -> Router {
-Router::new()
-    .route("/tasks", post(create_task))
-    .route("/tasks", get(get_tasks))
-    .route("/tasks/{id}", get(get_task))
+    Router::new()
+        .route("/tasks", post(create_task))
+        .route("/tasks", get(get_tasks))
+        .route("/tasks/{id}", get(get_task))
+}
 ```
 
 ## Controllers and Middlewares
@@ -77,4 +78,8 @@ async fn test_hello(context: &TestContext) {
 
 ### Test helpers
 
-The {{project-name}}-web crate includes test helpers in `src/test_helpers` that add a number of convience functions for easier issuing of requests and parsing of responses. Those helpers depend on the `test-helpers` feature flag which is automatically enabled when running tests but not for production builds. _You should not need to make any changes to these helpers._
+The {{project-name}}-web crate includes test helpers in _[src/test_helpers](./src/test_helpers/)_ that add a number of convience functions for easier issuing of requests and parsing of responses. Those helpers depend on the `test-helpers` feature flag which is automatically enabled when running tests but not for production builds. 
+
+> [!INFO]
+>
+> You should not need to make any changes to these helpers.
