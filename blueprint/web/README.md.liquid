@@ -36,7 +36,9 @@ Controllers and middlewares are kept in the respectively named directories. Cont
 ## Tests
 
 Gerust follows a full stack testing approach. The application's endpoint including database access are tested via tests in the `web` crate. Using Gerust's test macros, tests receive a fully configured and booted up instance of the application that requests can be made against{%- if template_type == "minimal" -%}:{%- endif %}.{% unless template_type == "minimal" -%} In order to allow requests to access the database without the risk of different tests interfering with each other, each test uses its own dedicated database. A pool of connections is passed to the test via the test context and the application instance is preconfigured to use the same database:{%- endunless %}
+
 {% if template_type != "minimal" %}
+```rs
 #[db_test]
 async fn test_read_all(context: &DbTestContext) {
     let task_changeset: TaskChangeset = Faker.fake();
@@ -60,7 +62,9 @@ async fn test_read_all(context: &DbTestContext) {
         eq(task_changeset.description)
     );
 }
+```
 {% else %}
+```rs
 #[test]
 async fn test_hello(context: &TestContext) {
     let response = context.app.request("/greet").send().await;
@@ -68,6 +72,7 @@ async fn test_hello(context: &TestContext) {
     let greeting: Greeting = response.into_body().into_json().await;
     assert_that!(greeting.hello, eq(String::from("world")));
 }
+```
 {% endif -%}
 
 ### Test helpers
