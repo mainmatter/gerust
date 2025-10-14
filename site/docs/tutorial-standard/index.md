@@ -9,7 +9,7 @@ In this tutorial, we will create a complete application with a database, (simpli
 Create a new project with
 
 ```sh
-» gerust my-app
+gerust my-app
 ```
 
 That creates a basic project structure:
@@ -96,7 +96,7 @@ The structure contains the `cli`, `config`, `db`, `macros`, and `web` crates. Th
 Run the generated project with:
 
 ```sh
-» cargo run
+cargo run
 ```
 
 That starts up the server at `127.0.0.1:3000`.
@@ -106,7 +106,7 @@ That starts up the server at `127.0.0.1:3000`.
 Run the tests with:
 
 ```sh
-» cargo test
+cargo test
 ```
 
 There are no tests yet but we'll add them step-by-step as we progress through the tutorial.
@@ -118,13 +118,13 @@ The project comes preconfigured with a CI setup for GitHub Actions that covers f
 Build the project with
 
 ```sh
-» cargo build
+cargo build
 ```
 
 or
 
 ```sh
-» cargo build --release
+cargo build --release
 ```
 
 for a release build.
@@ -136,7 +136,7 @@ The binary in `target/release/my-app-web` is your deployment artifact which has 
 Gerust projects come with complete API documentation out of the box. Generate the documentation with
 
 ```sh
-» cargo doc --workspace --all-features
+cargo doc --workspace --all-features
 ```
 
 and access it via `target/doc/my_app_web/index.html`. The API documentation is a great way to explore in more detail all of the elements of the codebase that Gerust generated.

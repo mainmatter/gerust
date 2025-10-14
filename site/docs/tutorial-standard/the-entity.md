@@ -11,7 +11,7 @@ The `Note` entity constitutes the core of the application and is used to store n
 We begin with generating the entity:
 
 ```sh
-» cargo generate entity note text:string
+cargo generate entity note text:string
 ```
 
 The creates the `Note` entity with a property `text` of type `String` in `db/src/entities/notes.rs` along with functions for reading, creating, updating, and deleting notes.
@@ -66,7 +66,7 @@ You'll notice the fake data configuration being applied only if the `test-helper
 Along with the entity, we need a migration to create the database table that stores the entity. We can generate that next:
 
 ```sh
-» cargo generate migration create_notes
+cargo generate migration create_notes
 ```
 
 which generates the migration file in `/db/migrations/1737540625__create_notes.sql` (timestamp prefix will vary). Migrations in Gerust are written in plain SQL so for the notes table, we can use this:
@@ -83,7 +83,7 @@ CREATE TABLE notes (
 Gerust comes with a Docker setup out-of-the-box, pre-configured with the right username and password (as configured in the `.env` file). If you're not running a PostgreSQL server in your development environment, start up the containers with
 
 ```sh
-» docker compose up
+docker compose up
 ```
 
 :::
@@ -91,7 +91,7 @@ Gerust comes with a Docker setup out-of-the-box, pre-configured with the right u
 and migrate the database:
 
 ```sh
-» cargo db migrate
+cargo db migrate
 ```
 
 The database url can be configured in `.env` (and `.env.test` for the test environment – more on that later). By default, Gerust assumes the username to use is the same as the application's name – in this case `my_app` – with the same password.
@@ -190,7 +190,7 @@ pub async fn delete(
 The entity and the functions for reading and writing it are ready to use and we can run the application again to confirm everything works as expected:
 
 ```sh
-» cargo run
+cargo run
 ```
 
 :::info
