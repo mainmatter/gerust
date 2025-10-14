@@ -417,7 +417,7 @@ let response = context
 In order to run the tests, we need to migrate the test database first (when the database was migrated before, the **development** database was migrated but the tests will use the **test** database configured in `.env.test`):
 
 ```sh
-» cargo db migrate -e test
+cargo db migrate -e test
 ```
 
 Once the database is migrated, we can run the tests:

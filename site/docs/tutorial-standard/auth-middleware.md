@@ -17,7 +17,7 @@ The middleware introduced in this chapter is not actually a proper way to implem
 First, we need to introduce the concept of a user as such. We can do that by generating a `User` entity the same way we created the `Note` entity [in the first step](./the-entity):
 
 ```sh
-» cargo generate entity user name:string
+cargo generate entity user name:string
 ```
 
 In this case, we don't keep most of the generated standard blueprint code since we want to treat users very differently than notes: Users cannot be created as part of the app's normal execution flow so we don't need a `UserChangeset` or the `create`, `update`, or `delete` functions. Also, users can only be loaded by their secret token (which is going to be included in incoming requests to identify the users) but not by their ID and we also don't need to be able to load all users at once. Plus, the token should not be leaked obviously and does never actually need to be read during the program's execution. Thus, the `User` entity and its related functionality can be shortened to this:
@@ -56,7 +56,7 @@ The `User` entity has an `id` and `name` only – we did not include the token i
 Let's generate the corresponding migration next:
 
 ```sh
-» cargo generate migration create-users
+cargo generate migration create-users
 ```
 
 which generates the migration file in `/db/migrations/1743085345__create-users.sql` (timestamp prefix will vary). Use the following SQL to create the `users` table:
@@ -72,7 +72,7 @@ CREATE TABLE users (
 The next step is again to migrate the database:
 
 ```sh
-» cargo db migrate
+cargo db migrate
 ```
 
 ## The Middleware
@@ -80,7 +80,7 @@ The next step is again to migrate the database:
 Now that the entity is done, let's create the middleware:
 
 ```sh
-» cargo generate middleware auth
+cargo generate middleware auth
 ```
 
 That creates the middleware in `web/src/middlewares/auth.rs` with the basic scaffolding:
@@ -223,7 +223,7 @@ date: Thu, 27 Mar 2025 16:04:31 GMT
 …which responds with a 401 status code as expected. To verify it works correctly when authentication credentials are provided, first create a new user:
 
 ```sh
-» psql -Atx "postgresql://my_app:my_app@localhost:5432/my_app" -c "INSERT INTO users (name, token) VALUES ('admin', '2c1b1ca9b5cf201368cc68f81ab75a5155091edf5aac5a2ada5633d617363c9dd363a0f2b10633d3cca5958fb2053e16c922')"
+psql -Atx "postgresql://my_app:my_app@localhost:5432/my_app" -c "INSERT INTO users (name, token) VALUES ('admin', '2c1b1ca9b5cf201368cc68f81ab75a5155091edf5aac5a2ada5633d617363c9dd363a0f2b10633d3cca5958fb2053e16c922')"
 ```
 
 …and invoke the same endpoint again, this time passing the token in the `Authorization` header:
@@ -269,7 +269,7 @@ That's exactly what _"Entity test helpers"_ are for in Gerust. They encapsulate 
 Let's create an entity test helper for the `User` entity:
 
 ```sh
-» cargo generate entity-test-helper user
+cargo generate entity-test-helper user
 ```
 
 That creates a test helper for the `User` entity in `db/src/test_helpers/users.rs`. That can be adapted to match the `User` entity created before:
@@ -545,7 +545,7 @@ async fn test_delete_success(context: &DbTestContext) {
 …which, after migrating the test database:
 
 ```sh
-» cargo db migrate -e test
+cargo db migrate -e test
 ```
 
 …fixes the tests

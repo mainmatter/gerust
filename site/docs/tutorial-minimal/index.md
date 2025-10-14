@@ -11,7 +11,7 @@ A minimal project is a project that does not use a database. It's a simple web s
 Create a new minimal project with
 
 ```sh
-» gerust my-app --minimal
+gerust my-app --minimal
 ```
 
 That creates a basic project structure:
@@ -74,7 +74,7 @@ The structure contains the `cli`, `config`, `macros`, and `web` crates. The `cli
 Run the generated project with:
 
 ```sh
-» cargo run
+cargo run
 ```
 
 That starts up the server at `127.0.0.1:3000`. To verify everything works as intended, request the demo endpoint that Gerust created by default:
@@ -138,13 +138,13 @@ The project comes preconfigured with a CI setup for GitHub Actions that covers f
 Build the project with
 
 ```sh
-» cargo build
+cargo build
 ```
 
 or
 
 ```sh
-» cargo build --release
+cargo build --release
 ```
 
 for a release build.
@@ -156,7 +156,7 @@ The binary in `target/release/my-app-web` is your deployment artifact which in t
 Gerust projects come with complete API documentation out of the box. Generate the documentation with
 
 ```sh
-» cargo doc --workspace --all-features
+cargo doc --workspace --all-features
 ```
 
 and access it via `target/doc/my_app_web/index.html`. The API documentation is a great way to explore in more detail all of the elements of the codebase that Gerust generated.
