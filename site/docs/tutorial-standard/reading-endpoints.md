@@ -10,7 +10,7 @@ In order to expose notes via a REST interface, we need a controller.
 
 Let's generate a controller that comes with example implementations for the <abbr>CRUD</abbr> (<dfn id="CRUD"><u>C</u>reate, <u>R</u>ead, <u>U</u>pdate, <u>D</u>elete</dfn>) methods:
 
-```
+```sh
 cargo generate crud-controller notes
 ```
 
@@ -416,7 +416,7 @@ let response = context
 
 In order to run the tests, we need to migrate the test database first (when the database was migrated before, the **development** database was migrated but the tests will use the **test** database configured in `.env.test`):
 
-```
+```sh
 » cargo db migrate -e test
 ```
 

@@ -34,7 +34,7 @@ The project uses `.env` and `.env.test` files to store configuration settings fo
 {% unless template_type == "minimal" %}
 A Docker setup with preconfigured databases for the development and test environments is created out-of-the-box with the project. Boot the containers with
 
-```
+```sh
 docker compose up
 ```
 
@@ -44,25 +44,25 @@ The `.env` and `.env.test` contain matching configuration out-of-the-box.
 
 Running the application in development mode:
 
-```
+```sh
 cargo run
 ```
 
 Running the application tests:
 
-```
+```sh
 cargo test
 ```
 {% unless template_type == "minimal" %}
 Running database tasks like executing migrations or seeding the database (see the [CLI create](./cli/README.md) for detailed documentation):
 
-```
+```sh
 cargo db
 ```
 {% endunless %}
 Generating project files like entities, controllers, tests, etc. (see the [CLI create](./cli/README.md) for detailed documentation):
 
-```
+```sh
 cargo generate
 ```
 
@@ -72,6 +72,6 @@ Building the project's docs:
 
 Build the project's documentation with:
 
-```
+```sh
 cargo doc --workspace --all-features
 ```

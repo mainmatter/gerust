@@ -16,7 +16,7 @@ The middleware introduced in this chapter is not actually a proper way to implem
 
 First, we need to introduce the concept of a user as such. We can do that by generating a `User` entity the same way we created the `Note` entity [in the first step](./the-entity):
 
-```
+```sh
 » cargo generate entity user name:string
 ```
 
@@ -55,7 +55,7 @@ The `User` entity has an `id` and `name` only – we did not include the token i
 
 Let's generate the corresponding migration next:
 
-```
+```sh
 » cargo generate migration create-users
 ```
 
@@ -71,7 +71,7 @@ CREATE TABLE users (
 
 The next step is again to migrate the database:
 
-```
+```sh
 » cargo db migrate
 ```
 
@@ -79,7 +79,7 @@ The next step is again to migrate the database:
 
 Now that the entity is done, let's create the middleware:
 
-```
+```sh
 » cargo generate middleware auth
 ```
 
@@ -222,7 +222,7 @@ date: Thu, 27 Mar 2025 16:04:31 GMT
 
 …which responds with a 401 status code as expected. To verify it works correctly when authentication credentials are provided, first create a new user:
 
-```
+```sh
 » psql -Atx "postgresql://my_app:my_app@localhost:5432/my_app" -c "INSERT INTO users (name, token) VALUES ('admin', '2c1b1ca9b5cf201368cc68f81ab75a5155091edf5aac5a2ada5633d617363c9dd363a0f2b10633d3cca5958fb2053e16c922')"
 ```
 
@@ -268,7 +268,7 @@ That's exactly what _"Entity test helpers"_ are for in Gerust. They encapsulate 
 
 Let's create an entity test helper for the `User` entity:
 
-```
+```sh
 » cargo generate entity-test-helper user
 ```
 
@@ -544,7 +544,7 @@ async fn test_delete_success(context: &DbTestContext) {
 
 …which, after migrating the test database:
 
-```
+```sh
 » cargo db migrate -e test
 ```
 
