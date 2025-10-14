@@ -8,31 +8,31 @@ _You should not need to make any changes to this crate._
 
 Creating the database (make sure the user configured in `.env` has sufficient permissions):
 
-```
+```sh
 cargo db create
 ```
 
 Dropping the database (make sure the user configured in `.env` has sufficient permissions):
 
-```
+```sh
 cargo db drop
 ```
 
 Running all pending migrations:
 
-```
+```sh
 cargo db migrate
 ```
 
 Resetting the database – this will drop the database and re-create the database, then run all migrations:
 
-```
+```sh
 cargo db reset
 ```
 
 Seeding the database – this will execute any statements in `db/seeds.sql`
 
-```
+```sh
 cargo db seed
 ```
 
@@ -42,13 +42,13 @@ Seeds can be used for essentially static data like currencies or countries.
 
 By default, the database tasks run with the development environment. That means the `.env` is used to set the `APP_DATABASE__URL` environment variable. To run the tasks against the test database in which case the `.env.test` file is read instead of the `.env.file`, run e.g.:
 
-```
+```sh
 cargo db reset -e test
 ```
 
 When running against the production database, neither the `.env` or `.env.test` files are read and the `APP_DATABASE__URL` environment variable is expected to point to the production database:
 
-```
+```sh
 cargo db reset -e production
 ```
 {% endunless %}
@@ -56,12 +56,12 @@ cargo db reset -e production
 
 Project files are generated with the
 
-```
+```sh
 cargo generate
 ```
 
 command. The CLI comes with commands for generating middlewares, controllers, controller tests, CRUD controllers and tests for those{%- unless template_type == "minimal" -%}, migrations, and entities{% endunless -%}. To get help for each of the controllers, use the `-h` flag, e.g.:
 
-```
+```sh
 cargo generate controller -h
 ```

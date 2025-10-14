@@ -21,7 +21,7 @@ For now, Gerust is just a project generator that creates the files and structure
 
 Gerust can be installed with cargo:
 
-```
+```sh
 cargo install gerust
 ```
 

@@ -6,7 +6,7 @@ sidebar_position: 2
 
 Instead of having our app always greet the entire world, let's make it so that visitors can specify their name to be personally greeted:
 
-```
+```sh
 curl -H 'Content-Type: application/json' \
      -d '{ "name": "Ferris"} ' \
      -X POST \
