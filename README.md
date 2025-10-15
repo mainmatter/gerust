@@ -19,7 +19,6 @@ For now, Gerust is just a project generator that creates the files and structure
 Gerust projects are based on [axum] and use [SQLx] and [PostgreSQL] for data storage (if data storage is used at all).
 
 > [!NOTE]
->
 > This project has been created by [Mainmatter].
 > 
 > Check out our [landing page][Mainmatter] if you're looking for Rust consulting or training!
@@ -175,7 +174,7 @@ pub async fn create(                                         // Function for cre
 }
 ```
 
-Database queries are checked for correctness at compile time using [sqlx's compile-time checked queries].
+Database queries are checked for correctness at compile time using [sqlx's compile-time checked queries][sqlx is not an orm].
 
 The crate's folder structure consists of 3 main folders:
 
@@ -313,8 +312,7 @@ Rinse:
 rm -rf my-app my-new-app
 ```
 
-> [!NOTE]
->
+> [!IMPORTANT]
 > The generated CI configuration uses offline query validation during its Clippy job. On first check-in, and each time the SQL queries in the db crate get updated, ensure `cargo db prepare` is run.
 
 ## What's a "Gerust"?
@@ -336,7 +334,7 @@ Gerust is developed by and © Mainmatter GmbH and contributors. It is released u
 [rust]: https://rust-lang.org/ "Rust Programming Language homepage"
 [axum]: https://crates.io/crates/axum/ "axum Web Application Framework on crates.io"
 [sqlx]: https://crates.io/crates/sqlx "SQLx on crates.io"
-[sqlx's compile-time checked queries]: https://github.com/launchbadge/sqlx/blob/main/README.md#sqlx-is-not-an-orm "SQLx is not an ORM!"
+[sqlx is not an orm]: https://github.com/launchbadge/sqlx/blob/main/README.md#sqlx-is-not-an-orm "SQLx is not an ORM!"
 [postgresql]: https://www.postgresql.org/ "PostgreSQL homepage"
 [mainmatter]: https://mainmatter.com/rust-consulting/ "Team Up With Us for Rust! | Rust consulting | Mainmatter"
 [cargo workspaces]: https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html "Cargo Workspaces - The Rust Programming Language"
