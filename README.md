@@ -5,7 +5,7 @@
   <img alt="Gerust logo" src="https://gerust.rs/img/logo.svg">
 </picture>
 
-Gerust provides an architecture and tooling for Rust backend projects. It takes care of the accidental complexity that comes with writing backends with Rust so you can stay focused on the essence of the system you're building:
+[Gerust] provides an architecture and tooling for [Rust] backend projects. It takes care of the accidental complexity that comes with writing backends with Rust so you can stay focused on the essence of the system you're building:
 
 * Separating distinct parts of the system into separate crates
 * Organizing files into a logical folder structure
@@ -16,15 +16,16 @@ Gerust provides an architecture and tooling for Rust backend projects. It takes 
 
 For now, Gerust is just a project generator that creates the files and structure to get you started. There is no runtime dependency on Gerust – all the code that goes into your project remains under your control.
 
-Gerust projects are based on [axum](https://crates.io/crates/axum) and use [sqlx](https://crates.io/crates/sqlx) and PostgreSQL for data storage (if data storage is used at all).
+Gerust projects are based on [axum] and use [SQLx] and [PostgreSQL] for data storage (if data storage is used at all).
 
 > [!NOTE]
-> This project has been created by [Mainmatter](https://mainmatter.com/rust-consulting/).  
-> Check out our [landing page](https://mainmatter.com/rust-consulting/) if you're looking for Rust consulting or training!
+> This project has been created by [Mainmatter].
+> 
+> Check out our [landing page][Mainmatter] if you're looking for Rust consulting or training!
 
 ## Installation
 
-Gerust can be installed with cargo:
+Gerust can be installed with `cargo`:
 
 ```sh
 cargo install gerust
@@ -44,11 +45,11 @@ By default, Gerust will generate an empty project with the complete project stru
 gerust my-app --full
 ```
 
-For projects that do not need database access, there is also the `--minimal` option that will generate a project without any of the concepts and structure related to database access – no `db` crate, no [sqlx](https://crates.io/crates/sqlx) dependency.
+For projects that do not need database access, there is also the `--minimal` option that will generate a project without any of the concepts and structure related to database access – no [`db` crate], no `sqlx` dependency.
 
 ## Project Structure
 
-Gerust uses [Cargo workspaces](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html) to separate distinct parts of the system into separate crates:
+Gerust uses [Cargo workspaces] to separate distinct parts of the system into separate crates:
 
 ```
 .
@@ -63,7 +64,7 @@ Let's see what these crates are resonsible for and how they work in detail:
 
 ### The `web` crate
 
-The `web` crate contains the main [axum](https://crates.io/crates/axum) application, providing the web interface of the system. It contains the controllers with the implementations of the exposed endpoints, as well as any middlewares. The `web` crate also contains the application's main executable, which when starting up, will determine the environment the application runs in, load the configuration, initialize the app state, set up tracing and error handling, and bind the server to the configured interface.
+The [`web` crate] contains the main `axum` application, providing the web interface of the system. It contains the controllers with the implementations of the exposed endpoints, as well as any middlewares. The `web` crate also contains the application's main executable, which when starting up, will determine the environment the application runs in, load the configuration, initialize the app state, set up tracing and error handling, and bind the server to the configured interface.
 
 The crate uses a simple folder structure:
 
@@ -123,7 +124,7 @@ The concept of changesets as well as the database access utilities like `create_
 
 ### The `db` crate
 
-The `db` crate only exists for projects that use a database and contains all functionality related to database access from entity definitions, functions for reading and writing data, as well as migrations. Gerust uses [sqlx](https://crates.io/crates/sqlx) and PostgreSQL without any additional ORM on top. Instead, it defines entities as simple structs along with functions for retrieving and persisting those entities. Validations are implemented via changesets that can get applied to or be converted to entities if they are valid:
+The [`db` crate] only exists for projects that use a database and contains all functionality related to database access from entity definitions, functions for reading and writing data, as well as migrations. Gerust uses SQLx and PostgreSQL without any additional ORM on top. Instead, it defines entities as simple structs along with functions for retrieving and persisting those entities. Validations are implemented via changesets that can get applied to or be converted to entities if they are valid:
 
 ```rust
 #[derive(Serialize, Debug, Deserialize)]
@@ -173,7 +174,7 @@ pub async fn create(                                         // Function for cre
 }
 ```
 
-Database queries are checked for correctness at compile time using sqlx's [compile-time checked queries](https://github.com/launchbadge/sqlx/blob/main/README.md#sqlx-is-not-an-orm).
+Database queries are checked for correctness at compile time using [sqlx's compile-time checked queries][sqlx is not an orm].
 
 The crate's folder structure consists of 3 main folders:
 
@@ -189,7 +190,7 @@ Test helpers allow to make specific database access functions available only for
 
 ### The `config` crate
 
-The `config` crate contains the `Config` struct that holds all configuration values at runtime as well as code for parsing the configuration based on a hierarchy of TOML files and environment variables. The `Config` struct contains fields for the server and database configuration (if the application uses a database) and can be extended freely:
+The [`config` crate] contains the `Config` struct that holds all configuration values at runtime as well as code for parsing the configuration based on a hierarchy of TOML files and environment variables. The `Config` struct contains fields for the server and database configuration (if the application uses a database) and can be extended freely:
 
 ```rust
 #[derive(Deserialize, Clone, Debug)]
@@ -200,7 +201,7 @@ pub struct Config {
 }
 ```
 
-The values for the server and database configuration are read from the `APP_SERVER__IP`, `APP_SERVER__PORT`, and `APP_DATABASE__URL` environment variables. Any application-specific settings are read from `app.toml` as well as environment-specific file, e.g. `production.toml` such that settings in the environment-specific files override those in `app.toml`.
+The values for the server and database configuration are read from the `APP_SERVER__IP`, `APP_SERVER__PORT`, and `APP_DATABASE__URL` environment variables. Any application-specific settings are read from _[app.toml]_ as well as environment-specific file, e.g. _[production.toml]_ such that settings in the environment-specific files override those in _app.toml_.
 
 The main files and folders in the crate are:
 
@@ -217,7 +218,7 @@ config
 
 ### The `cli` crate
 
-The `cli` crate contains the `db` binary for running database operations such as executing migrations (this binary only exists for projects that use a database) as well as the `generate` binary for generating project files such as entities, controllers, tests, or middlewares. The workspace is configured so that those binaries can be executed with just `cargo db` and `cargo generate`:
+The [`cli` crate] contains the `db` binary for running database operations such as executing migrations (this binary only exists for projects that use a database) as well as the `generate` binary for generating project files such as entities, controllers, tests, or middlewares. The workspace is configured so that those binaries can be executed with just `cargo db` and `cargo generate`:
 
 ```
 » cargo db
@@ -271,7 +272,7 @@ You would typically not have to make any changes to the `cli` crate.
 
 ### The `macros` crate
 
-The `macros` crate contains the implementation of the `db_test` macro. You would typically not have to make any changes to the `cli` crate.
+The [`macros` crate] contains the implementation of the `db_test` macro. You would typically not have to make any changes to the `cli` crate.
 
 ## Testing & CI
 
@@ -311,12 +312,31 @@ Rinse:
 rm -rf my-app my-new-app
 ```
 
-_Note: the generated CI configuration uses offline query validation during its Clippy job. On first check-in, and each time the SQL queries in the db crate get updated, ensure `cargo db prepare` is run._
+> [!IMPORTANT]
+> The generated CI configuration uses offline query validation during its Clippy job. On first check-in, and each time the SQL queries in the db crate get updated, ensure `cargo db prepare` is run.
 
 ## What's a "Gerust"?
 
-"Gerust" is a play on "Gerüst", the German word for "framework" and Rust – thanks to [@skade](https://github.com/skade) who had the idea originally and allowed us to use it!
+"Gerust" is a play on "Gerüst", the German word for "framework" and Rust – thanks to [@skade] who had the idea originally and allowed us to use it!
 
 ## License
 
-Gerust is developed by and © Mainmatter GmbH and contributors. It is released under the [MIT License](./LICENSE.md).
+Gerust is developed by and © Mainmatter GmbH and contributors. It is released under the [MIT License].
+
+[gerust]: https://gerust.rs/ "Gerust homepage"
+[`web` crate]: ./blueprint/web/
+[`db` crate]: ./blueprint/db/
+[`config` crate]: ./blueprint/config/
+[`cli` crate]: ./blueprint/cli/
+[`macros` crate]: ./blueprint/macros/
+[app.toml]: ./blueprint/config/app.toml
+[production.toml]: ./blueprint/config/environments/production.toml
+[rust]: https://rust-lang.org/ "Rust Programming Language homepage"
+[axum]: https://crates.io/crates/axum/ "axum Web Application Framework on crates.io"
+[sqlx]: https://crates.io/crates/sqlx "SQLx on crates.io"
+[sqlx is not an orm]: https://github.com/launchbadge/sqlx/blob/main/README.md#sqlx-is-not-an-orm "SQLx is not an ORM!"
+[postgresql]: https://www.postgresql.org/ "PostgreSQL homepage"
+[mainmatter]: https://mainmatter.com/rust-consulting/ "Team Up With Us for Rust! | Rust consulting | Mainmatter"
+[cargo workspaces]: https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html "Cargo Workspaces - The Rust Programming Language"
+[@skade]: https://github.com/skade "@skade on GitHub"
+[MIT License]: ./LICENSE.md
