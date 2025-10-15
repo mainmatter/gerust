@@ -1,6 +1,6 @@
 # Gerust Website
 
-This website is built using [Docusaurus](https://docusaurus.io/).
+This website is built using [Docusaurus].
 
 ### Installation
 
@@ -15,3 +15,5 @@ pnpm start
 ```
 
 This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+
+[Docusaurus]: https://docusaurus.io/ "Build optimized websites quickly, focus on your content | Docusaurus"

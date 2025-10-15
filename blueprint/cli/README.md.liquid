@@ -2,17 +2,19 @@
 
 This crate contains a CLI for{%- unless template_type == "minimal" %} managing the database and{%- endunless %} creating project files like controllers,{%- unless template_type == "minimal" %} entities,{%- endunless %} middleware, or tests.
 
-_You should not need to make any changes to this crate._
+> [!NOTE]
+> You should not need to make any changes to this crate.
+
 {% unless template_type == "minimal" %}
 ## Managing the database
 
-Creating the database (make sure the user configured in `.env` has sufficient permissions):
+Creating the database (make sure the user configured in _[.env](../.env)_ has sufficient permissions):
 
 ```sh
 cargo db create
 ```
 
-Dropping the database (make sure the user configured in `.env` has sufficient permissions):
+Dropping the database (make sure the user configured in _[.env](../.env)_ has sufficient permissions):
 
 ```sh
 cargo db drop
@@ -30,7 +32,7 @@ Resetting the database – this will drop the database and re-create the databas
 cargo db reset
 ```
 
-Seeding the database – this will execute any statements in `db/seeds.sql`
+Seeding the database – this will execute any statements in _[db/seeds.sql](../db/seeds.sql)_.
 
 ```sh
 cargo db seed
@@ -40,13 +42,13 @@ Seeds can be used for essentially static data like currencies or countries.
 
 ### Environments
 
-By default, the database tasks run with the development environment. That means the `.env` is used to set the `APP_DATABASE__URL` environment variable. To run the tasks against the test database in which case the `.env.test` file is read instead of the `.env.file`, run e.g.:
+By default, the database tasks run with the development environment. That means the _[.env](../.env)_ is used to set the `APP_DATABASE__URL` environment variable. To run the tasks against the test database in which case the _[.env.test](../.env.test)_ file is read instead of the _.env_ file, run e.g.:
 
 ```sh
 cargo db reset -e test
 ```
 
-When running against the production database, neither the `.env` or `.env.test` files are read and the `APP_DATABASE__URL` environment variable is expected to point to the production database:
+When running against the production database, neither the _[.env](../.env)_ or _[.env.test](../.env.test)_ files are read and the `APP_DATABASE__URL` environment variable is expected to point to the production database:
 
 ```sh
 cargo db reset -e production
