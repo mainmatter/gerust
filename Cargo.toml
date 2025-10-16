@@ -1,6 +1,6 @@
 [package]
 name = "gerust"
-version = "0.0.6"
+version = "0.0.7"
 edition = "2024"
 authors = ["Marco Otte-Witte <marco.otte-witte@mainmatter.com>"]
 description = "Gerust takes care of the accidental complexity of Rust backend projects so you can stay focused on what matters."
