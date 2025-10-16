@@ -18,17 +18,17 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1"
-clap = { version = "4.4", features = ["cargo"] }
-cargo-generate = "0.23.0"
+clap = { version = "4.5", features = ["cargo"] }
+cargo-generate = "0.23.5"
 include_dir = "0.7"
-tokio = { version = "1.34", features = ["full"] }
+tokio = { version = "1.48", features = ["full"] }
 
 [dev-dependencies]
-insta = "1.38"
+insta = "1.43"
 
 [build-dependencies]
-vergen = { version = "9.0.4", features = ["build"] }
-vergen-git2 = { version = "1.0.2", features = ["build"] }
+vergen = { version = "9.0.6", features = ["build"] }
+vergen-git2 = { version = "1.0.7", features = ["build"] }
 
 [profile.release]
 lto = true
