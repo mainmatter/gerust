@@ -12,6 +12,7 @@ doctest = false
 [[bin]]
 name = "db"
 path = "src/bin/db.rs"
+
 {% endif -%}
 [[bin]]
 name = "generate"
@@ -19,18 +20,26 @@ path = "src/bin/generate.rs"
 
 [dependencies]
 anyhow = "1"
-clap = { version = "4.4", features = ["derive"] }
+clap = { version = "4.5", features = ["derive"] }
 cruet = "0.15"
 guppy = "0.17"
 include_dir = "0.7"
 liquid = "~0.26"
 {{project-name}}-config = { path = "../config" }
 {% unless template_type == "minimal" -%}
-regex = "1.11"
-sqlx = { version = "0.8", features = [ "runtime-tokio", "tls-rustls", "postgres", "macros", "uuid", "migrate", "chrono" ] }
+regex = "1.12"
+sqlx = { version = "0.8", features = [
+    "runtime-tokio",
+    "tls-rustls",
+    "postgres",
+    "macros",
+    "uuid",
+    "migrate",
+    "chrono",
+] }
 url = "2.5"
 {%- endunless %}
-tokio = { version = "1.34", features = ["full"] }
+tokio = { version = "1.48", features = ["full"] }
 
 [dev-dependencies]
-insta = "1.38"
+insta = "1.43"
