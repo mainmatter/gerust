@@ -17,7 +17,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 10
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
