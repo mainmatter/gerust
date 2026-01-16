@@ -31,7 +31,7 @@ insta = "1.43"
 
 [build-dependencies]
 vergen = { version = "9.0.6", features = ["build"] }
-vergen-git2 = { version = "1.0.7", features = ["build"] }
+vergen-git2 = { version = "9.0.0", features = ["build"] }
 
 [profile.release]
 lto = true
