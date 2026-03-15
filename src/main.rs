@@ -99,7 +99,7 @@ async fn main() {
     ui.info(&format!("Generating {}…", cli.name));
     ui.indent();
 
-    match generate(&cli.name, cli.outdir, !cli.no_vcs, blueprint).await {
+    match generate(&cli.name, cli.outdir, !cli.no_vcs, blueprint) {
         Ok(output_dir) => {
             ui.outdent();
             ui.success(&format!(
@@ -116,7 +116,7 @@ async fn main() {
 }
 
 #[doc(hidden)]
-async fn generate(
+fn generate(
     name: &str,
     output_dir: Option<PathBuf>,
     init_git_vcs: bool,
@@ -131,7 +131,7 @@ async fn generate(
     let mut defines: Vec<String> = vec![];
     defines.push(format!("template_type={blueprint}"));
 
-    let template_path = build_template_path().await?;
+    let template_path = build_template_path()?;
 
     let generate_args = GenerateArgs {
         template_path,
@@ -156,8 +156,8 @@ async fn generate(
 }
 
 #[doc(hidden)]
-async fn build_template_path() -> Result<TemplatePath, anyhow::Error> {
-    let target_directory = env::temp_dir().join(format!("gerust-blueprint-{}", VERSION));
+fn build_template_path() -> Result<TemplatePath, anyhow::Error> {
+    let target_directory = env::temp_dir().join(format!("gerust-blueprint-{VERSION}"));
     fs::create_dir_all(&target_directory)
         .context("Failed to create a temporary directory for Gerust CLI's blueprints")?;
     BLUEPRINTS_DIR

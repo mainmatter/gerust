@@ -7,7 +7,7 @@ async fn main() -> ExitCode {
     init_tracing();
 
     match run().await {
-        Ok(_) => ExitCode::SUCCESS,
+        Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
             tracing::error!(
                 error.msg = %e,

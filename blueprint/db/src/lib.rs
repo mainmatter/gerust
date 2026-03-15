@@ -44,7 +44,7 @@ pub enum Error {
     DbError(#[from] sqlx::Error),
     /// No record was found, e.g. when loading a record by ID. This variant is different from
     /// `Error::DbError(sqlx::Error::RowNotFound)` in that the latter indicates a bug, and
-    /// `Error::NoRecordFound` does not. It merely originates from [sqlx::Executor::fetch_optional]
+    /// `Error::NoRecordFound` does not. It merely originates from [`sqlx::Executor::fetch_optional`]
     /// returning `None`.
     #[error("no record found")]
     NoRecordFound,

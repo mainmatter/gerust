@@ -24,7 +24,7 @@ use tower::ServiceExt;
 
 /// A request that a test sends to the application.
 ///
-/// TestRequests are constructed via the test context (see {% if template_type != "minimal" -%}[`DbTestContext`]{%- else -%}[`TestContext`]{%- endif -%}).
+/// `TestRequests` are constructed via the test context (see {% if template_type != "minimal" -%}[`DbTestContext`]{%- else -%}[`TestContext`]{%- endif -%}).
 ///
 /// Example:
 /// ```
@@ -56,6 +56,7 @@ impl TestRequest {
 
     /// Sets the HTTP method for the request, e.g. GET or POST, see [`axum::http::Method`].
     #[allow(unused)]
+    #[must_use]
     pub fn method(mut self, method: Method) -> Self {
         self.method = method;
         self
@@ -75,6 +76,7 @@ impl TestRequest {
     ///     .await;
     /// ```
     #[allow(unused)]
+    #[must_use]
     pub fn header(mut self, name: HeaderName, value: &str) -> Self {
         self.headers.insert(name, value.parse().unwrap());
         self
@@ -93,6 +95,7 @@ impl TestRequest {
     ///     }).to_string()))
     /// ```
     #[allow(unused)]
+    #[must_use]
     pub fn body(mut self, body: Body) -> Self {
         self.body = body;
         self
@@ -239,7 +242,7 @@ pub async fn setup() -> DbTestContext {
 ///
 /// This function is not invoked directly but used inside of the [`{{crate_name}}_macros::db_test`] attribute macro. The test context is automatically passed to test cases marked with that macro as an argument.
 #[allow(unused)]
-pub async fn teardown(context: DbTestContext) {
+pub fn teardown(context: DbTestContext) {
     drop(context.app);
 
     teardown_db(context.db_pool);

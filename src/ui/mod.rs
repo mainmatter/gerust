@@ -32,22 +32,22 @@ impl<'a> UI<'a> {
         let info_prefix = if color {
             String::from("ℹ️  ")
         } else {
-            String::from("")
+            String::new()
         };
         let success_prefix = if color {
             String::from("✅ ")
         } else {
-            String::from("")
+            String::new()
         };
         let error_prefix = if color {
             String::from("❌ ")
         } else {
-            String::from("")
+            String::new()
         };
         let log_prefix = if color {
             String::from("   ")
         } else {
-            String::from("")
+            String::new()
         };
 
         UI {
@@ -95,7 +95,7 @@ impl<'a> UI<'a> {
         let indentation = self.indentation();
         self.errout(&format!("{}{}{}", indentation, self.error_prefix, msg));
         if self.debug {
-            self.errout(&format!("{:?}", e));
+            self.errout(&format!("{e:?}"));
         }
     }
 
@@ -147,11 +147,11 @@ impl<'a> UI<'a> {
     }
 
     fn out(&mut self, msg: &str) {
-        writeln!(&mut self.stdout, "{}", msg).expect("Cannot write to the output buffer!");
+        writeln!(&mut self.stdout, "{msg}").expect("Cannot write to the output buffer!");
     }
 
     fn errout(&mut self, msg: &str) {
-        writeln!(&mut self.errout, "{}", msg).expect("Cannot write to the error output buffer!");
+        writeln!(&mut self.errout, "{msg}").expect("Cannot write to the error output buffer!");
     }
 }
 
