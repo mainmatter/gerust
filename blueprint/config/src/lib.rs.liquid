@@ -49,14 +49,14 @@ pub struct ServerConfig {
     /// The port to bind to, e.g. 3000
     pub port: u16,
 
-    /// The ip to bind to, e.g. 127.0.0.1 or ::1
+    /// The ip to bind to, e.g. `127.0.0.1` or `::1`
     pub ip: IpAddr,
 }
 
 impl Default for ServerConfig {
     fn default() -> Self {
         Self {
-            ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+            ip: IpAddr::V4(Ipv4Addr::LOCALHOST),
             port: 3000,
         }
     }
@@ -72,6 +72,7 @@ impl ServerConfig {
     /// let listener = TcpListener::bind(&config.server.addr).await?;
     /// serve(listener, app.into_make_service()).await?;
     ///  ```
+    #[must_use]
     pub fn addr(&self) -> SocketAddr {
         SocketAddr::new(self.ip, self.port)
     }
@@ -96,7 +97,7 @@ impl ServerConfig {
 #[derive(Deserialize, Clone, Debug)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct DatabaseConfig {
-    /// The URL to use to connect to the database, e.g. "postgresql://user:password@localhost:5432/database"
+    /// The URL to use to connect to the database, e.g. `postgresql://user:password@localhost:5432/database`
     pub url: String,
 }
 {%- endunless %}
@@ -109,7 +110,7 @@ pub struct DatabaseConfig {
 /// * for [`Environment::Production`], the function will only use the process env vars, and not load a `.env` file
 ///
 /// In case the .env or .env.test files live in another directory,
-/// you can set that location using the APP_DOTENV_CONFIG_DIR environment variable.
+/// you can set that location using the `APP_DOTENV_CONFIG_DIR` environment variable.
 /// This is useful when they are mounted at separate locations in a Docker container, for example.
 ///
 /// Configuration settings are loaded from these sources (in that order so that latter soruces override former):
@@ -151,10 +152,7 @@ where
     let config: T = Figment::new()
         .merge(Serialized::defaults(ServerConfig::default()).key("server"))
         .merge(Toml::file("config/app.toml"))
-        .merge(Toml::file(format!(
-            "config/environments/{}",
-            env_config_file
-        )))
+        .merge(Toml::file(format!("config/environments/{env_config_file}")))
         .merge(Env::prefixed("APP_").split("__"))
         .extract()
         .context("Could not read configuration!")?;
@@ -189,15 +187,12 @@ impl Display for Environment {
 ///
 /// If the `APP_ENVIRONMENT` env var is set, the application environment is parsed from that (which might fail if an invalid environment is set). If the env var is not set, [`Environment::Development`] is returned.
 pub fn get_env() -> Result<Environment, anyhow::Error> {
-    match env::var("APP_ENVIRONMENT") {
-        Ok(val) => {
-            info!(r#"Setting environment from APP_ENVIRONMENT: "{}""#, val);
-            parse_env(&val)
-        }
-        Err(_) => {
-            info!("Defaulting to environment: development");
-            Ok(Environment::Development)
-        }
+    if let Ok(val) = env::var("APP_ENVIRONMENT") {
+        info!(r#"Setting environment from APP_ENVIRONMENT: "{}""#, val);
+        parse_env(&val)
+    } else {
+        info!("Defaulting to environment: development");
+        Ok(Environment::Development)
     }
 }
 
@@ -207,12 +202,10 @@ pub fn get_env() -> Result<Environment, anyhow::Error> {
 pub fn parse_env(env: &str) -> Result<Environment, anyhow::Error> {
     let env = &env.to_lowercase();
     match env.as_str() {
-        "dev" => Ok(Environment::Development),
-        "development" => Ok(Environment::Development),
+        "dev" | "development" => Ok(Environment::Development),
         "test" => Ok(Environment::Test),
-        "prod" => Ok(Environment::Production),
-        "production" => Ok(Environment::Production),
-        unknown => Err(anyhow!(r#"Unknown environment: "{}"!"#, unknown)),
+        "prod" | "production" => Ok(Environment::Production),
+        unknown => Err(anyhow!(r#"Unknown environment: "{unknown}"!"#)),
     }
 }
 
@@ -264,7 +257,7 @@ mod tests {
                 config,
                 eq(&Config {
                     server: ServerConfig {
-                        ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+                        ip: IpAddr::V4(Ipv4Addr::LOCALHOST),
                         port: 3000,
                     },
                     {% unless template_type == "minimal" -%}
@@ -312,7 +305,7 @@ mod tests {
                 config,
                 eq(&Config {
                     server: ServerConfig {
-                        ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+                        ip: IpAddr::V4(Ipv4Addr::LOCALHOST),
                         port: 3000,
                     },
                     {% unless template_type == "minimal" -%}
@@ -360,7 +353,7 @@ mod tests {
                 config,
                 eq(&Config {
                     server: ServerConfig {
-                        ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+                        ip: IpAddr::V4(Ipv4Addr::LOCALHOST),
                         port: 3000,
                     },
                     {% unless template_type == "minimal" -%}
