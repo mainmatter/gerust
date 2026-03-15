@@ -98,7 +98,7 @@ pub fn db_test(_: TokenStream, item: TokenStream) -> TokenStream {
     };
 
     let teardown = quote! {
-        {{crate_name}}_web::test_helpers::teardown(context).await;
+        {{crate_name}}_web::test_helpers::teardown(context);
     };
 
     let output = quote!(
