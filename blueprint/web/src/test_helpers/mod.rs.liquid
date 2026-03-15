@@ -24,7 +24,7 @@ use tower::ServiceExt;
 
 /// A request that a test sends to the application.
 ///
-/// TestRequests are constructed via the test context (see {%- if template_type != "minimal" -%}[`DbTestContext`]{%- else -%}[`TestContext`]{%- endif -%}).
+/// TestRequests are constructed via the test context (see {% if template_type != "minimal" -%}[`DbTestContext`]{%- else -%}[`TestContext`]{%- endif -%}).
 ///
 /// Example:
 /// ```
