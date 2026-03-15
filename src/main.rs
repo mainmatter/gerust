@@ -157,7 +157,7 @@ async fn generate(
 
 #[doc(hidden)]
 async fn build_template_path() -> Result<TemplatePath, anyhow::Error> {
-    let target_directory = env::temp_dir().join(format!("gerust-blueprint-{}", VERSION));
+    let target_directory = env::temp_dir().join(format!("gerust-blueprint-{VERSION}"));
     fs::create_dir_all(&target_directory)
         .context("Failed to create a temporary directory for Gerust CLI's blueprints")?;
     BLUEPRINTS_DIR
