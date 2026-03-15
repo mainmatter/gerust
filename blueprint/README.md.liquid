@@ -20,7 +20,7 @@ Distinct parts of the project are separated into separate crates:
 
 ```
 .
-├── cli    // CLI tools for{%- unless template_type == "minimal" -%} running DB migrations or{%- endunless %} generating project files
+├── cli    // CLI tools for{%- unless template_type == "minimal" %} running DB migrations or{%- endunless %} generating project files
 ├── config // Defines the `Config` struct and handles building the configuration from environment-specific TOML files and environment variables
 {%- unless template_type == "minimal" %}
 ├── db     // Encapsulates database access, migrations, as well as entity definitions and related code (if the project uses a database)
