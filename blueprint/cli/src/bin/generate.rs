@@ -33,7 +33,7 @@ async fn main() -> ExitCode {
     let mut ui = UI::new(&mut stdout, &mut stderr, !args.no_color, !args.quiet);
 
     match cli(&mut ui, args).await {
-        Ok(_) => ExitCode::SUCCESS,
+        Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
             ui.error(e.to_string().as_str(), &e);
             ExitCode::FAILURE
@@ -211,7 +211,7 @@ async fn generate_middleware(name: String, r#override: bool) -> Result<String, a
         .render(&variables)
         .context("Failed to render Liquid template")?;
 
-    let file_path = format!("./web/src/middlewares/{}.rs", name);
+    let file_path = format!("./web/src/middlewares/{name}.rs");
     create_project_file(&file_path, output.as_bytes(), r#override)?;
     append_module_definition_to_project_file(
         "./web/src/middlewares/mod.rs",
@@ -233,7 +233,7 @@ async fn generate_controller(name: String, r#override: bool) -> Result<String, a
         .render(&variables)
         .context("Failed to render Liquid template")?;
 
-    let file_path = format!("./web/src/controllers/{}.rs", name);
+    let file_path = format!("./web/src/controllers/{name}.rs");
     create_project_file(&file_path, output.as_bytes(), r#override)?;
     append_module_definition_to_project_file(
         "./web/src/controllers/mod.rs",
@@ -274,7 +274,7 @@ async fn generate_controller_test(name: String, r#override: bool) -> Result<Stri
 async fn generate_migration(name: String, r#override: bool) -> Result<String, anyhow::Error> {
     let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
     let file_name = format!("{}__{}.sql", timestamp.as_secs(), name);
-    let path = format!("./db/migrations/{}", file_name);
+    let path = format!("./db/migrations/{file_name}");
     create_project_file(&path, "".as_bytes(), r#override)?;
 
     Ok(path)
@@ -298,7 +298,7 @@ async fn generate_entity(name: String, fields: Vec<String>, r#override: bool) ->
         .context("Failed to render Liquid template")?;
 
     create_project_file(
-        &format!("./db/src/entities/{}.rs", name_plural),
+        &format!("./db/src/entities/{name_plural}.rs"),
         output.as_bytes(),
         r#override,
     )?;
@@ -327,7 +327,7 @@ async fn generate_entity_test_helper(name: String, r#override: bool) -> Result<S
         .context("Failed to render Liquid template")?;
 
     create_project_file(
-        &format!("./db/src/test_helpers/{}.rs", name_plural),
+        &format!("./db/src/test_helpers/{name_plural}.rs"),
         output.as_bytes(),
         r#override,
     )?;
@@ -362,7 +362,7 @@ async fn generate_crud_controller(name: String, r#override: bool) -> Result<Stri
         .render(&variables)
         .context("Failed to render Liquid template")?;
 
-    let file_path = format!("./web/src/controllers/{}.rs", name);
+    let file_path = format!("./web/src/controllers/{name}.rs");
     create_project_file(&file_path, output.as_bytes(), r#override)?;
     append_module_definition_to_project_file(
         "./web/src/controllers/mod.rs",
@@ -409,10 +409,10 @@ async fn generate_crud_controller_test(name: String, r#override: bool) -> Result
 fn get_liquid_template(path: &str) -> Result<Template, anyhow::Error> {
     let blueprint = BLUEPRINTS_DIR
         .get_file(path)
-        .context(format!("Failed to get blueprint {}!", path))?;
+        .context(format!("Failed to get blueprint {path}!"))?;
     let template_source = blueprint
         .contents_utf8()
-        .context(format!("Failed to read blueprint {}!", path))?;
+        .context(format!("Failed to read blueprint {path}!"))?;
     let template = liquid::ParserBuilder::with_stdlib()
         .build()
         .unwrap()
@@ -424,11 +424,11 @@ fn get_liquid_template(path: &str) -> Result<Template, anyhow::Error> {
 
 fn create_project_file(path: &str, contents: &[u8], r#override: bool) -> Result<(), anyhow::Error> {
     if !r#override && Path::new(path).exists() {
-        Err(anyhow!("File {} already exists!", path))
+        Err(anyhow!("File {path} already exists!"))
     } else {
-        let mut file = File::create(path).context(format!(r#"Could not create file "{}""#, path))?;
+        let mut file = File::create(path).context(format!(r#"Could not create file "{path}""#))?;
         file.write_all(contents)
-            .context(format!(r#"Could not write file "{}""#, path))?;
+            .context(format!(r#"Could not write file "{path}""#))?;
         
         Ok(())
     }
@@ -440,7 +440,7 @@ fn append_module_definition_to_project_file(path: &str, module_name: &str, is_pu
         false => format!("mod {module_name};")
     };
     let file_contents =
-        fs::read_to_string(path).context(format!(r#"Could not read file "{}"!"#, path))?;
+        fs::read_to_string(path).context(format!(r#"Could not read file "{path}"!"#))?;
     let file_contents = file_contents.trim();
 
     if file_contents.contains(&module_def) {
@@ -458,9 +458,9 @@ fn append_module_definition_to_project_file(path: &str, module_name: &str, is_pu
 
     let mut file = options
         .open(path)
-        .context(format!(r#"Could not open file "{}"!"#, path))?;
+        .context(format!(r#"Could not open file "{path}"!"#))?;
 
-    writeln!(file, "{}", module_def).context(format!(r#"Failed to append to file "{}"!"#, path))?;
+    writeln!(file, "{module_def}").context(format!(r#"Failed to append to file "{path}"!"#))?;
 
     Ok(())
 }
@@ -479,7 +479,7 @@ fn get_member_package_name(path: &str) -> Result<String, anyhow::Error> {
             return Ok(String::from(metadata.name()));
         }
     }
-    Err(anyhow!("Could not find workspace member at path: {}", path))
+    Err(anyhow!("Could not find workspace member at path: {path}"))
 }
 
 {% if template_type != "minimal" -%}
@@ -490,10 +490,10 @@ fn validate_fields(fields: &Vec<String>) -> Result<Vec<HashMap<String, String>>,
     let mut mapped_fields = Vec::<HashMap<String, String>>::new();
     for field in fields {
         let Some(captures) = re.captures(field.trim()) else {
-            return Err(anyhow!("Invalid field definition: {}!", field));
+            return Err(anyhow!("Invalid field definition: {field}!"));
         };
         if captures.len() != 3 {
-            return Err(anyhow!("Invalid field definition: {}!", field));
+            return Err(anyhow!("Invalid field definition: {field}!"));
         }
 
         let field_name = String::from(captures.get(1).unwrap().as_str());
