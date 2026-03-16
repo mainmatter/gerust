@@ -113,7 +113,7 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
     match cli.command {
         Commands::Middleware { name } => {
             ui.info("Generating middleware…");
-            let file_name = generate_middleware(name, cli.r#override)
+            let file_name = generate_middleware(&name, cli.r#override)
                 .await
                 .context("Could not generate middleware!")?;
             ui.success(&format!("Generated middleware {}.", &file_name));
@@ -121,13 +121,13 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
         }
         Commands::Controller { name } => {
             ui.info("Generating controller…");
-            let file_name = generate_controller(name.clone(), cli.r#override)
+            let file_name = generate_controller(&name, cli.r#override)
                 .await
                 .context("Could not generate controller!")?;
             ui.success(&format!("Generated controller {}.", &file_name));
             ui.info("Do not forget to route the controller's actions in ./web/src/routes.rs!");
             ui.info("Generating test for controller…");
-            let file_name = generate_controller_test(name, cli.r#override)
+            let file_name = generate_controller_test(&name, cli.r#override)
                 .await
                 .context("Could not generate test for controller!")?;
             ui.success(&format!("Generated test for controller {}.", &file_name));
@@ -135,7 +135,7 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
         }
         Commands::ControllerTest { name } => {
             ui.info("Generating test for controller…");
-            let file_name = generate_controller_test(name, cli.r#override)
+            let file_name = generate_controller_test(&name, cli.r#override)
                 .await
                 .context("Could not generate test for controller!")?;
             ui.success(&format!("Generated test for controller {}.", &file_name));
@@ -144,7 +144,7 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
         {% if template_type != "minimal" -%}
         Commands::Migration { name } => {
             ui.info("Generating migration…");
-            let file_name = generate_migration(name, cli.r#override)
+            let file_name = generate_migration(&name, cli.r#override)
                 .await
                 .context("Could not generate migration!")?;
             ui.success(&format!("Generated migration {}.", &file_name));
@@ -152,7 +152,7 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
         }
         Commands::Entity { name, fields } => {
             ui.info("Generating entity…");
-            let struct_name = generate_entity(name, fields, cli.r#override)
+            let struct_name = generate_entity(&name, &fields, cli.r#override)
                 .await
                 .context("Could not generate entity!")?;
             ui.success(&format!("Generated entity {}.", &struct_name));
@@ -160,7 +160,7 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
         }
         Commands::EntityTestHelper { name } => {
             ui.info("Generating entity test helper…");
-            let struct_name = generate_entity_test_helper(name, cli.r#override)
+            let struct_name = generate_entity_test_helper(&name, cli.r#override)
                 .await
                 .context("Could not generate entity test helper!")?;
             ui.success(&format!(
@@ -171,12 +171,12 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
         }
         Commands::CrudController { name } => {
             ui.info("Generating CRUD controller…");
-            let file_name = generate_crud_controller(name.clone(), cli.r#override)
+            let file_name = generate_crud_controller(&name, cli.r#override)
                 .await
                 .context("Could not generate CRUD controller!")?;
             ui.success(&format!("Generated CRUD controller {}.", &file_name));
             ui.info("Do not forget to route the controller's actions in ./web/src/routes.rs!");
-            let file_name = generate_crud_controller_test(name.clone(), cli.r#override)
+            let file_name = generate_crud_controller_test(&name, cli.r#override)
                 .await
                 .context("Could not generate test for CRUD controller!")?;
             ui.success(&format!(
@@ -187,7 +187,7 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
         }
         Commands::CrudControllerTest { name } => {
             ui.info("Generating test for CRUD controller…");
-            let file_name = generate_crud_controller_test(name.clone(), cli.r#override)
+            let file_name = generate_crud_controller_test(&name, cli.r#override)
                 .await
                 .context("Could not generate test for CRUD controller!")?;
             ui.success(&format!(
@@ -200,8 +200,8 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
     }
 }
 
-async fn generate_middleware(name: String, r#override: bool) -> Result<String, anyhow::Error> {
-    let name = to_snake_case(&name).to_lowercase();
+async fn generate_middleware(name: &str, r#override: bool) -> Result<String, anyhow::Error> {
+    let name = to_snake_case(name).to_lowercase();
 
     let template = get_liquid_template("middleware/file.rs")?;
     let variables = liquid::object!({
@@ -222,8 +222,8 @@ async fn generate_middleware(name: String, r#override: bool) -> Result<String, a
     Ok(file_path)
 }
 
-async fn generate_controller(name: String, r#override: bool) -> Result<String, anyhow::Error> {
-    let name = to_snake_case(&name).to_lowercase();
+async fn generate_controller(name: &str, r#override: bool) -> Result<String, anyhow::Error> {
+    let name = to_snake_case(name).to_lowercase();
 
     let template = get_liquid_template("controller/minimal/controller.rs")?;
     let variables = liquid::object!({
@@ -244,8 +244,8 @@ async fn generate_controller(name: String, r#override: bool) -> Result<String, a
     Ok(file_path)
 }
 
-async fn generate_controller_test(name: String, r#override: bool) -> Result<String, anyhow::Error> {
-    let name = to_snake_case(&name).to_lowercase();
+async fn generate_controller_test(name: &str, r#override: bool) -> Result<String, anyhow::Error> {
+    let name = to_snake_case(name).to_lowercase();
     let macros_crate_name = get_member_package_name("macros")?;
     let macros_crate_name = to_snake_case(&macros_crate_name);
     let web_crate_name = get_member_package_name("web")?;
@@ -271,7 +271,7 @@ async fn generate_controller_test(name: String, r#override: bool) -> Result<Stri
 }
 
 {% if template_type != "minimal" -%}
-async fn generate_migration(name: String, r#override: bool) -> Result<String, anyhow::Error> {
+async fn generate_migration(name: &str, r#override: bool) -> Result<String, anyhow::Error> {
     let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
     let file_name = format!("{}__{}.sql", timestamp.as_secs(), name);
     let path = format!("./db/migrations/{file_name}");
@@ -280,9 +280,9 @@ async fn generate_migration(name: String, r#override: bool) -> Result<String, an
     Ok(path)
 }
 
-async fn generate_entity(name: String, fields: Vec<String>, r#override: bool) -> Result<String, anyhow::Error> {
-    let fields = validate_fields(&fields)?;
-    let name = to_singular(&name).to_lowercase();
+async fn generate_entity(name: &str, fields: &[String], r#override: bool) -> Result<String, anyhow::Error> {
+    let fields = validate_fields(fields)?;
+    let name = to_singular(name).to_lowercase();
     let name_plural = to_plural(&name);
     let struct_name = to_class_case(&name);
 
@@ -311,8 +311,8 @@ async fn generate_entity(name: String, fields: Vec<String>, r#override: bool) ->
     Ok(struct_name)
 }
 
-async fn generate_entity_test_helper(name: String, r#override: bool) -> Result<String, anyhow::Error> {
-    let name = to_singular(&name).to_lowercase();
+async fn generate_entity_test_helper(name: &str, r#override: bool) -> Result<String, anyhow::Error> {
+    let name = to_singular(name).to_lowercase();
     let name_plural = to_plural(&name);
     let struct_name = to_class_case(&name);
 
@@ -340,8 +340,8 @@ async fn generate_entity_test_helper(name: String, r#override: bool) -> Result<S
     Ok(struct_name)
 }
 
-async fn generate_crud_controller(name: String, r#override: bool) -> Result<String, anyhow::Error> {
-    let name = to_snake_case(&name).to_lowercase();
+async fn generate_crud_controller(name: &str, r#override: bool) -> Result<String, anyhow::Error> {
+    let name = to_snake_case(name).to_lowercase();
     let name_plural = to_plural(&name);
     let name_singular = to_singular(&name);
     let struct_name = to_class_case(&name_singular);
@@ -373,8 +373,8 @@ async fn generate_crud_controller(name: String, r#override: bool) -> Result<Stri
     Ok(file_path)
 }
 
-async fn generate_crud_controller_test(name: String, r#override: bool) -> Result<String, anyhow::Error> {
-    let name = to_snake_case(&name).to_lowercase();
+async fn generate_crud_controller_test(name: &str, r#override: bool) -> Result<String, anyhow::Error> {
+    let name = to_snake_case(name).to_lowercase();
     let name_plural = to_plural(&name);
     let name_singular = to_singular(&name);
     let struct_name = to_class_case(&name_singular);
@@ -483,7 +483,7 @@ fn get_member_package_name(path: &str) -> Result<String, anyhow::Error> {
 }
 
 {% if template_type != "minimal" -%}
-fn validate_fields(fields: &Vec<String>) -> Result<Vec<HashMap<String, String>>, anyhow::Error> {
+fn validate_fields(fields: &[String]) -> Result<Vec<HashMap<String, String>>, anyhow::Error> {
     let re =
         Regex::new(r"^([a-zA-Z][a-zA-Z0-9_]+)\:(bool|Bool|i8|i16|i32|i64|f32|f64|String|string)$")
             .unwrap();
