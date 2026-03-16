@@ -16,6 +16,9 @@ use std::path::{Path, PathBuf};
 use std::process::{ExitCode, Stdio};
 use url::Url;
 
+/// The version of sqlx-cli required
+const SQLX_CLI_VERSION: &str = "0.8";
+
 #[tokio::main]
 async fn main() -> ExitCode {
     let mut stdout = std::io::stdout();
@@ -294,57 +297,8 @@ fn get_cargo_path() -> Result<String, anyhow::Error> {
 /// Ensure that the correct version of sqlx-cli is installed,
 /// and install it if it isn't.
 async fn ensure_sqlx_cli_installed(ui: &mut UI<'_>) -> Result<(), anyhow::Error> {
-    /// The version of sqlx-cli required
-    const SQLX_CLI_VERSION: &str = "0.8";
     let sqlx_version_req = VersionReq::parse(SQLX_CLI_VERSION)
         .expect("SQLX_CLI_VERSION value is not a valid semver version requirement.");
-
-    /// Get the version of the current sqlx-cli installation, if any.
-    async fn installed_sqlx_cli_version(cargo: &str) -> Result<Option<Version>, anyhow::Error> {
-        /// The expected prefix of the version output of sqlx-cli >= 0.8
-        const SQLX_CLI_VERSION_STRING_PREFIX: &str = "sqlx-cli-sqlx";
-        /// The expected prefix of the version output of sqlx-cli < 0.8
-        const SQLX_CLI_VERSION_STRING_PREFIX_OLD: &str = "cargo-sqlx";
-
-        fn error_parsing_version() -> anyhow::Error {
-            anyhow!(
-                "Error parsing sqlx-cli version. Please install the \
-                correct version manually using `cargo install sqlx-cli \
-                --version ^{SQLX_CLI_VERSION} --locked`"
-            )
-        }
-
-        let mut cargo_sqlx_command = {
-            let mut cmd = tokio::process::Command::new(cargo);
-            cmd.args(["sqlx", "--version"]);
-            cmd
-        };
-
-        let out = cargo_sqlx_command.output().await?;
-        if !out.status.success() {
-            // Failed to run the command for some reason,
-            // we conclude that sqlx-cli is not installed.
-            return Ok(None);
-        }
-
-        let Ok(stdout) = String::from_utf8(out.stdout) else {
-            return Err(error_parsing_version());
-        };
-
-        let Some(version) = stdout
-            .strip_prefix(SQLX_CLI_VERSION_STRING_PREFIX)
-            .or_else(|| stdout.strip_prefix(SQLX_CLI_VERSION_STRING_PREFIX_OLD))
-            .map(str::trim)
-        else {
-            return Err(error_parsing_version());
-        };
-
-        let Ok(version) = Version::parse(version) else {
-            return Err(error_parsing_version());
-        };
-
-        Ok(Some(version))
-    }
 
     let cargo = get_cargo_path()?;
 
@@ -422,6 +376,53 @@ async fn ensure_sqlx_cli_installed(ui: &mut UI<'_>) -> Result<(), anyhow::Error>
         Ok(None) => Err(anyhow!("sqlx-cli was not detected after installation")),
         Err(e) => Err(e),
     }
+}
+
+/// Get the version of the current sqlx-cli installation, if any.
+async fn installed_sqlx_cli_version(cargo: &str) -> Result<Option<Version>, anyhow::Error> {
+    /// The expected prefix of the version output of sqlx-cli >= 0.8
+    const SQLX_CLI_VERSION_STRING_PREFIX: &str = "sqlx-cli-sqlx";
+    /// The expected prefix of the version output of sqlx-cli < 0.8
+    const SQLX_CLI_VERSION_STRING_PREFIX_OLD: &str = "cargo-sqlx";
+
+    fn error_parsing_version() -> anyhow::Error {
+        anyhow!(
+                "Error parsing sqlx-cli version. Please install the \
+                correct version manually using `cargo install sqlx-cli \
+                --version ^{SQLX_CLI_VERSION} --locked`"
+            )
+    }
+
+    let mut cargo_sqlx_command = {
+        let mut cmd = tokio::process::Command::new(cargo);
+        cmd.args(["sqlx", "--version"]);
+        cmd
+    };
+
+    let out = cargo_sqlx_command.output().await?;
+    if !out.status.success() {
+        // Failed to run the command for some reason,
+        // we conclude that sqlx-cli is not installed.
+        return Ok(None);
+    }
+
+    let Ok(stdout) = String::from_utf8(out.stdout) else {
+        return Err(error_parsing_version());
+    };
+
+    let Some(version) = stdout
+        .strip_prefix(SQLX_CLI_VERSION_STRING_PREFIX)
+        .or_else(|| stdout.strip_prefix(SQLX_CLI_VERSION_STRING_PREFIX_OLD))
+        .map(str::trim)
+    else {
+        return Err(error_parsing_version());
+    };
+
+    let Ok(version) = Version::parse(version) else {
+        return Err(error_parsing_version());
+    };
+
+    Ok(Some(version))
 }
 
 /// Find the root of the db package in the gerust workspace.
