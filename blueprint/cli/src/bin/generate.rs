@@ -461,7 +461,7 @@ fn has_db() -> bool {
 
 fn get_member_package_name(path: &str) -> Result<String, anyhow::Error> {
     let mut cmd = MetadataCommand::new();
-    let package_graph = PackageGraph::from_command(cmd.manifest_path("./Cargo.toml")).unwrap();
+    let package_graph = PackageGraph::from_command(cmd.manifest_path("./Cargo.toml"))?;
     let workspace = package_graph.workspace();
     for member in workspace.iter_by_path() {
         let (member_path, metadata) = member;
@@ -475,8 +475,7 @@ fn get_member_package_name(path: &str) -> Result<String, anyhow::Error> {
 {% if template_type != "minimal" -%}
 fn validate_fields(fields: &[String]) -> Result<Vec<HashMap<String, String>>, anyhow::Error> {
     let re =
-        Regex::new(r"^([a-zA-Z][a-zA-Z0-9_]+)\:(bool|Bool|i8|i16|i32|i64|f32|f64|String|string)$")
-            .unwrap();
+        Regex::new(r"^([a-zA-Z][a-zA-Z0-9_]+):(bool|Bool|i8|i16|i32|i64|f32|f64|String|string)$")?;
     let mut mapped_fields = Vec::<HashMap<String, String>>::new();
     for field in fields {
         let Some(captures) = re.captures(field.trim()) else {
