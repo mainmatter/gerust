@@ -28,7 +28,7 @@ async fn main() -> ExitCode {
     let mut ui = UI::new(&mut stdout, &mut stderr, !args.no_color, !args.quiet);
 
     match cli(&mut ui, args).await {
-        Ok(_) => ExitCode::SUCCESS,
+        Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
             ui.error(e.to_string().as_str(), &e);
             ExitCode::FAILURE
@@ -80,7 +80,7 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
                     let db_name = drop(&config.database)
                         .await
                         .context("Could not drop database!")?;
-                    ui.success(&format!("Dropped database {} successfully.", db_name));
+                    ui.success(&format!("Dropped database {db_name} successfully."));
                     Ok(())
                 }
                 Commands::Create => {
@@ -88,7 +88,7 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
                     let db_name = create(&config.database)
                         .await
                         .context("Could not create database!")?;
-                    ui.success(&format!("Created database {} successfully.", db_name));
+                    ui.success(&format!("Created database {db_name} successfully."));
                     Ok(())
                 }
                 Commands::Migrate => {
@@ -99,7 +99,7 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
                         .context("Could not migrate database!");
                     ui.outdent();
                     let migrations = migrations?;
-                    ui.success(&format!("{} migrations applied.", migrations));
+                    ui.success(&format!("{migrations} migrations applied."));
                     Ok(())
                 }
                 Commands::Seed => {
@@ -118,7 +118,7 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
                         .context("Could not reset the database!");
                     ui.outdent();
                     let db_name = result?;
-                    ui.success(&format!("Reset database {} successfully.", db_name));
+                    ui.success(&format!("Reset database {db_name} successfully."));
                     Ok(())
                 }
                 Commands::Prepare => {
@@ -167,7 +167,7 @@ async fn drop(config: &DatabaseConfig) -> Result<String, anyhow::Error> {
         .context("Failed to get database name!")?;
     let mut root_connection = get_root_db_client(config).await;
 
-    let query = format!("DROP DATABASE {}", db_name);
+    let query = format!("DROP DATABASE {db_name}");
     root_connection
         .execute(query.as_str())
         .await
@@ -183,7 +183,7 @@ async fn create(config: &DatabaseConfig) -> Result<String, anyhow::Error> {
         .context("Failed to get database name!")?;
     let mut root_connection = get_root_db_client(config).await;
 
-    let query = format!("CREATE DATABASE {}", db_name);
+    let query = format!("CREATE DATABASE {db_name}");
     root_connection
         .execute(query.as_str())
         .await
@@ -310,9 +310,10 @@ async fn ensure_sqlx_cli_installed(ui: &mut UI<'_>) -> Result<(), anyhow::Error>
         }
     }
 
-    let curr_vers_msg = current_version
-        .map(|v| format!("The currently installed version is {v}."))
-        .unwrap_or_else(|| "sqlx-cli is currently not installed.".to_string());
+    let curr_vers_msg = current_version.map_or_else(
+        || "sqlx-cli is currently not installed.".to_string(),
+        |v| format!("The currently installed version is {v}.")
+    );
     ui.info(&format!(
         "This command requires a version of sqlx-cli that is \
         compatible with version {SQLX_CLI_VERSION}, which is not installed yet. \
@@ -333,7 +334,7 @@ async fn ensure_sqlx_cli_installed(ui: &mut UI<'_>) -> Result<(), anyhow::Error>
                 break;
             } else if matches!(line, "n" | "no") {
                 return Err(anyhow!("Installation of sqlx-cli canceled."));
-            };
+            }
             ui.info("Please enter y or n");
             buf.clear();
         }
