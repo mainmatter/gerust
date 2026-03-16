@@ -174,14 +174,12 @@ mod tests {
         let output = read_buffer(stdout);
         let error_output = read_buffer(stderr);
 
-        assert_snapshot!(output, @r###"
+        assert_snapshot!(output, @"
         a general message
         an info message
         a success message ✓
-        "###);
-        assert_snapshot!(error_output, @r###"
-        an error message :(
-        "###);
+        ");
+        assert_snapshot!(error_output, @"an error message :(");
     }
 
     #[test]
@@ -197,14 +195,12 @@ mod tests {
         let output = read_buffer(stdout);
         let error_output = read_buffer(stderr);
 
-        assert_snapshot!(output, @r###"
+        assert_snapshot!(output, @"
            a general message
         ℹ️  an info message
         ✅ a success message ✓
-        "###);
-        assert_snapshot!(error_output, @r###"
-        ❌ an error message :(
-        "###);
+        ");
+        assert_snapshot!(error_output, @"❌ an error message :(");
     }
 
     #[test]
@@ -229,13 +225,13 @@ mod tests {
 
         let output = read_buffer(stdout);
 
-        assert_snapshot!(output, @r###"
-           a log message
-             an indented message
-                   more indentation
-               less indentation
-           no indentation
-        "###);
+        assert_snapshot!(output, @"
+        a log message
+          an indented message
+                more indentation
+            less indentation
+        no indentation
+        ");
     }
 
     fn create_buffer() -> std::io::BufWriter<Vec<u8>> {
