@@ -6,7 +6,7 @@ use {{crate_name}}_config::{load_config, parse_env, Config, Environment};
 use guppy::{Version, VersionReq};
 use sqlx::postgres::{PgConnectOptions, PgConnection};
 use sqlx::{
-    migrate::{Migrate, Migrator, Migration, MigrationType},
+    migrate::{AppliedMigration, Migrate, Migration, MigrationType, Migrator},
     ConnectOptions, Connection, Executor,
 };
 use tokio::io::{stdin, AsyncBufReadExt};
@@ -61,6 +61,14 @@ enum Commands {
     Create,
     #[command(about = "Migrate the database")]
     Migrate,
+    #[command(about = "Rollback database migrations")]
+    Rollback {
+        #[arg(short, long, default_value = "1", help = "Number of migrations to roll back.", conflicts_with = "to")]
+        steps: u32,
+
+        #[arg(short, long, help = "Roll back up to (but not including) the migration with this name.")]
+        to: Option<String>,
+    },
     #[command(about = "Reset (drop, create, migrate) the database")]
     Reset,
     #[command(about = "Seed the database")]
@@ -74,6 +82,7 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
     let config: Result<Config, anyhow::Error> = load_config(&cli.env);
     match config {
         Ok(config) => {
+            let migrations_path = db_package_root()?.join("migrations");
             match cli.command {
                 Commands::Drop => {
                     ui.info(&format!("Dropping {} database…", &cli.env));
@@ -94,12 +103,27 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
                 Commands::Migrate => {
                     ui.info(&format!("Migrating {} database…", &cli.env));
                     ui.indent();
-                    let migrations = migrate(ui, &config.database)
+                    let migrations = migrate(ui, &config.database, &migrations_path)
                         .await
                         .context("Could not migrate database!");
                     ui.outdent();
                     let migrations = migrations?;
                     ui.success(&format!("{migrations} migrations applied."));
+                    Ok(())
+                }
+                Commands::Rollback { steps, to } => {
+                    if let Some(ref name) = to {
+                        ui.info(&format!("Rolling back {} database to \"{name}\"…", &cli.env));
+                    } else {
+                        ui.info(&format!("Rolling back {} database ({steps} step(s))…", &cli.env));
+                    }
+                    ui.indent();
+                    let result = rollback(ui, &config.database, &migrations_path, steps, to.as_deref())
+                        .await
+                        .context("Could not rollback database!");
+                    ui.outdent();
+                    let reverted = result?;
+                    ui.success(&format!("{reverted} migration(s) reverted."));
                     Ok(())
                 }
                 Commands::Seed => {
@@ -113,7 +137,7 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
                 Commands::Reset => {
                     ui.info(&format!("Resetting {} database…", &cli.env));
                     ui.indent();
-                    let result = reset(ui, &config.database)
+                    let result = reset(ui, &config.database, &migrations_path)
                         .await
                         .context("Could not reset the database!");
                     ui.outdent();
@@ -192,65 +216,183 @@ async fn create(config: &DatabaseConfig) -> Result<String, anyhow::Error> {
     Ok(String::from(db_name))
 }
 
-pub struct SqlxMigrator(Migrator);
+struct SqlxMigrator;
 
 impl SqlxMigrator {
-    fn up_migrator(migrations_path: &Path) -> Migrator {
-        use std::fs::File;
-        use std::io::prelude::*;
-        let mut migration_dirs = std::fs::read_dir(migrations_path).unwrap().map(|res| res.map(|e| e.path())).collect::<Result<Vec<_>, std::io::Error>>().unwrap();
-        let mut migrations: Vec<Migration> = Vec::new(); 
+    /// Build a `Migrator` for all forward (up) migrations: both reversible
+    /// `{version}__{name}/up.sql` directories and simple `{version}_{name}.sql` files.
+    fn up_migrator(migrations_path: &Path) -> Result<Migrator, anyhow::Error> {
+        let migrations = Self::read_all_up_migrations(migrations_path)?;
+        Self::build_migrator(migrations)
+    }
 
-        for dir in migration_dirs {
+    /// Build a `Migrator` for reversible down migrations from `{version}__{name}/down.sql` directories.
+    fn down_migrator(migrations_path: &Path) -> Result<Migrator, anyhow::Error> {
+        let mut migrations =
+            Self::read_dir_migrations(migrations_path, "down.sql", MigrationType::ReversibleDown)?;
+        migrations.sort_by_key(|m| m.version);
+        Self::build_migrator(migrations)
+    }
 
-            if !dir.is_dir() {
-                // prevent reading files like .gitkeep
+    /// Wrap a `Vec<Migration>` into a `Migrator` with default settings.
+    fn build_migrator(migrations: Vec<Migration>) -> Result<Migrator, anyhow::Error> {
+        Ok(Migrator {
+            migrations: migrations.into(),
+            ..Migrator::DEFAULT
+        })
+    }
+
+    /// Read all up migrations from `migrations_path` in a single directory scan.
+    /// Collects both `{version}__{name}/up.sql` (reversible) and `{version}_{name}.sql` (simple) migrations.
+    fn read_all_up_migrations(migrations_path: &Path) -> Result<Vec<Migration>, anyhow::Error> {
+        let entries = fs::read_dir(migrations_path)
+            .context("Failed to read migrations directory")?;
+
+        let mut dirs = Vec::new();
+        let mut files = Vec::new();
+
+        for entry in entries {
+            let path = entry?.path();
+            if path.is_dir() {
+                dirs.push(path);
+            } else if path.is_file() && path.extension().and_then(|e| e.to_str()) == Some("sql") {
+                files.push(path);
+            }
+        }
+
+        dirs.sort();
+        files.sort();
+
+        let mut migrations = Vec::new();
+
+        for dir in &dirs {
+            let migration_file = dir.join("up.sql");
+            if !migration_file.exists() {
                 continue;
             }
 
-            let migration_path = dir.join("up.sql");
-        let path_components = dir.components();
-        let version: i64 = if let Some(component) = path_components.last() {
-            if let Some(filename) = component.as_os_str().to_str() {
-                println!("{:?}", filename);
-
-                let a = filename.split("__").next().unwrap();
-
-                println!("{:?}", a);
-                a.parse().unwrap()
-            } else {
-                panic!("Couldn't convert path component to string.");
-            }
-        } else {
-            panic!("Couldn't get a migration version from file name.");
-        };
-
-
-            let mut file = File::open(migration_path).unwrap();
-            let mut contents = String::new();
-            file.read_to_string(&mut contents).unwrap();
-            let with_extension = migrations_path.with_extension(".up.sql").clone();
+            let version = Self::extract_dir_version(dir)?;
+            let description = Self::extract_dir_description(dir)?;
+            let contents = fs::read_to_string(&migration_file)
+                .with_context(|| format!("Failed to read {}", migration_file.display()))?;
 
             migrations.push(Migration::new(
                 version,
-                with_extension.to_string_lossy().into_owned().into(),
+                description.into(),
                 MigrationType::ReversibleUp,
                 contents.into(),
                 false,
             ));
         }
 
-        Migrator {
-            migrations: migrations.into(),
-            ..Migrator::DEFAULT
+        for file in &files {
+            let file_stem = file
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .context("Invalid migration file name")?;
+
+            let (version_str, description) = file_stem.split_once('_').with_context(|| {
+                format!("Migration file name must contain '_' separator: {file_stem}")
+            })?;
+
+            let version: i64 = version_str
+                .parse()
+                .with_context(|| format!("Invalid migration version: {version_str}"))?;
+
+            let contents = fs::read_to_string(file)
+                .with_context(|| format!("Failed to read {}", file.display()))?;
+
+            migrations.push(Migration::new(
+                version,
+                description.to_string().into(),
+                MigrationType::Simple,
+                contents.into(),
+                false,
+            ));
         }
-    } 
+
+        migrations.sort_by_key(|m| m.version);
+        Ok(migrations)
+    }
+
+    /// Read migrations from subdirectories matching `{version}__{name}/{file_name}`.
+    fn read_dir_migrations(
+        migrations_path: &Path,
+        file_name: &str,
+        migration_type: MigrationType,
+    ) -> Result<Vec<Migration>, anyhow::Error> {
+        let entries = fs::read_dir(migrations_path)
+            .context("Failed to read migrations directory")?;
+
+        let mut dirs: Vec<PathBuf> = entries
+            .filter_map(|res| res.ok())
+            .map(|e| e.path())
+            .filter(|p| p.is_dir())
+            .collect();
+        dirs.sort();
+
+        let mut migrations = Vec::new();
+
+        for dir in &dirs {
+            let migration_file = dir.join(file_name);
+            if !migration_file.exists() {
+                continue;
+            }
+
+            let version = Self::extract_dir_version(dir)?;
+            let description = Self::extract_dir_description(dir)?;
+            let contents = fs::read_to_string(&migration_file)
+                .with_context(|| format!("Failed to read {}", migration_file.display()))?;
+
+            migrations.push(Migration::new(
+                version,
+                description.into(),
+                migration_type,
+                contents.into(),
+                false,
+            ));
+        }
+
+        Ok(migrations)
+    }
+
+    /// Extract the numeric version from a `{version}__{name}` directory name.
+    fn extract_dir_version(dir: &Path) -> Result<i64, anyhow::Error> {
+        let dir_name = dir
+            .file_name()
+            .and_then(|n| n.to_str())
+            .context("Invalid migration directory name")?;
+
+        let version_str = dir_name
+            .split("__")
+            .next()
+            .context("Migration directory name must contain '__' separator")?;
+
+        version_str
+            .parse::<i64>()
+            .with_context(|| format!("Invalid migration version: {version_str}"))
+    }
+
+    /// Extract the description from a `{version}__{name}` directory name.
+    fn extract_dir_description(dir: &Path) -> Result<String, anyhow::Error> {
+        let dir_name = dir
+            .file_name()
+            .and_then(|n| n.to_str())
+            .context("Invalid migration directory name")?;
+
+        let parts: Vec<&str> = dir_name.splitn(2, "__").collect();
+        if parts.len() > 1 {
+            Ok(parts[1].to_string())
+        } else {
+            Ok(dir_name.to_string())
+        }
+    }
 }
 
-async fn migrate(ui: &mut UI<'_>, config: &DatabaseConfig) -> Result<i32, anyhow::Error> {
+async fn prepare_migrations(
+    config: &DatabaseConfig,
+) -> Result<(PgConnection, HashMap<i64, AppliedMigration>), anyhow::Error> {
     let db_config = get_db_config(config);
-    let migrations_path = db_package_root()?.join("migrations");
-    let migrator = SqlxMigrator::up_migrator(&migrations_path);
     let mut connection = db_config
         .connect()
         .await
@@ -269,24 +411,75 @@ async fn migrate(ui: &mut UI<'_>, config: &DatabaseConfig) -> Result<i32, anyhow
         .map(|m| (m.version, m))
         .collect();
 
+    Ok((connection, applied_migrations))
+}
+
+async fn migrate(ui: &mut UI<'_>, config: &DatabaseConfig, migrations_path: &Path) -> Result<i32, anyhow::Error> {
+    let migrator = SqlxMigrator::up_migrator(migrations_path)
+        .context("Failed to build migrator!")?;
+    let (mut connection, applied_migrations) = prepare_migrations(config).await?;
+
     let mut applied = 0;
     for migration in migrator.iter() {
-        if migration.migration_type.is_down_migration() {
-            // Avoid accidentally running a "down" migration.
-            continue;
-        }
-
         if !applied_migrations.contains_key(&migration.version) {
             connection
                 .apply(migration)
                 .await
-                .context("Failed to apply migration {}!")?;
+                .context("Failed to apply migration!")?;
             ui.log(&format!("Applied migration {}.", migration.version));
             applied += 1;
         }
     }
 
     Ok(applied)
+}
+
+async fn rollback(ui: &mut UI<'_>, config: &DatabaseConfig, migrations_path: &Path, steps: u32, to: Option<&str>) -> Result<i32, anyhow::Error> {
+    let migrator = SqlxMigrator::down_migrator(migrations_path)
+        .context("Failed to build migrator!")?;
+    let (mut connection, applied_migrations) = prepare_migrations(config).await?;
+
+    let mut applied_versions: Vec<i64> = applied_migrations.keys().copied().collect();
+    applied_versions.sort_unstable();
+    applied_versions.reverse();
+
+    let target_version = if let Some(name) = to {
+        let version = migrator
+            .iter()
+            .find(|m| *m.description == *name)
+            .map(|m| m.version)
+            .with_context(|| format!("No migration found with name \"{name}\""))?;
+
+        if !applied_migrations.contains_key(&version) {
+            return Err(anyhow!("Migration \"{name}\" has not been applied."));
+        }
+
+        Some(version)
+    } else {
+        None
+    };
+
+    let mut reverted = 0;
+    for version in applied_versions {
+        if let Some(target) = target_version {
+            if version <= target {
+                break;
+            }
+        } else if reverted >= steps as i32 {
+            break;
+        }
+
+        if let Some(migration) = migrator.iter().find(|m| m.version == version) {
+            connection
+                .revert(migration)
+                .await
+                .with_context(|| format!("Failed to revert migration {version}!"))?;
+            ui.log(&format!("Reverted migration {version}."));
+            reverted += 1;
+        }
+    }
+
+    Ok(reverted)
 }
 
 async fn seed(config: &DatabaseConfig) -> Result<(), anyhow::Error> {
@@ -311,14 +504,14 @@ async fn seed(config: &DatabaseConfig) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-async fn reset(ui: &mut UI<'_>, config: &DatabaseConfig) -> Result<String, anyhow::Error> {
+async fn reset(ui: &mut UI<'_>, config: &DatabaseConfig, migrations_path: &Path) -> Result<String, anyhow::Error> {
     ui.log("Dropping database…");
     drop(config).await?;
     ui.log("Recreating database…");
     let db_name = create(config).await?;
     ui.log("Migrating database…");
     ui.indent();
-    let migration_result = migrate(ui, config).await;
+    let migration_result = migrate(ui, config, migrations_path).await;
     ui.outdent();
 
     match migration_result {
@@ -493,4 +686,266 @@ fn db_package_root() -> Result<PathBuf, anyhow::Error> {
     .join("..")
     .join("db")
     .canonicalize()?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    /// Skip the test if DATABASE_URL is not set instead of failing.
+    macro_rules! require_db {
+        () => {
+            match std::env::var("DATABASE_URL") {
+                Ok(url) => url,
+                Err(_) => {
+                    eprintln!("Skipping test: DATABASE_URL not set");
+                    return;
+                }
+            }
+        };
+    }
+
+    /// Create a simple (non-reversible) flat `.sql` migration file.
+    fn create_simple_migration(base: &Path, version: &str, name: &str, sql: &str) {
+        let file = base.join(format!("{version}_{name}.sql"));
+        fs::write(file, sql).unwrap();
+    }
+
+    /// Create a reversible (up + down) migration directory.
+    fn create_reversible_migration(
+        base: &Path,
+        version: &str,
+        name: &str,
+        up_sql: &str,
+        down_sql: &str,
+    ) {
+        let dir = base.join(format!("{version}__{name}"));
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("up.sql"), up_sql).unwrap();
+        fs::write(dir.join("down.sql"), down_sql).unwrap();
+    }
+
+    async fn setup_test_db(suffix: &str) -> (PgConnectOptions, String) {
+        let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+        let base_config: PgConnectOptions = db_url.parse().expect("Invalid DATABASE_URL!");
+        let root_config = base_config.clone().database("postgres");
+        let mut conn: PgConnection = Connection::connect_with(&root_config).await.unwrap();
+
+        let db_name = format!("gerust_test_migrations_{suffix}");
+        conn.execute(format!("DROP DATABASE IF EXISTS {db_name}").as_str())
+            .await
+            .unwrap();
+        conn.execute(format!("CREATE DATABASE {db_name}").as_str())
+            .await
+            .unwrap();
+
+        let test_config = base_config.database(&db_name);
+        (test_config, db_name)
+    }
+
+    async fn teardown_test_db(db_name: &str) {
+        let db_url = std::env::var("DATABASE_URL").unwrap();
+        let base_config: PgConnectOptions = db_url.parse().expect("Invalid DATABASE_URL!");
+        let root_config = base_config.database("postgres");
+        let mut conn: PgConnection = Connection::connect_with(&root_config).await.unwrap();
+        conn.execute(format!("DROP DATABASE IF EXISTS {db_name}").as_str())
+            .await
+            .unwrap();
+    }
+
+    async fn table_exists(conn: &mut PgConnection, table_name: &str) -> bool {
+        let exists: bool = sqlx::query_scalar(
+            "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = $1)",
+        )
+        .bind(table_name)
+        .fetch_one(conn)
+        .await
+        .unwrap();
+        exists
+    }
+
+    #[tokio::test]
+    async fn test_migrate_simple_up_only() {
+        let _db_url = require_db!();
+        let (db_config, db_name) = setup_test_db("simple").await;
+
+        let tmp = TempDir::new().unwrap();
+        create_simple_migration(
+            tmp.path(),
+            "1000",
+            "create_foo",
+            "CREATE TABLE foo (id integer PRIMARY KEY);",
+        );
+        create_simple_migration(
+            tmp.path(),
+            "2000",
+            "create_bar",
+            "CREATE TABLE bar (id integer PRIMARY KEY);",
+        );
+
+        let migrator = SqlxMigrator::up_migrator(tmp.path()).unwrap();
+        let mut conn = db_config.connect().await.unwrap();
+
+        conn.ensure_migrations_table().await.unwrap();
+
+        for migration in migrator.iter() {
+            assert!(
+                !migration.migration_type.is_down_migration(),
+                "up_migrator should only produce up migrations"
+            );
+            conn.apply(migration).await.unwrap();
+        }
+
+        assert!(table_exists(&mut conn, "foo").await);
+        assert!(table_exists(&mut conn, "bar").await);
+
+        let applied = conn.list_applied_migrations().await.unwrap();
+        assert_eq!(applied.len(), 2);
+
+        // down_migrator should produce no migrations for simple (up-only) dirs
+        let down_migrator = SqlxMigrator::down_migrator(tmp.path()).unwrap();
+        assert_eq!(
+            down_migrator.iter().count(),
+            0,
+            "simple migrations should have no down migrations"
+        );
+
+        std::mem::drop(conn);
+        teardown_test_db(&db_name).await;
+    }
+
+    #[tokio::test]
+    async fn test_migrate_and_rollback_reversible() {
+        let _db_url = require_db!();
+        let (db_config, db_name) = setup_test_db("reversible").await;
+
+        let tmp = TempDir::new().unwrap();
+        create_reversible_migration(
+            tmp.path(),
+            "1000",
+            "create_foo",
+            "CREATE TABLE foo (id integer PRIMARY KEY);",
+            "DROP TABLE IF EXISTS foo;",
+        );
+        create_reversible_migration(
+            tmp.path(),
+            "2000",
+            "create_bar",
+            "CREATE TABLE bar (id integer PRIMARY KEY);",
+            "DROP TABLE IF EXISTS bar;",
+        );
+
+        // Apply up migrations
+        let up_migrator = SqlxMigrator::up_migrator(tmp.path()).unwrap();
+        let mut conn = db_config.connect().await.unwrap();
+        conn.ensure_migrations_table().await.unwrap();
+
+        for migration in up_migrator.iter() {
+            conn.apply(migration).await.unwrap();
+        }
+
+        assert!(table_exists(&mut conn, "foo").await);
+        assert!(table_exists(&mut conn, "bar").await);
+        assert_eq!(conn.list_applied_migrations().await.unwrap().len(), 2);
+
+        // Rollback the latest migration
+        let down_migrator = SqlxMigrator::down_migrator(tmp.path()).unwrap();
+        let bar_down = down_migrator
+            .iter()
+            .find(|m| m.version == 2000)
+            .expect("down migration for version 2000 should exist");
+        conn.revert(bar_down).await.unwrap();
+
+        assert!(
+            table_exists(&mut conn, "foo").await,
+            "foo should still exist after rolling back bar"
+        );
+        assert!(
+            !table_exists(&mut conn, "bar").await,
+            "bar should be gone after rollback"
+        );
+        assert_eq!(conn.list_applied_migrations().await.unwrap().len(), 1);
+
+        // Rollback the remaining migration
+        let foo_down = down_migrator
+            .iter()
+            .find(|m| m.version == 1000)
+            .expect("down migration for version 1000 should exist");
+        conn.revert(foo_down).await.unwrap();
+
+        assert!(
+            !table_exists(&mut conn, "foo").await,
+            "foo should be gone after rollback"
+        );
+        assert_eq!(conn.list_applied_migrations().await.unwrap().len(), 0);
+
+        std::mem::drop(conn);
+        teardown_test_db(&db_name).await;
+    }
+
+    #[tokio::test]
+    async fn test_migrate_mixed_simple_and_reversible() {
+        let _db_url = require_db!();
+        let (db_config, db_name) = setup_test_db("mixed").await;
+
+        let tmp = TempDir::new().unwrap();
+        // First migration: simple (up-only, not rollbackable)
+        create_simple_migration(
+            tmp.path(),
+            "1000",
+            "create_foo",
+            "CREATE TABLE foo (id integer PRIMARY KEY);",
+        );
+        // Second migration: reversible (rollbackable)
+        create_reversible_migration(
+            tmp.path(),
+            "2000",
+            "create_bar",
+            "CREATE TABLE bar (id integer PRIMARY KEY);",
+            "DROP TABLE IF EXISTS bar;",
+        );
+
+        // Apply all up migrations (both simple and reversible)
+        let up_migrator = SqlxMigrator::up_migrator(tmp.path()).unwrap();
+        let mut conn = db_config.connect().await.unwrap();
+        conn.ensure_migrations_table().await.unwrap();
+
+        for migration in up_migrator.iter() {
+            conn.apply(migration).await.unwrap();
+        }
+
+        assert!(table_exists(&mut conn, "foo").await);
+        assert!(table_exists(&mut conn, "bar").await);
+        assert_eq!(conn.list_applied_migrations().await.unwrap().len(), 2);
+
+        // down_migrator should only include the reversible migration
+        let down_migrator = SqlxMigrator::down_migrator(tmp.path()).unwrap();
+        let down_migrations: Vec<_> = down_migrator.iter().collect();
+        assert_eq!(
+            down_migrations.len(),
+            1,
+            "only the reversible migration should have a down migration"
+        );
+        assert_eq!(down_migrations[0].version, 2000);
+
+        // Rollback the reversible migration
+        conn.revert(&down_migrations[0]).await.unwrap();
+
+        assert!(
+            table_exists(&mut conn, "foo").await,
+            "simple migration table should still exist"
+        );
+        assert!(
+            !table_exists(&mut conn, "bar").await,
+            "reversible migration table should be gone"
+        );
+
+        let applied = conn.list_applied_migrations().await.unwrap();
+        assert_eq!(applied.len(), 1);
+        assert_eq!(applied[0].version, 1000);
+
+        std::mem::drop(conn);
+        teardown_test_db(&db_name).await;
+    }
 }

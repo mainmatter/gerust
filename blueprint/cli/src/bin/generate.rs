@@ -142,7 +142,6 @@ fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
         Commands::Migration { name } => {
             ui.info("Generating migration…");
             let (up_file_name, down_file_name) = generate_migration(&name, cli.r#override)
-                .await
                 .context("Could not generate migration!")?;
             ui.success(&format!("Generated migration {}.", up_file_name.display()));
             ui.success(&format!("Generated migration {}.", down_file_name.display()));
@@ -264,15 +263,15 @@ fn generate_controller_test(name: &str, r#override: bool) -> Result<String, anyh
 }
 
 {% if template_type != "minimal" -%}
-async fn generate_migration(name: &str, r#override: bool) -> Result<(PathBuf, PathBuf), anyhow::Error> {
+fn generate_migration(name: &str, r#override: bool) -> Result<(PathBuf, PathBuf), anyhow::Error> {
     let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
     let dir_path = PathBuf::from(&format!("./db/migrations/{}__{name}", timestamp.as_secs()));
     let up_migration = dir_path.join("up.sql");
     let down_migration = dir_path.join("down.sql");
-   
+
     fs::create_dir_all(dir_path.as_path())?;
-    create_project_file(up_migration.to_str().expect("Invalid file path for migration!"), "".as_bytes())?;
-    create_project_file(down_migration.to_str().expect("Invalid file path for migration!"), "".as_bytes())?;
+    create_project_file(up_migration.to_str().expect("Invalid file path for migration!"), "".as_bytes(), r#override)?;
+    create_project_file(down_migration.to_str().expect("Invalid file path for migration!"), "".as_bytes(), r#override)?;
 
     Ok((up_migration, down_migration))
 }
