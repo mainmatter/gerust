@@ -54,7 +54,7 @@ pub async fn run() -> anyhow::Result<()> {
 pub fn init_tracing() {
     let filter = EnvFilter::try_from_default_env()
         .or_else(|_| EnvFilter::try_new("info"))
-        .unwrap();
+        .expect("Should be able to parse RUST_LOG or construct default filter from info level");
     tracing_subscriber::registry()
         .with(fmt::layer())
         .with(filter)

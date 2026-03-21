@@ -405,7 +405,7 @@ fn get_liquid_template(path: &str) -> Result<Template, anyhow::Error> {
         .context(format!("Failed to read blueprint {path}!"))?;
     let template = liquid::ParserBuilder::with_stdlib()
         .build()
-        .unwrap()
+        .context("Failed to build Liquid parser")?
         .parse(template_source)
         .context("Failed to parse blueprint as Liquid template")?;
 
@@ -485,10 +485,15 @@ fn validate_fields(fields: &[String]) -> Result<Vec<HashMap<String, String>>, an
             return Err(anyhow!("Invalid field definition: {field}!"));
         }
 
-        let field_name = String::from(captures.get(1).unwrap().as_str());
+        let field_name = String::from(
+            captures
+                .get(1)
+                .expect("Should be able to get the field name")
+                .as_str(),
+        );
         let field_type = captures
             .get(2)
-            .unwrap()
+            .expect("Should be able to get the field type")
             .as_str()
             .replace("Bool", "bool")
             .replace("string", "String");

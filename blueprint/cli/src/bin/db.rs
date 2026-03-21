@@ -276,7 +276,9 @@ fn get_db_config(config: &DatabaseConfig) -> PgConnectOptions {
 
 async fn get_db_client(config: &DatabaseConfig) -> PgConnection {
     let db_config = get_db_config(config);
-    let connection: PgConnection = Connection::connect_with(&db_config).await.unwrap();
+    let connection: PgConnection = Connection::connect_with(&db_config)
+        .await
+        .expect("Should be able to connect to the database!");
 
     connection
 }
@@ -284,7 +286,9 @@ async fn get_db_client(config: &DatabaseConfig) -> PgConnection {
 async fn get_root_db_client(config: &DatabaseConfig) -> PgConnection {
     let db_config = get_db_config(config);
     let root_db_config = db_config.clone().database("postgres");
-    let connection: PgConnection = Connection::connect_with(&root_db_config).await.unwrap();
+    let connection: PgConnection = Connection::connect_with(&root_db_config)
+        .await
+        .expect("Should be able to connect to the database!");
 
     connection
 }
