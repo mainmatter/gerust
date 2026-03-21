@@ -23,9 +23,7 @@ pub async fn auth(
         .get(http::header::AUTHORIZATION)
         .and_then(|header| header.to_str().ok());
 
-    let auth_header = if let Some(auth_header) = auth_header {
-        auth_header
-    } else {
+    let Some(auth_header) = auth_header else {
         log_rejection_reason("Missing authorization header");
         return Err(StatusCode::UNAUTHORIZED);
     };
