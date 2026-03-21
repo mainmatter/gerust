@@ -75,6 +75,8 @@ impl TestRequest {
     ///     .header(.header(http::header::CONTENT_TYPE, "application/json"))
     ///     .await;
     /// ```
+    /// # Panics
+    /// This function panics if the header value could not be parsed.
     #[allow(unused)]
     #[must_use]
     pub fn header(mut self, name: HeaderName, value: &str) -> Self {
@@ -102,6 +104,8 @@ impl TestRequest {
     }
 
     /// Sends the request to the application under test.
+    /// # Panics
+    /// This function panics if the response body could not be read.
     #[allow(unused)]
     pub async fn send(self) -> Response {
         let mut request_builder = Request::builder().uri(&self.uri);
@@ -219,6 +223,8 @@ pub struct DbTestContext {
 /// This function initializes a new instance of the application under test using the configuration for [`{{crate_name}}_config::Environment::Test`]. The application is configured to use the same database that is also made available to the test itself via the test context. That database is a clone of the main test database that is only used by the particular test case to ensure isolation between test cases. It is automatically torn down after the test case completes (see [`teardown`]).
 ///
 /// This function is not invoked directly but used inside of the [`{{crate_name}}_macros::db_test`] attribute macro. The test context is automatically passed to test cases marked with that macro as an argument.
+/// # Panics
+/// This function panics if the `Test` configuration could not be loaded.
 #[allow(unused)]
 pub async fn setup() -> DbTestContext {
     let init_config: OnceCell<Config> = OnceCell::new();
