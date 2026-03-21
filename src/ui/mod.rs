@@ -239,8 +239,10 @@ mod tests {
     }
 
     fn read_buffer(buffer: std::io::BufWriter<Vec<u8>>) -> String {
-        let bytes = buffer.into_inner().unwrap();
+        let bytes = buffer
+            .into_inner()
+            .expect("Should be able to flush the buffer!");
 
-        String::from_utf8(bytes).unwrap()
+        String::from_utf8(bytes).expect("Should be able to convert the buffer to a string!")
     }
 }

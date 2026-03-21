@@ -78,7 +78,10 @@ impl TestRequest {
     #[allow(unused)]
     #[must_use]
     pub fn header(mut self, name: HeaderName, value: &str) -> Self {
-        self.headers.insert(name, value.parse().unwrap());
+        self.headers.insert(
+            name,
+            value.parse().expect("Should be abe to parse header value"),
+        );
         self
     }
 
@@ -112,9 +115,11 @@ impl TestRequest {
 
         request_builder = request_builder.method(&self.method);
 
-        let request = request_builder.body(self.body);
+        let request = request_builder
+            .body(self.body)
+            .expect("Should be able to build request");
 
-        self.router.oneshot(request.unwrap()).await.unwrap()
+        self.router.oneshot(request).await.unwrap()
     }
 }
 
@@ -222,7 +227,9 @@ pub struct DbTestContext {
 #[allow(unused)]
 pub async fn setup() -> DbTestContext {
     let init_config: OnceCell<Config> = OnceCell::new();
-    let config = init_config.get_or_init(|| load_config(&Environment::Test).unwrap());
+    let config = init_config.get_or_init(|| {
+        load_config(&Environment::Test).expect("Should be able to load Test environment config")
+    });
 
     let test_db_pool = setup_db(&config.database).await;
 
