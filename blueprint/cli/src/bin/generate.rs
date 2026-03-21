@@ -81,6 +81,9 @@ enum Commands {
     Migration {
         #[arg(help = "The name of the migration.")]
         name: String,
+
+        #[arg(long, help = "Generate a simple (non-reversible) migration as a single .sql file.")]
+        simple: bool,
     },
     #[command(about = "Generate an entity")]
     Entity {
@@ -139,12 +142,18 @@ fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
             Ok(())
         }
         {% if template_type != "minimal" -%}
-        Commands::Migration { name } => {
+        Commands::Migration { name, simple } => {
             ui.info("Generating migration…");
-            let (up_file_name, down_file_name) = generate_migration(&name, cli.r#override)
-                .context("Could not generate migration!")?;
-            ui.success(&format!("Generated migration {}.", up_file_name.display()));
-            ui.success(&format!("Generated migration {}.", down_file_name.display()));
+            if simple {
+                let file_name = generate_simple_migration(&name, cli.r#override)
+                    .context("Could not generate migration!")?;
+                ui.success(&format!("Generated migration {}.", file_name.display()));
+            } else {
+                let (up_file_name, down_file_name) = generate_migration(&name, cli.r#override)
+                    .context("Could not generate migration!")?;
+                ui.success(&format!("Generated migration {}.", up_file_name.display()));
+                ui.success(&format!("Generated migration {}.", down_file_name.display()));
+            }
             Ok(())
         }
         Commands::Entity { name, fields } => {
@@ -263,6 +272,14 @@ fn generate_controller_test(name: &str, r#override: bool) -> Result<String, anyh
 }
 
 {% if template_type != "minimal" -%}
+fn generate_simple_migration(name: &str, r#override: bool) -> Result<PathBuf, anyhow::Error> {
+    let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
+    let file_path = PathBuf::from(format!("./db/migrations/{}_{name}.sql", timestamp.as_secs()));
+    create_project_file(file_path.to_str().expect("Invalid file path for migration!"), "".as_bytes(), r#override)?;
+
+    Ok(file_path)
+}
+
 fn generate_migration(name: &str, r#override: bool) -> Result<(PathBuf, PathBuf), anyhow::Error> {
     let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
     let dir_path = PathBuf::from(&format!("./db/migrations/{}__{name}", timestamp.as_secs()));

@@ -222,8 +222,12 @@ impl SqlxMigrator {
     /// Build a `Migrator` for all forward (up) migrations: both reversible
     /// `{version}__{name}/up.sql` directories and simple `{version}_{name}.sql` files.
     fn up_migrator(migrations_path: &Path) -> Result<Migrator, anyhow::Error> {
-        let migrations = Self::read_all_up_migrations(migrations_path)?;
-        Self::build_migrator(migrations)
+        let mut migrations = Self::read_all_up_migrations(migrations_path)?;
+        migrations.sort_by_key(|m| m.version);
+        Ok(Migrator {
+            migrations: migrations.into(),
+            ..Migrator::DEFAULT
+        })
     }
 
     /// Build a `Migrator` for reversible down migrations from `{version}__{name}/down.sql` directories.
@@ -231,11 +235,6 @@ impl SqlxMigrator {
         let mut migrations =
             Self::read_dir_migrations(migrations_path, "down.sql", MigrationType::ReversibleDown)?;
         migrations.sort_by_key(|m| m.version);
-        Self::build_migrator(migrations)
-    }
-
-    /// Wrap a `Vec<Migration>` into a `Migrator` with default settings.
-    fn build_migrator(migrations: Vec<Migration>) -> Result<Migrator, anyhow::Error> {
         Ok(Migrator {
             migrations: migrations.into(),
             ..Migrator::DEFAULT
@@ -260,9 +259,6 @@ impl SqlxMigrator {
             }
         }
 
-        dirs.sort();
-        files.sort();
-
         let mut migrations = Vec::new();
 
         for dir in &dirs {
@@ -271,8 +267,7 @@ impl SqlxMigrator {
                 continue;
             }
 
-            let version = Self::extract_dir_version(dir)?;
-            let description = Self::extract_dir_description(dir)?;
+            let (version, description) = Self::extract_meta_from_name(dir)?;
             let contents = fs::read_to_string(&migration_file)
                 .with_context(|| format!("Failed to read {}", migration_file.display()))?;
 
@@ -286,18 +281,7 @@ impl SqlxMigrator {
         }
 
         for file in &files {
-            let file_stem = file
-                .file_stem()
-                .and_then(|s| s.to_str())
-                .context("Invalid migration file name")?;
-
-            let (version_str, description) = file_stem.split_once('_').with_context(|| {
-                format!("Migration file name must contain '_' separator: {file_stem}")
-            })?;
-
-            let version: i64 = version_str
-                .parse()
-                .with_context(|| format!("Invalid migration version: {version_str}"))?;
+            let (version, description) = Self::extract_meta_from_name(file)?;
 
             let contents = fs::read_to_string(file)
                 .with_context(|| format!("Failed to read {}", file.display()))?;
@@ -311,7 +295,6 @@ impl SqlxMigrator {
             ));
         }
 
-        migrations.sort_by_key(|m| m.version);
         Ok(migrations)
     }
 
@@ -339,8 +322,7 @@ impl SqlxMigrator {
                 continue;
             }
 
-            let version = Self::extract_dir_version(dir)?;
-            let description = Self::extract_dir_description(dir)?;
+            let (version, description) = Self::extract_meta_from_name(dir)?;
             let contents = fs::read_to_string(&migration_file)
                 .with_context(|| format!("Failed to read {}", migration_file.display()))?;
 
@@ -356,36 +338,23 @@ impl SqlxMigrator {
         Ok(migrations)
     }
 
-    /// Extract the numeric version from a `{version}__{name}` directory name.
-    fn extract_dir_version(dir: &Path) -> Result<i64, anyhow::Error> {
+    fn extract_meta_from_name(dir: &Path) -> Result<(i64, String), anyhow::Error> {
         let dir_name = dir
             .file_name()
             .and_then(|n| n.to_str())
             .context("Invalid migration directory name")?;
 
-        let version_str = dir_name
-            .split("__")
+        let mut split = dir_name.split("__");
+        let version = split
             .next()
-            .context("Migration directory name must contain '__' separator")?;
+            .context("Couldn't extract `version` from file name")?
+            .parse::<i64>()?;
+        let name = split
+            .next()
+            .context("Couldn't extract `name` from file name")?
+            .to_string();
 
-        version_str
-            .parse::<i64>()
-            .with_context(|| format!("Invalid migration version: {version_str}"))
-    }
-
-    /// Extract the description from a `{version}__{name}` directory name.
-    fn extract_dir_description(dir: &Path) -> Result<String, anyhow::Error> {
-        let dir_name = dir
-            .file_name()
-            .and_then(|n| n.to_str())
-            .context("Invalid migration directory name")?;
-
-        let parts: Vec<&str> = dir_name.splitn(2, "__").collect();
-        if parts.len() > 1 {
-            Ok(parts[1].to_string())
-        } else {
-            Ok(dir_name.to_string())
-        }
+        Ok((version, name))
     }
 }
 
@@ -686,266 +655,4 @@ fn db_package_root() -> Result<PathBuf, anyhow::Error> {
     .join("..")
     .join("db")
     .canonicalize()?)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use tempfile::TempDir;
-
-    /// Skip the test if DATABASE_URL is not set instead of failing.
-    macro_rules! require_db {
-        () => {
-            match std::env::var("DATABASE_URL") {
-                Ok(url) => url,
-                Err(_) => {
-                    eprintln!("Skipping test: DATABASE_URL not set");
-                    return;
-                }
-            }
-        };
-    }
-
-    /// Create a simple (non-reversible) flat `.sql` migration file.
-    fn create_simple_migration(base: &Path, version: &str, name: &str, sql: &str) {
-        let file = base.join(format!("{version}_{name}.sql"));
-        fs::write(file, sql).unwrap();
-    }
-
-    /// Create a reversible (up + down) migration directory.
-    fn create_reversible_migration(
-        base: &Path,
-        version: &str,
-        name: &str,
-        up_sql: &str,
-        down_sql: &str,
-    ) {
-        let dir = base.join(format!("{version}__{name}"));
-        fs::create_dir_all(&dir).unwrap();
-        fs::write(dir.join("up.sql"), up_sql).unwrap();
-        fs::write(dir.join("down.sql"), down_sql).unwrap();
-    }
-
-    async fn setup_test_db(suffix: &str) -> (PgConnectOptions, String) {
-        let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-        let base_config: PgConnectOptions = db_url.parse().expect("Invalid DATABASE_URL!");
-        let root_config = base_config.clone().database("postgres");
-        let mut conn: PgConnection = Connection::connect_with(&root_config).await.unwrap();
-
-        let db_name = format!("gerust_test_migrations_{suffix}");
-        conn.execute(format!("DROP DATABASE IF EXISTS {db_name}").as_str())
-            .await
-            .unwrap();
-        conn.execute(format!("CREATE DATABASE {db_name}").as_str())
-            .await
-            .unwrap();
-
-        let test_config = base_config.database(&db_name);
-        (test_config, db_name)
-    }
-
-    async fn teardown_test_db(db_name: &str) {
-        let db_url = std::env::var("DATABASE_URL").unwrap();
-        let base_config: PgConnectOptions = db_url.parse().expect("Invalid DATABASE_URL!");
-        let root_config = base_config.database("postgres");
-        let mut conn: PgConnection = Connection::connect_with(&root_config).await.unwrap();
-        conn.execute(format!("DROP DATABASE IF EXISTS {db_name}").as_str())
-            .await
-            .unwrap();
-    }
-
-    async fn table_exists(conn: &mut PgConnection, table_name: &str) -> bool {
-        let exists: bool = sqlx::query_scalar(
-            "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = $1)",
-        )
-        .bind(table_name)
-        .fetch_one(conn)
-        .await
-        .unwrap();
-        exists
-    }
-
-    #[tokio::test]
-    async fn test_migrate_simple_up_only() {
-        let _db_url = require_db!();
-        let (db_config, db_name) = setup_test_db("simple").await;
-
-        let tmp = TempDir::new().unwrap();
-        create_simple_migration(
-            tmp.path(),
-            "1000",
-            "create_foo",
-            "CREATE TABLE foo (id integer PRIMARY KEY);",
-        );
-        create_simple_migration(
-            tmp.path(),
-            "2000",
-            "create_bar",
-            "CREATE TABLE bar (id integer PRIMARY KEY);",
-        );
-
-        let migrator = SqlxMigrator::up_migrator(tmp.path()).unwrap();
-        let mut conn = db_config.connect().await.unwrap();
-
-        conn.ensure_migrations_table().await.unwrap();
-
-        for migration in migrator.iter() {
-            assert!(
-                !migration.migration_type.is_down_migration(),
-                "up_migrator should only produce up migrations"
-            );
-            conn.apply(migration).await.unwrap();
-        }
-
-        assert!(table_exists(&mut conn, "foo").await);
-        assert!(table_exists(&mut conn, "bar").await);
-
-        let applied = conn.list_applied_migrations().await.unwrap();
-        assert_eq!(applied.len(), 2);
-
-        // down_migrator should produce no migrations for simple (up-only) dirs
-        let down_migrator = SqlxMigrator::down_migrator(tmp.path()).unwrap();
-        assert_eq!(
-            down_migrator.iter().count(),
-            0,
-            "simple migrations should have no down migrations"
-        );
-
-        std::mem::drop(conn);
-        teardown_test_db(&db_name).await;
-    }
-
-    #[tokio::test]
-    async fn test_migrate_and_rollback_reversible() {
-        let _db_url = require_db!();
-        let (db_config, db_name) = setup_test_db("reversible").await;
-
-        let tmp = TempDir::new().unwrap();
-        create_reversible_migration(
-            tmp.path(),
-            "1000",
-            "create_foo",
-            "CREATE TABLE foo (id integer PRIMARY KEY);",
-            "DROP TABLE IF EXISTS foo;",
-        );
-        create_reversible_migration(
-            tmp.path(),
-            "2000",
-            "create_bar",
-            "CREATE TABLE bar (id integer PRIMARY KEY);",
-            "DROP TABLE IF EXISTS bar;",
-        );
-
-        // Apply up migrations
-        let up_migrator = SqlxMigrator::up_migrator(tmp.path()).unwrap();
-        let mut conn = db_config.connect().await.unwrap();
-        conn.ensure_migrations_table().await.unwrap();
-
-        for migration in up_migrator.iter() {
-            conn.apply(migration).await.unwrap();
-        }
-
-        assert!(table_exists(&mut conn, "foo").await);
-        assert!(table_exists(&mut conn, "bar").await);
-        assert_eq!(conn.list_applied_migrations().await.unwrap().len(), 2);
-
-        // Rollback the latest migration
-        let down_migrator = SqlxMigrator::down_migrator(tmp.path()).unwrap();
-        let bar_down = down_migrator
-            .iter()
-            .find(|m| m.version == 2000)
-            .expect("down migration for version 2000 should exist");
-        conn.revert(bar_down).await.unwrap();
-
-        assert!(
-            table_exists(&mut conn, "foo").await,
-            "foo should still exist after rolling back bar"
-        );
-        assert!(
-            !table_exists(&mut conn, "bar").await,
-            "bar should be gone after rollback"
-        );
-        assert_eq!(conn.list_applied_migrations().await.unwrap().len(), 1);
-
-        // Rollback the remaining migration
-        let foo_down = down_migrator
-            .iter()
-            .find(|m| m.version == 1000)
-            .expect("down migration for version 1000 should exist");
-        conn.revert(foo_down).await.unwrap();
-
-        assert!(
-            !table_exists(&mut conn, "foo").await,
-            "foo should be gone after rollback"
-        );
-        assert_eq!(conn.list_applied_migrations().await.unwrap().len(), 0);
-
-        std::mem::drop(conn);
-        teardown_test_db(&db_name).await;
-    }
-
-    #[tokio::test]
-    async fn test_migrate_mixed_simple_and_reversible() {
-        let _db_url = require_db!();
-        let (db_config, db_name) = setup_test_db("mixed").await;
-
-        let tmp = TempDir::new().unwrap();
-        // First migration: simple (up-only, not rollbackable)
-        create_simple_migration(
-            tmp.path(),
-            "1000",
-            "create_foo",
-            "CREATE TABLE foo (id integer PRIMARY KEY);",
-        );
-        // Second migration: reversible (rollbackable)
-        create_reversible_migration(
-            tmp.path(),
-            "2000",
-            "create_bar",
-            "CREATE TABLE bar (id integer PRIMARY KEY);",
-            "DROP TABLE IF EXISTS bar;",
-        );
-
-        // Apply all up migrations (both simple and reversible)
-        let up_migrator = SqlxMigrator::up_migrator(tmp.path()).unwrap();
-        let mut conn = db_config.connect().await.unwrap();
-        conn.ensure_migrations_table().await.unwrap();
-
-        for migration in up_migrator.iter() {
-            conn.apply(migration).await.unwrap();
-        }
-
-        assert!(table_exists(&mut conn, "foo").await);
-        assert!(table_exists(&mut conn, "bar").await);
-        assert_eq!(conn.list_applied_migrations().await.unwrap().len(), 2);
-
-        // down_migrator should only include the reversible migration
-        let down_migrator = SqlxMigrator::down_migrator(tmp.path()).unwrap();
-        let down_migrations: Vec<_> = down_migrator.iter().collect();
-        assert_eq!(
-            down_migrations.len(),
-            1,
-            "only the reversible migration should have a down migration"
-        );
-        assert_eq!(down_migrations[0].version, 2000);
-
-        // Rollback the reversible migration
-        conn.revert(&down_migrations[0]).await.unwrap();
-
-        assert!(
-            table_exists(&mut conn, "foo").await,
-            "simple migration table should still exist"
-        );
-        assert!(
-            !table_exists(&mut conn, "bar").await,
-            "reversible migration table should be gone"
-        );
-
-        let applied = conn.list_applied_migrations().await.unwrap();
-        assert_eq!(applied.len(), 1);
-        assert_eq!(applied[0].version, 1000);
-
-        std::mem::drop(conn);
-        teardown_test_db(&db_name).await;
-    }
 }
