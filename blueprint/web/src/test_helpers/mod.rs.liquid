@@ -105,7 +105,7 @@ impl TestRequest {
 
     /// Sends the request to the application under test.
     /// # Panics
-    /// This function panics if the response body could not be read.
+    /// This function panics if the request could not be built.
     #[allow(unused)]
     pub async fn send(self) -> Response {
         let mut request_builder = Request::builder().uri(&self.uri);
