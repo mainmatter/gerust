@@ -128,8 +128,13 @@ fn generate(
         env::current_dir()?
     };
 
-    let mut defines: Vec<String> = vec![];
-    defines.push(format!("template_type={blueprint}"));
+    let defines: Vec<String> = vec![
+        format!("template_type={blueprint}"),
+        format!(
+            "crate_version={}",
+            env::var("CARGO_PKG_VERSION").unwrap_or("0.1.0".to_string())
+        ),
+    ];
 
     let template_path = build_template_path()?;
 
