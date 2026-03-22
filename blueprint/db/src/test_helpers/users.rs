@@ -1,5 +1,5 @@
 use crate::entities::users::User;
-use fake::{faker::name::en::*, Dummy};
+use fake::{faker::name::en::Name, Dummy};
 use sqlx::postgres::PgPool;
 
 /// A changeset representing the data that is intended to be used to either create a new user or update an existing user.

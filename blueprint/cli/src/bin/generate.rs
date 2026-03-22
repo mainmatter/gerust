@@ -19,6 +19,7 @@ use std::path::Path;
 use std::process::ExitCode;
 {% if template_type != "minimal" -%}
 use std::time::SystemTime;
+use std::path::PathBuf;
 {% endif -%}
 
 static BLUEPRINTS_DIR: include_dir::Dir =
@@ -80,6 +81,9 @@ enum Commands {
     Migration {
         #[arg(help = "The name of the migration.")]
         name: String,
+
+        #[arg(long, help = "Generate a simple (non-reversible) migration as a single .sql file.")]
+        simple: bool,
     },
     #[command(about = "Generate an entity")]
     Entity {
@@ -138,11 +142,18 @@ fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
             Ok(())
         }
         {% if template_type != "minimal" -%}
-        Commands::Migration { name } => {
+        Commands::Migration { name, simple } => {
             ui.info("Generating migration…");
-            let file_name = generate_migration(&name, cli.r#override)
-                .context("Could not generate migration!")?;
-            ui.success(&format!("Generated migration {}.", &file_name));
+            if simple {
+                let file_name = generate_simple_migration(&name, cli.r#override)
+                    .context("Could not generate migration!")?;
+                ui.success(&format!("Generated migration {}.", file_name.display()));
+            } else {
+                let (up_file_name, down_file_name) = generate_migration(&name, cli.r#override)
+                    .context("Could not generate migration!")?;
+                ui.success(&format!("Generated migration {}.", up_file_name.display()));
+                ui.success(&format!("Generated migration {}.", down_file_name.display()));
+            }
             Ok(())
         }
         Commands::Entity { name, fields } => {
@@ -261,13 +272,25 @@ fn generate_controller_test(name: &str, r#override: bool) -> Result<String, anyh
 }
 
 {% if template_type != "minimal" -%}
-fn generate_migration(name: &str, r#override: bool) -> Result<String, anyhow::Error> {
+fn generate_simple_migration(name: &str, r#override: bool) -> Result<PathBuf, anyhow::Error> {
     let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
-    let file_name = format!("{}__{}.sql", timestamp.as_secs(), name);
-    let path = format!("./db/migrations/{file_name}");
-    create_project_file(&path, "".as_bytes(), r#override)?;
+    let file_path = PathBuf::from(format!("./db/migrations/{}_{name}.sql", timestamp.as_secs()));
+    create_project_file(file_path.to_str().expect("Invalid file path for migration!"), "".as_bytes(), r#override)?;
 
-    Ok(path)
+    Ok(file_path)
+}
+
+fn generate_migration(name: &str, r#override: bool) -> Result<(PathBuf, PathBuf), anyhow::Error> {
+    let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
+    let dir_path = PathBuf::from(&format!("./db/migrations/{}__{name}", timestamp.as_secs()));
+    let up_migration = dir_path.join("up.sql");
+    let down_migration = dir_path.join("down.sql");
+
+    fs::create_dir_all(dir_path.as_path())?;
+    create_project_file(up_migration.to_str().expect("Invalid file path for migration!"), "".as_bytes(), r#override)?;
+    create_project_file(down_migration.to_str().expect("Invalid file path for migration!"), "".as_bytes(), r#override)?;
+
+    Ok((up_migration, down_migration))
 }
 
 fn generate_entity(name: &str, fields: &[String], r#override: bool) -> Result<String, anyhow::Error> {

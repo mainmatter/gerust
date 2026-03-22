@@ -6,7 +6,7 @@ use {{crate_name}}_config::{load_config, parse_env, Config, Environment};
 use guppy::{Version, VersionReq};
 use sqlx::postgres::{PgConnectOptions, PgConnection};
 use sqlx::{
-    migrate::{Migrate, Migrator},
+    migrate::{AppliedMigration, Migrate, Migration, MigrationType, Migrator},
     ConnectOptions, Connection, Executor,
 };
 use tokio::io::{stdin, AsyncBufReadExt};
@@ -61,6 +61,14 @@ enum Commands {
     Create,
     #[command(about = "Migrate the database")]
     Migrate,
+    #[command(about = "Rollback database migrations")]
+    Rollback {
+        #[arg(short, long, default_value = "1", help = "Number of migrations to roll back.", conflicts_with = "to")]
+        steps: u32,
+
+        #[arg(short, long, help = "Roll back up to (but not including) the migration with this name.")]
+        to: Option<String>,
+    },
     #[command(about = "Reset (drop, create, migrate) the database")]
     Reset,
     #[command(about = "Seed the database")]
@@ -74,6 +82,7 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
     let config: Result<Config, anyhow::Error> = load_config(&cli.env);
     match config {
         Ok(config) => {
+            let migrations_path = db_package_root()?.join("migrations");
             match cli.command {
                 Commands::Drop => {
                     ui.info(&format!("Dropping {} database…", &cli.env));
@@ -94,12 +103,27 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
                 Commands::Migrate => {
                     ui.info(&format!("Migrating {} database…", &cli.env));
                     ui.indent();
-                    let migrations = migrate(ui, &config.database)
+                    let migrations = migrate(ui, &config.database, &migrations_path)
                         .await
                         .context("Could not migrate database!");
                     ui.outdent();
                     let migrations = migrations?;
                     ui.success(&format!("{migrations} migrations applied."));
+                    Ok(())
+                }
+                Commands::Rollback { steps, to } => {
+                    if let Some(ref name) = to {
+                        ui.info(&format!("Rolling back {} database to \"{name}\"…", &cli.env));
+                    } else {
+                        ui.info(&format!("Rolling back {} database ({steps} step(s))…", &cli.env));
+                    }
+                    ui.indent();
+                    let result = rollback(ui, &config.database, &migrations_path, steps, to.as_deref())
+                        .await
+                        .context("Could not rollback database!");
+                    ui.outdent();
+                    let reverted = result?;
+                    ui.success(&format!("{reverted} migration(s) reverted."));
                     Ok(())
                 }
                 Commands::Seed => {
@@ -113,7 +137,7 @@ async fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
                 Commands::Reset => {
                     ui.info(&format!("Resetting {} database…", &cli.env));
                     ui.indent();
-                    let result = reset(ui, &config.database)
+                    let result = reset(ui, &config.database, &migrations_path)
                         .await
                         .context("Could not reset the database!");
                     ui.outdent();
@@ -192,12 +216,152 @@ async fn create(config: &DatabaseConfig) -> Result<String, anyhow::Error> {
     Ok(String::from(db_name))
 }
 
-async fn migrate(ui: &mut UI<'_>, config: &DatabaseConfig) -> Result<i32, anyhow::Error> {
+struct SqlxMigrator;
+
+impl SqlxMigrator {
+    /// Build a `Migrator` for all forward (up) migrations: both reversible
+    /// `{version}__{name}/up.sql` directories and simple `{version}_{name}.sql` files.
+    fn up_migrator(migrations_path: &Path) -> Result<Migrator, anyhow::Error> {
+        let mut migrations = Self::read_all_up_migrations(migrations_path)?;
+        migrations.sort_by_key(|m| m.version);
+        Ok(Migrator {
+            migrations: migrations.into(),
+            ..Migrator::DEFAULT
+        })
+    }
+
+    /// Build a `Migrator` for reversible down migrations from `{version}__{name}/down.sql` directories.
+    fn down_migrator(migrations_path: &Path) -> Result<Migrator, anyhow::Error> {
+        let mut migrations =
+            Self::read_dir_migrations(migrations_path, "down.sql", MigrationType::ReversibleDown)?;
+        migrations.sort_by_key(|m| m.version);
+        Ok(Migrator {
+            migrations: migrations.into(),
+            ..Migrator::DEFAULT
+        })
+    }
+
+    /// Read all up migrations from `migrations_path` in a single directory scan.
+    /// Collects both `{version}__{name}/up.sql` (reversible) and `{version}_{name}.sql` (simple) migrations.
+    fn read_all_up_migrations(migrations_path: &Path) -> Result<Vec<Migration>, anyhow::Error> {
+        let entries = fs::read_dir(migrations_path)
+            .context("Failed to read migrations directory")?;
+
+        let mut dirs = Vec::new();
+        let mut files = Vec::new();
+
+        for entry in entries {
+            let path = entry?.path();
+            if path.is_dir() {
+                dirs.push(path);
+            } else if path.is_file() && path.extension().and_then(|e| e.to_str()) == Some("sql") {
+                files.push(path);
+            }
+        }
+
+        let mut migrations = Vec::new();
+
+        for dir in &dirs {
+            let migration_file = dir.join("up.sql");
+            if !migration_file.exists() {
+                continue;
+            }
+
+            let (version, description) = Self::extract_meta_from_name(dir)?;
+            let contents = fs::read_to_string(&migration_file)
+                .with_context(|| format!("Failed to read {}", migration_file.display()))?;
+
+            migrations.push(Migration::new(
+                version,
+                description.into(),
+                MigrationType::ReversibleUp,
+                contents.into(),
+                false,
+            ));
+        }
+
+        for file in &files {
+            let (version, description) = Self::extract_meta_from_name(file)?;
+
+            let contents = fs::read_to_string(file)
+                .with_context(|| format!("Failed to read {}", file.display()))?;
+
+            migrations.push(Migration::new(
+                version,
+                description.to_string().into(),
+                MigrationType::Simple,
+                contents.into(),
+                false,
+            ));
+        }
+
+        Ok(migrations)
+    }
+
+    /// Read migrations from subdirectories matching `{version}__{name}/{file_name}`.
+    fn read_dir_migrations(
+        migrations_path: &Path,
+        file_name: &str,
+        migration_type: MigrationType,
+    ) -> Result<Vec<Migration>, anyhow::Error> {
+        let entries = fs::read_dir(migrations_path)
+            .context("Failed to read migrations directory")?;
+
+        let mut dirs: Vec<PathBuf> = entries
+            .filter_map(|res| res.ok())
+            .map(|e| e.path())
+            .filter(|p| p.is_dir())
+            .collect();
+        dirs.sort();
+
+        let mut migrations = Vec::new();
+
+        for dir in &dirs {
+            let migration_file = dir.join(file_name);
+            if !migration_file.exists() {
+                continue;
+            }
+
+            let (version, description) = Self::extract_meta_from_name(dir)?;
+            let contents = fs::read_to_string(&migration_file)
+                .with_context(|| format!("Failed to read {}", migration_file.display()))?;
+
+            migrations.push(Migration::new(
+                version,
+                description.into(),
+                migration_type,
+                contents.into(),
+                false,
+            ));
+        }
+
+        Ok(migrations)
+    }
+
+    fn extract_meta_from_name(dir: &Path) -> Result<(i64, String), anyhow::Error> {
+        let dir_name = dir
+            .file_name()
+            .and_then(|n| n.to_str())
+            .context("Invalid migration directory name")?;
+
+        let mut split = dir_name.split("__");
+        let version = split
+            .next()
+            .context("Couldn't extract `version` from file name")?
+            .parse::<i64>()?;
+        let name = split
+            .next()
+            .context("Couldn't extract `name` from file name")?
+            .to_string();
+
+        Ok((version, name))
+    }
+}
+
+async fn prepare_migrations(
+    config: &DatabaseConfig,
+) -> Result<(PgConnection, HashMap<i64, AppliedMigration>), anyhow::Error> {
     let db_config = get_db_config(config);
-    let migrations_path = db_package_root()?.join("migrations");
-    let migrator = Migrator::new(Path::new(&migrations_path))
-        .await
-        .context("Failed to create migrator!")?;
     let mut connection = db_config
         .connect()
         .await
@@ -216,19 +380,75 @@ async fn migrate(ui: &mut UI<'_>, config: &DatabaseConfig) -> Result<i32, anyhow
         .map(|m| (m.version, m))
         .collect();
 
+    Ok((connection, applied_migrations))
+}
+
+async fn migrate(ui: &mut UI<'_>, config: &DatabaseConfig, migrations_path: &Path) -> Result<i32, anyhow::Error> {
+    let migrator = SqlxMigrator::up_migrator(migrations_path)
+        .context("Failed to build migrator!")?;
+    let (mut connection, applied_migrations) = prepare_migrations(config).await?;
+
     let mut applied = 0;
     for migration in migrator.iter() {
         if !applied_migrations.contains_key(&migration.version) {
             connection
                 .apply(migration)
                 .await
-                .context("Failed to apply migration {}!")?;
+                .context("Failed to apply migration!")?;
             ui.log(&format!("Applied migration {}.", migration.version));
             applied += 1;
         }
     }
 
     Ok(applied)
+}
+
+async fn rollback(ui: &mut UI<'_>, config: &DatabaseConfig, migrations_path: &Path, steps: u32, to: Option<&str>) -> Result<i32, anyhow::Error> {
+    let migrator = SqlxMigrator::down_migrator(migrations_path)
+        .context("Failed to build migrator!")?;
+    let (mut connection, applied_migrations) = prepare_migrations(config).await?;
+
+    let mut applied_versions: Vec<i64> = applied_migrations.keys().copied().collect();
+    applied_versions.sort_unstable();
+    applied_versions.reverse();
+
+    let target_version = if let Some(name) = to {
+        let version = migrator
+            .iter()
+            .find(|m| *m.description == *name)
+            .map(|m| m.version)
+            .with_context(|| format!("No migration found with name \"{name}\""))?;
+
+        if !applied_migrations.contains_key(&version) {
+            return Err(anyhow!("Migration \"{name}\" has not been applied."));
+        }
+
+        Some(version)
+    } else {
+        None
+    };
+
+    let mut reverted = 0;
+    for version in applied_versions {
+        if let Some(target) = target_version {
+            if version <= target {
+                break;
+            }
+        } else if reverted >= steps as i32 {
+            break;
+        }
+
+        if let Some(migration) = migrator.iter().find(|m| m.version == version) {
+            connection
+                .revert(migration)
+                .await
+                .with_context(|| format!("Failed to revert migration {version}!"))?;
+            ui.log(&format!("Reverted migration {version}."));
+            reverted += 1;
+        }
+    }
+
+    Ok(reverted)
 }
 
 async fn seed(config: &DatabaseConfig) -> Result<(), anyhow::Error> {
@@ -253,14 +473,14 @@ async fn seed(config: &DatabaseConfig) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-async fn reset(ui: &mut UI<'_>, config: &DatabaseConfig) -> Result<String, anyhow::Error> {
+async fn reset(ui: &mut UI<'_>, config: &DatabaseConfig, migrations_path: &Path) -> Result<String, anyhow::Error> {
     ui.log("Dropping database…");
     drop(config).await?;
     ui.log("Recreating database…");
     let db_name = create(config).await?;
     ui.log("Migrating database…");
     ui.indent();
-    let migration_result = migrate(ui, config).await;
+    let migration_result = migrate(ui, config, migrations_path).await;
     ui.outdent();
 
     match migration_result {

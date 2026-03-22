@@ -227,6 +227,7 @@ mod tests {
 
     #[test]
     fn test_load_config_development() {
+        #[expect(clippy::result_large_err)]
         figment::Jail::expect_with(|jail| {
             let config_dir = jail.create_dir("config")?;
             jail.create_file(
@@ -275,6 +276,7 @@ mod tests {
 
     #[test]
     fn test_load_config_test() {
+        #[expect(clippy::result_large_err)]
         figment::Jail::expect_with(|jail| {
             let config_dir = jail.create_dir("config")?;
             jail.create_file(
@@ -323,6 +325,7 @@ mod tests {
 
     #[test]
     fn test_load_config_production() {
+        #[expect(clippy::result_large_err)]
         figment::Jail::expect_with(|jail| {
             let config_dir = jail.create_dir("config")?;
             jail.create_file(

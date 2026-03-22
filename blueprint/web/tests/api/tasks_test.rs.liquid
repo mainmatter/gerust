@@ -37,7 +37,7 @@ async fn test_create_invalid(context: &DbTestContext) {
         .unwrap();
 
     let payload = json!(TaskChangeset {
-        description: String::from("")
+        description: String::new()
     });
 
     let response = context
@@ -106,7 +106,7 @@ async fn test_create_batch_invalid(context: &DbTestContext) {
     let task_changeset: TaskChangeset = Faker.fake();
     let payload = json!(vec![
         TaskChangeset {
-            description: String::from("")
+            description: String::new()
         },
         task_changeset
     ]);
@@ -210,7 +210,7 @@ async fn test_read_one_success(context: &DbTestContext) {
 
     let response = context
         .app
-        .request(format!("/tasks/{}", task_id).as_str())
+        .request(format!("/tasks/{task_id}").as_str())
         .method(Method::GET)
         .send()
         .await;
@@ -253,7 +253,7 @@ async fn test_update_invalid(context: &DbTestContext) {
         .unwrap();
 
     let payload = json!(TaskChangeset {
-        description: String::from("")
+        description: String::new()
     });
 
     let response = context

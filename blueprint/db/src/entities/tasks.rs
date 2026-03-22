@@ -1,5 +1,5 @@
 #[cfg(feature = "test-helpers")]
-use fake::{faker::lorem::en::*, Dummy};
+use fake::{faker::lorem::en::Sentence, Dummy};
 use serde::Deserialize;
 use serde::Serialize;
 use sqlx::Postgres;
