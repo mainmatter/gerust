@@ -1,12 +1,15 @@
 [package]
 name = "{{project-name}}-config"
-version = "{{crate_version}}"
+version = "0.0.1"
 edition = "2021"
 publish = false
 
 [lib]
 # examples in docs don't run without config files being in place, etc.
 doctest = false
+
+[package.metadata.gerust]
+generated_with = "{{gerust_version}}"
 
 [dependencies]
 anyhow = "1"

@@ -131,8 +131,8 @@ fn generate(
     let defines: Vec<String> = vec![
         format!("template_type={blueprint}"),
         format!(
-            "crate_version={}",
-            env::var("CARGO_PKG_VERSION").unwrap_or("0.1.0".to_string())
+            "gerust_version={}",
+            env::var("CARGO_PKG_VERSION").expect("Should be able to get Gerust version")
         ),
     ];
 
