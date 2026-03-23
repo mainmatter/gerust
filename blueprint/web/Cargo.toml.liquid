@@ -1,6 +1,6 @@
 [package]
 name = "{{project-name}}-web"
-version = "{{crate_version}}"
+version = "0.0.1"
 edition = "2021"
 publish = false
 
@@ -10,6 +10,9 @@ doctest = false
 
 [features]
 test-helpers = ["dep:serde_json", "dep:tower", "dep:hyper", "dep:{{project-name}}-macros"]
+
+[package.metadata.gerust]
+generated_with = "{{gerust_version}}"
 
 [dependencies]
 anyhow = "1.0"

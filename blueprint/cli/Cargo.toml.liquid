@@ -1,6 +1,6 @@
 [package]
 name = "{{project-name}}-cli"
-version = "{{crate_version}}"
+version = "0.0.1"
 edition = "2021"
 publish = false
 
@@ -16,6 +16,9 @@ path = "src/bin/db.rs"
 [[bin]]
 name = "generate"
 path = "src/bin/generate.rs"
+
+[package.metadata.gerust]
+generated_with = "{{gerust_version}}"
 
 [dependencies]
 anyhow = "1"
