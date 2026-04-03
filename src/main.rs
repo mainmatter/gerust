@@ -130,10 +130,7 @@ fn generate(
 
     let defines: Vec<String> = vec![
         format!("template_type={blueprint}"),
-        format!(
-            "gerust_version={}",
-            env::var("CARGO_PKG_VERSION").expect("Should be able to get Gerust version")
-        ),
+        format!("gerust_version={VERSION}",),
     ];
 
     let template_path = build_template_path()?;
