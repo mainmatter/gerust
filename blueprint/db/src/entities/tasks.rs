@@ -15,7 +15,7 @@ pub struct Task {
     pub description: String,
 }
 
-/// A changeset representing the data that is intended to be used to either create a new task or update an existing task.
+/// A changeset representing the data intended to be used to either create a new [`Task`] or update an existing [`Task`].
 ///
 /// Changesets are validated in the [`create`] and [`update`] functions which return an [`Result::Err`] if validation fails.
 ///
