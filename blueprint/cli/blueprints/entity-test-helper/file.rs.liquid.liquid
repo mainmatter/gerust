@@ -3,6 +3,15 @@ use fake::{faker::name::en::*, Dummy};
 use sqlx::postgres::PgPool;
 use validator::Validate;
 
+/// A changeset representing the data intended to be used to either create a new [`{{entity_struct_name}}`] or update an existing [`{{entity_struct_name}}`].
+///
+/// Changesets are validated in the [`create`] and [`update`] functions which return an [Result::Err] if validation fails.
+///
+/// Changesets can also be used to generate fake data for tests when the `test-helpers` feature is enabled:
+///
+/// ```
+/// let task_changeset: TaskChangeset = Faker.fake();
+/// ```
 #[derive(Debug, Clone, Dummy, Validate)]
 pub struct {{entity_struct_name}}Changeset {
     // these are examples only
@@ -11,6 +20,11 @@ pub struct {{entity_struct_name}}Changeset {
     pub name: String,
 }
 
+/// Create a [`{{entity_struct_name}}`] in the database with the data in the passed [`{{entity_struct_name}}Changeset`].
+///
+/// # Errors
+/// - If there is a generic database error, a [`crate::Error::DbError`] will be returned.
+/// - If the data in the changeset isn't valid, a [`crate::Error::ValidationError`] will be returned, otherwise the created [`{{entity_struct_name}}`] is returned.
 pub async fn create({{entity_singular_name}}: {{entity_struct_name}}Changeset, db: &PgPool) -> Result<{{entity_struct_name}}, anyhow::Error> {
     todo!("Adopt the SQL query as necessary!");
     let record = sqlx::query!(
