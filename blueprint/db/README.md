@@ -16,6 +16,13 @@ pub struct User {
 }
 ```
 
+New entities are created with `cargo generate`. The created entity will have a `id` field of type `Uuid`. It is recommended to specify all fields to avoid having to fill them in the generated file manually.
+The command below generates the `User` entity seen above:
+
+```sh
+cargo generate entity user name:String
+```
+
 ## Reading and writing data
 
 Instead of using an ORM, that would introduce additional complexity, Gerust uses individual functions for reading and writing data from and to the database, e.g.:
