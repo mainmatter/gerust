@@ -1,3 +1,6 @@
+//! This entity test helper for [`{{entity_struct_name}}`] allows making specific database access functions available
+//! only for application tests but not for actual application code.
+
 use crate::entities::{{entity_plural_name}}::{{entity_struct_name}};
 use fake::{faker::name::en::*, Dummy};
 use sqlx::postgres::PgPool;
