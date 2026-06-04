@@ -85,7 +85,7 @@ enum Commands {
         #[arg(long, help = "Generate a simple (non-reversible) migration as a single .sql file.")]
         simple: bool,
     },
-    #[command(about = "Generate an entity. The created entity will have a `id` field of type `Uuid`. It is recommended to specify all fields to avoid having to fill them in the generated file manually.")]
+    #[command(about = "Generate an entity. The created entity will have a `id` field of type `Uuid`. You can also specify additional fields to avoid having to fill them in the generated structs and functions manually.")]
     Entity {
         #[arg(help = "The name of the entity.")]
         name: String,

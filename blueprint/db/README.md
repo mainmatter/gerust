@@ -16,7 +16,9 @@ pub struct User {
 }
 ```
 
-New entities are created with `cargo generate`. The created entity will have an `id` field of type `Uuid`. You can also specify additional fields. The command below generates the `User` entity seen above:
+New entities are created with `cargo generate`. The created entity will have an `id` field of type `Uuid`.
+You can also specify additional fields to avoid having to fill them in the generated structs and functions manually.
+The command below generates the `User` entity seen above:
 
 ```sh
 cargo generate entity user name:String
