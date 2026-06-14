@@ -147,12 +147,13 @@ fn cli(ui: &mut UI<'_>, cli: Cli) -> Result<(), anyhow::Error> {
             if simple {
                 let file_name = generate_simple_migration(&name, cli.r#override)
                     .context("Could not generate migration!")?;
-                ui.success(&format!("Generated migration {}.", file_name.display()));
+                ui.success(&format!("Generated empty migration {}.", file_name.display()));
             } else {
                 let (up_file_name, down_file_name) = generate_migration(&name, cli.r#override)
                     .context("Could not generate migration!")?;
-                ui.success(&format!("Generated migration {}.", up_file_name.display()));
-                ui.success(&format!("Generated migration {}.", down_file_name.display()));
+                ui.success(&format!("Generated empty migration {}.", up_file_name.display()));
+                ui.success(&format!("Generated empty migration {}.", down_file_name.display()));
+                ui.info("Fill the migration with your own SQL statements.")
             }
             Ok(())
         }
