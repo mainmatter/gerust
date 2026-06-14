@@ -116,7 +116,9 @@ The `db` crate also comes with a dedicate module for additional helpers that onl
 
 ## Migrations
 
-Migrations are stored as plain SQL files under `migrations`. In order to maintain a stable order, migrations are sorted by creation date – the [`migration` generator](../cli/README.md) will automatically generate files with the correct prefix.
+Migrations are stored as plain SQL files under `migrations`.
+To maintain a stable order, migrations are sorted by creation date – the [`migration` generator](../cli/README.md) will automatically generate files with the correct prefix.
+The generator creates empty migration files, it is up to the developer to fill them with SQL statements.
 
 [`fake`]: https://crates.io/crates/fake "fake on crates.io"
 [`sqlx`]: https://crates.io/crates/sqlx "SQLx on crates.io"
