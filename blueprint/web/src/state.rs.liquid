@@ -20,6 +20,8 @@ pub type SharedAppState = Arc<AppState>;
 /// Initializes the application state.
 ///
 /// This function creates an [`AppState`] based on the current [`{{crate_name}}_config::Config`].
+/// # Panics
+/// This function panics if it cannot connect to the database.
 {%- if template_type != "minimal" %}
 pub async fn init_app_state(config: Config) -> AppState {
     let db_pool = connect_pool(config.database)

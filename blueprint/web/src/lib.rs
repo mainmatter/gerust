@@ -28,6 +28,12 @@ pub mod error;
 /// 3. Initialize the application state (see [`state::init_app_state`])
 /// 4. Initialize the application's router (see [`routes::init_routes`])
 /// 5. Boot the application and start listening for requests on the configured interface and port
+///
+/// # Errors
+/// This function returns an Error if
+/// - The environment was not found
+/// - The configuration could not be loaded
+/// - The server could not be bound to the specified address
 pub async fn run() -> anyhow::Result<()> {
     let env = get_env().context("Cannot get environment!")?;
     let config: Config = load_config(&env).context("Cannot load config!")?;
@@ -51,6 +57,9 @@ pub async fn run() -> anyhow::Result<()> {
 /// * registers a [`tracing_panic::panic_hook`]
 ///
 /// The function respects the `RUST_LOG` if set or defaults to filtering spans and events with level [`tracing_subscriber::filter::LevelFilter::INFO`] and higher.
+///
+/// # Panics
+/// This function panics if the filter could not be parsed from `RUST_LOG` and a filter could not be constructed from `info`.
 pub fn init_tracing() {
     let filter = EnvFilter::try_from_default_env()
         .or_else(|_| EnvFilter::try_new("info"))

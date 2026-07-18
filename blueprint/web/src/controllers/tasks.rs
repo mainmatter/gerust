@@ -6,7 +6,10 @@ use uuid::Uuid;
 
 /// Creates a task in the database.
 ///
-/// This function creates a task in the database (see [`{{crate_name}}_db::entities::tasks::create`]) based on a [`{{crate_name}}_db::entities::tasks::TaskChangeset`] (sent as JSON). If the task is created successfully, a 201 response is returned with the created [`{{crate_name}}_db::entities::tasks::Task`]'s JSON representation in the response body. If the changeset is invalid, a 422 response is returned.
+/// This function creates a task in the database (see [`{{crate_name}}_db::entities::tasks::create`]) based on a [`{{crate_name}}_db::entities::tasks::TaskChangeset`] (sent as JSON). If the task is created successfully, a 201 response is returned with the created [`{{crate_name}}_db::entities::tasks::Task`]'s JSON representation in the response body.
+///
+/// # Errors
+/// - 422 Unprocessable Entity: Invalid changeset
 #[axum::debug_handler]
 pub async fn create(
     State(app_state): State<SharedAppState>,
@@ -19,9 +22,12 @@ pub async fn create(
 
 /// Creates multiple tasks in the database.
 ///
-/// This function creates multiple tasks in the database (see [`{{crate_name}}_db::entities::tasks::create`]) based on [`{{crate_name}}_db::entities::tasks::TaskChangeset`]s (sent as JSON). If all tasks are created successfully, a 201 response is returned with the created [`{{crate_name}}_db::entities::tasks::Task`]s' JSON representation in the response body. If any of the passed changesets is invalid, a 422 response is returned.
+/// This function creates multiple tasks in the database (see [`{{crate_name}}_db::entities::tasks::create`]) based on [`{{crate_name}}_db::entities::tasks::TaskChangeset`]s (sent as JSON). If all tasks are created successfully, a 201 response is returned with the created [`{{crate_name}}_db::entities::tasks::Task`]s' JSON representation in the response body.
 ///
 /// This function creates all tasks in a transaction so that either all are created successfully or none is.
+///
+/// # Errors
+/// - 422 Unprocessable Entity: Any changeset is invalid
 #[axum::debug_handler]
 pub async fn create_batch(
     State(app_state): State<SharedAppState>,
@@ -43,6 +49,9 @@ pub async fn create_batch(
 /// Reads and responds with all the tasks currently present in the database.
 ///
 /// This function reads all [`{{crate_name}}_db::entities::tasks::Task`]s from the database (see [`{{crate_name}}_db::entities::tasks::load_all`]) and responds with their JSON representations.
+///
+/// # Errors
+/// - 500 Internal Server Error: Database connection failed or other generic database error
 #[axum::debug_handler]
 pub async fn read_all(State(app_state): State<SharedAppState>) -> Result<Json<Vec<tasks::Task>>, Error> {
     let tasks = tasks::load_all(&app_state.db_pool).await?;
@@ -54,7 +63,11 @@ pub async fn read_all(State(app_state): State<SharedAppState>) -> Result<Json<Ve
 
 /// Reads and responds with a task identified by its ID.
 ///
-/// This function reads one [`{{crate_name}}_db::entities::tasks::Task`] identified by its ID from the database (see [`{{crate_name}}_db::entities::tasks::load`]) and responds with its JSON representations. If no task is found for the ID, a 404 response is returned.
+/// This function reads one [`{{crate_name}}_db::entities::tasks::Task`] identified by its ID from the database (see [`{{crate_name}}_db::entities::tasks::load`]) and responds with its JSON representations.
+///
+/// # Errors
+/// - 404 Not found: No task with the given ID was found.
+/// - 500 Internal Server Error: Database connection failed or other generic database error
 #[axum::debug_handler]
 pub async fn read_one(
     State(app_state): State<SharedAppState>,
@@ -66,7 +79,11 @@ pub async fn read_one(
 
 /// Updates a task in the database.
 ///
-/// This function updates a task identified by its ID in the database (see [`{{crate_name}}_db::entities::tasks::update`]) with the data from the passed [`{{crate_name}}_db::entities::tasks::TaskChangeset`] (sent as JSON). If the task is updated successfully, a 200 response is returned with the created [`{{crate_name}}_db::entities::tasks::Task`]'s JSON representation in the response body. If the changeset is invalid, a 422 response is returned.
+/// This function updates a task identified by its ID in the database (see [`{{crate_name}}_db::entities::tasks::update`]) with the data from the passed [`{{crate_name}}_db::entities::tasks::TaskChangeset`] (sent as JSON). If the task is updated successfully, a 200 response is returned with the created [`{{crate_name}}_db::entities::tasks::Task`]'s JSON representation in the response body.
+///
+/// # Errors
+/// - 422 Unprocessable Entity: Invalid changeset
+/// - 500 Internal Server Error: Database connection failed or other generic database error
 #[axum::debug_handler]
 pub async fn update(
     State(app_state): State<SharedAppState>,
@@ -79,7 +96,11 @@ pub async fn update(
 
 /// Deletes a task identified by its ID from the database.
 ///
-/// This function deletes one [`{{crate_name}}_db::entities::tasks::Task`] identified by the entity's id from the database (see [`{{crate_name}}_db::entities::tasks::delete`]) and responds with a 204 status code and empty response body. If no task is found for the ID, a 404 response is returned.
+/// This function deletes one [`{{crate_name}}_db::entities::tasks::Task`] identified by the entity's id from the database (see [`{{crate_name}}_db::entities::tasks::delete`]) and responds with a 204 status code and empty response body.
+///
+/// # Errors
+/// - 404 Not found: No task with the given ID was found.
+/// - 500 Internal Server Error: Database connection failed or other generic database error
 #[axum::debug_handler]
 pub async fn delete(
     State(app_state): State<SharedAppState>,
