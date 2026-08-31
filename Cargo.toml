@@ -19,7 +19,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "1"
 clap = { version = "4.5", features = ["cargo"] }
-cargo-generate = "0.23.5"
+cargo-generate = "0.24.0"
 include_dir = "0.7"
 tokio = { version = "1.48", default-features = false, features = [
     "macros",
