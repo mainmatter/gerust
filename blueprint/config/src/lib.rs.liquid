@@ -113,10 +113,13 @@ pub struct DatabaseConfig {
 /// you can set that location using the `APP_DOTENV_CONFIG_DIR` environment variable.
 /// This is useful when they are mounted at separate locations in a Docker container, for example.
 ///
-/// Configuration settings are loaded from these sources (in that order so that latter soruces override former):
+/// Configuration settings are loaded from these sources (in that order so that latter sources override the former):
 /// * the `config/app.toml` file
 /// * the `config/environments/<development|production|test>.toml` files depending on the environment
 /// * environment variables
+///
+/// # Errors
+/// Returns an error if any of the configuration sources could not be read.
 pub fn load_config<'a, T>(env: &Environment) -> Result<T, anyhow::Error>
 where
     T: Deserialize<'a>,
@@ -186,6 +189,9 @@ impl Display for Environment {
 /// Returns the currently active environment.
 ///
 /// If the `APP_ENVIRONMENT` env var is set, the application environment is parsed from that (which might fail if an invalid environment is set). If the env var is not set, [`Environment::Development`] is returned.
+///
+/// # Errors
+/// Returns an error if the `APP_ENVIRONMENT` env var is set to an invalid environment.
 pub fn get_env() -> Result<Environment, anyhow::Error> {
     if let Ok(val) = env::var("APP_ENVIRONMENT") {
         info!(r#"Setting environment from APP_ENVIRONMENT: "{}""#, val);
@@ -199,6 +205,9 @@ pub fn get_env() -> Result<Environment, anyhow::Error> {
 /// Parses an [`Environment`] from a string.
 ///
 /// The environment can be passed in different forms, e.g. "dev", "development", "prod", etc. If an invalid environment is passed, an error is returned.
+///
+/// # Errors
+/// Returns an error if the environment is not one of `dev`, `development`, `prod`, `production` or `test`.
 pub fn parse_env(env: &str) -> Result<Environment, anyhow::Error> {
     let env = &env.to_lowercase();
     match env.as_str() {

@@ -4,7 +4,7 @@ use sqlx::postgres::PgPool;
 
 /// A changeset representing the data that is intended to be used to either create a new user or update an existing user.
 ///
-/// Changesets are validated in the [`create`] function which return an [Result::Err] if validation fails.
+/// Changesets are validated in the [`create`] function that returns an [`Result::Err`] if validation fails.
 ///
 /// Changesets can also be used to generate fake data for tests when the `test-helpers` feature is enabled:
 ///
@@ -23,6 +23,7 @@ pub struct UserChangeset {
 
 /// Creates a user in the database with the data in the passed [`UserChangeset`].
 ///
+/// # Errors
 /// If the data in the changeset isn't valid, a [`crate::Error::ValidationError`] will be returned, otherwise the created user is returned.
 pub async fn create(user: UserChangeset, db: &PgPool) -> Result<User, anyhow::Error> {
     let record = sqlx::query!(
