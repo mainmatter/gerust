@@ -25,6 +25,9 @@ pub mod entities;
 /// ```
 ///
 /// Transactions are rolled back automatically when they are dropped without having been committed.
+///
+/// # Errors
+/// Returns a [`sqlx_core::error`] when the transaction is unsuccessful.
 pub async fn transaction(
     db_pool: &DbPool,
 ) -> Result<Transaction<'static, Postgres>, anyhow::Error> {
@@ -54,6 +57,9 @@ pub enum Error {
 }
 
 /// Creates a connection pool to the database specified in the passed [`{{project-name}}-config::DatabaseConfig`]
+///
+/// # Errors
+/// Returns a [`sqlx_core::error`] when the transaction is unsuccessful.
 pub async fn connect_pool(config: DatabaseConfig) -> Result<DbPool, anyhow::Error> {
     let pool = PgPoolOptions::new()
         .connect(config.url.as_str())

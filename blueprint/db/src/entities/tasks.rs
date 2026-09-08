@@ -17,7 +17,7 @@ pub struct Task {
 
 /// A changeset representing the data that is intended to be used to either create a new task or update an existing task.
 ///
-/// Changesets are validatated in the [`create`] and [`update`] functions which return an [Result::Err] if validation fails.
+/// Changesets are validated in the [`create`] and [`update`] functions which return an [`Result::Err`] if validation fails.
 ///
 /// Changesets can also be used to generate fake data for tests when the `test-helpers` feature is enabled:
 ///
@@ -34,6 +34,8 @@ pub struct TaskChangeset {
 }
 
 /// Load all [`Task`]s from the database.
+/// # Errors
+/// - If there is a generic database error, a [`crate::Error::DbError`] will be returned.
 pub async fn load_all(
     executor: impl sqlx::Executor<'_, Database = Postgres>,
 ) -> Result<Vec<Task>, crate::Error> {
@@ -45,7 +47,9 @@ pub async fn load_all(
 
 /// Load one [`Task`] from the database identified by its ID.
 ///
-/// If no record can be found for the ID, a [`crate::Error::NoRecordFound`] will be returned.
+/// # Errors
+/// - If there is a generic database error, a [`crate::Error::DbError`] will be returned.
+/// - If no record can be found for the ID, a [`crate::Error::NoRecordFound`] will be returned.
 pub async fn load(
     id: Uuid,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
@@ -59,7 +63,9 @@ pub async fn load(
 
 /// Delete a [`Task`] from the database identified by its ID.
 ///
-/// If no record can be found for the ID, a [`crate::Error::NoRecordFound`] will be returned.
+/// # Errors
+/// - If there is a generic database error, a [`crate::Error::DbError`] will be returned.
+/// - If no record can be found for the ID, a [`crate::Error::NoRecordFound`] will be returned.
 pub async fn delete(
     id: Uuid,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
@@ -75,7 +81,9 @@ pub async fn delete(
 
 /// Create a task in the database with the data in the passed [`TaskChangeset`].
 ///
-/// If the data in the changeset isn't valid, a [`crate::Error::ValidationError`] will be returned, otherwise the created task is returned.
+/// # Errors
+/// - If there is a generic database error, a [`crate::Error::DbError`] will be returned.
+/// - If the data in the changeset isn't valid, a [`crate::Error::ValidationError`] will be returned, otherwise the created task is returned.
 pub async fn create(
     task: TaskChangeset,
     executor: impl sqlx::Executor<'_, Database = Postgres>,
@@ -98,7 +106,9 @@ pub async fn create(
 
 /// Updates a task in the database with the data in the passed [`TaskChangeset`].
 ///
-/// If the data in the changeset isn't valid, a [`crate::Error::ValidationError`] will be returned, otherwise the updated [`Task`] is returned. If no record can be found for the ID, a [`crate::Error::NoRecordFound`] will be returned.
+/// # Errors
+/// - If there is a generic database error, a [`crate::Error::DbError`] will be returned.
+/// - If the data in the changeset isn't valid, a [`crate::Error::ValidationError`] will be returned, otherwise the updated [`Task`] is returned. If no record can be found for the ID, a [`crate::Error::NoRecordFound`] will be returned.
 pub async fn update(
     id: Uuid,
     task: TaskChangeset,
