@@ -15,7 +15,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
       with:
         components: rustfmt
 
@@ -28,7 +28,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
       with:
         components: clippy
 
@@ -43,7 +43,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
 
     - name: test
       run: cargo test
@@ -54,7 +54,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: actions-rust-lang/setup-rust-toolchain@v2
       
       - name: generate
         run: cargo run -- --full my-app
@@ -102,7 +102,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
 
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -155,7 +155,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
 
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -200,7 +200,7 @@ jobs:
     
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
     
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -234,7 +234,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
     
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -275,7 +275,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
     
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -323,7 +323,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
 
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -370,7 +370,7 @@ jobs:
     
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
     
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -397,7 +397,7 @@ jobs:
   
     steps:
       - uses: actions/checkout@v7
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: actions-rust-lang/setup-rust-toolchain@v2
       
       - name: generate
         run: cargo run my-app
@@ -445,7 +445,7 @@ jobs:
   
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
   
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -464,7 +464,7 @@ jobs:
     
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
     
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -498,7 +498,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
 
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -530,7 +530,7 @@ jobs:
     
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
     
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -597,7 +597,7 @@ jobs:
   
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
     
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -633,7 +633,7 @@ jobs:
     
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
     
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -651,7 +651,7 @@ jobs:
   
     steps:
       - uses: actions/checkout@v7
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: actions-rust-lang/setup-rust-toolchain@v2
       
       - name: generate
         run: cargo run -- --minimal my-app
@@ -671,7 +671,7 @@ jobs:
   
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
   
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -690,7 +690,7 @@ jobs:
     
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
     
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -709,7 +709,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
 
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -736,7 +736,7 @@ jobs:
   
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
     
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
@@ -757,7 +757,7 @@ jobs:
   
     steps:
     - uses: actions/checkout@v7
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@v2
     
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
