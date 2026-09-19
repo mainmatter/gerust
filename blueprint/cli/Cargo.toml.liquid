@@ -30,7 +30,7 @@ liquid = "~0.26"
 {{project-name}}-config = { path = "../config" }
 {% unless template_type == "minimal" -%}
 regex = "1.11"
-sqlx = { version = "0.8", features = [ "runtime-tokio", "tls-rustls", "postgres", "macros", "uuid", "migrate", "chrono" ] }
+sqlx = { version = "0.9", features = [ "runtime-tokio", "tls-rustls", "postgres", "macros", "uuid", "migrate", "chrono" ] }
 url = "2.5"
 {%- endunless %}
 tokio = { version = "1.34", features = ["full"] }
