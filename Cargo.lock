@@ -248,9 +248,9 @@ checksum = "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04"
 
 [[package]]
 name = "cargo-generate"
-version = "0.24.0"
+version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58b084229357e286c7f3acf90907f2dd0f8210eabfcf6fc7bc6997b7594b6054"
+checksum = "1edf5914b3729be72213b5a806cf7ae3dac841c4b293023b51caa8bd8cce4723"
 dependencies = [
  "anstyle",
  "anyhow",
@@ -3621,7 +3621,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.3.4",
+ "getrandom 0.4.3",
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
