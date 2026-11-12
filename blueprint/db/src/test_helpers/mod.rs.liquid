@@ -17,6 +17,9 @@ pub mod users;
 ///
 /// This sets up a dedicated database as a fork of the main test database as configured in `.env.test`. The database can be used in a test case to ensure the test case is isolated from other test cases. The function returns a connection pool connected to the created database.
 /// This function is automatically called by the [`{{project-name}}-macros::db_test`] macro. The return connection pool is passed to the test case via the [`{{project-name}}-macros::DbTestContext`].
+///
+/// # Panics
+/// This function panics if it cannot connect to the database.
 #[allow(unused)]
 pub async fn setup_db(config: &DatabaseConfig) -> DbPool {
     let test_db_config = prepare_db(config).await;
@@ -28,6 +31,9 @@ pub async fn setup_db(config: &DatabaseConfig) -> DbPool {
 /// Drops a dedicated database for a test case.
 ///
 /// This function is automatically called by the [`{{project-name}}-macros::db_test`] macro. It ensures test-specific database are cleaned up after each test run so we don't end up with large numbers of unused databases.
+///
+/// # Panics
+/// This function panics if connection to the database fails, the database name cannot be retrieved, or the database cannot be dropped.
 pub async fn teardown_db(db_pool: DbPool) {
     let mut connect_options = db_pool.connect_options();
     let db_config = Arc::make_mut(&mut connect_options);
